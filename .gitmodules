@@ -1,0 +1,7 @@
+[submodule "qolo/AB3DMOT"]
+	path = qolo/AB3DMOT
+	url = https://github.com/hibetterheyj/AB3DMOT.git
+	branch = crowdbot
+[submodule "qolo/Person_MinkUNet"]
+	path = qolo/Person_MinkUNet
+	url = https://github.com/VisualComputingInstitute/Person_MinkUNet.git
