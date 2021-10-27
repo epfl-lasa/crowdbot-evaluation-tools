@@ -1,3 +1,20 @@
+# folders
+## Person_MinkUNet model can be downloaded from from https://github.com/VisualComputingInstitute/Person_MinkUNet/releases/tag/v1.0
+library
+model
+data
+tmp
+
+# generated files
+*.pyc
+*.png
+*.mp4
+
+# subfolders
+qolo/rosbag/
+qolo/lidar/
+qolo/detections/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
