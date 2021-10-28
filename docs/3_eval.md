@@ -23,8 +23,8 @@ sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
 ```sh
 # convert the data format from rosbag
 cd path/to/crowdbot_tools
-python3 qolo/gen_lidar_from_rosbags.py -f 0424_shared_control
 python3 qolo/gen_lidar_from_rosbags.py -f nocam_rosbags
+python3 qolo/gen_lidar_from_rosbags.py -f 0424_shared_control
 python3 qolo/gen_lidar_from_rosbags.py -f 0424_rds_detector
 ```
 
@@ -50,6 +50,16 @@ python3 qolo/gen_lidar_from_rosbags.py -f 0424_rds_detector
           ├── nocam_2021-04-24-13-16-58
           └── nocam_2021-05-08-11-32-47
   ```
+
+### Extracting pose_stamped from rosbag
+
+#### run the detection code
+
+```sh
+python3 qolo/gen_pose_with_timestamp.py -f nocam_rosbags
+python3 qolo/gen_pose_with_timestamp.py -f 0424_shared_control
+python3 qolo/gen_pose_with_timestamp.py -f 0424_rds_detector
+```
 
 ### Running detector with Person-MinkUNet
 
@@ -80,22 +90,22 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
 
 - add PYTHONPATH variable (optional)
 
-  As indicated [here](https://github.com/xinshuoweng/AB3DMOT#dependencies), to load the library appropriately, please remember to append PYTHONPATH variable in each terminal or add the following to your ~/.profile
+    As indicated [here](https://github.com/xinshuoweng/AB3DMOT#dependencies), to load the library appropriately, please remember to append PYTHONPATH variable in each terminal or add the following to your ~/.profile
 
-  ```sh
-  # conda activate torch38_cu110
-  export PYTHONPATH="${PYTHONPATH}:${PWD}/qolo/AB3DMOT"
-  echo $PYTHONPATH
-  ```
+    ```sh
+    # conda activate torch38_cu110
+    export PYTHONPATH="${PYTHONPATH}:${PWD}/qolo/AB3DMOT"
+    echo $PYTHONPATH
+    ```
 
-  Inspired by these two stackoverflow posts, [[In Python script, how do I set PYTHONPATH?](https://stackoverflow.com/a/3108307)] and [[How do I get the full path of the current file's directory?](https://stackoverflow.com/a/3430395)], we can append the AB3DMOT library in python scripts as follows:
+    Inspired by these two stackoverflow posts, [[In Python script, how do I set PYTHONPATH?](https://stackoverflow.com/a/3108307)] and [[How do I get the full path of the current file's directory?](https://stackoverflow.com/a/3430395)], we can append the AB3DMOT library in python scripts as follows:
 
-  ```python
-  import os
-  import sys
-  # export PYTHONPATH="${PYTHONPATH}:${PWD}/qolo/AB3DMOT"
-  sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "AB3DMOT"))
-  ```
+    ```python
+    import os
+    import sys
+    # export PYTHONPATH="${PYTHONPATH}:${PWD}/qolo/AB3DMOT"
+    sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "AB3DMOT"))
+    ```
 
 - possible error caused by incomplete installation of numba
 
@@ -115,6 +125,7 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
   ```
 
   **solution**: `pip install --upgrade --force-reinstall numba==0.53.1`
+  
 
 #### run the tracking code
 
@@ -167,7 +178,9 @@ libtbb-dev libosmesa6-dev libudev-dev autoconf libtool
 mkdir installed
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=../installed -DPYTHON_EXECUTABLE=/home/crowdbot/miniconda3/envs/py38cuda110/bin/python ..
+cmake -DCMAKE_INSTALL_PREFIX=../installed \
+      -DPYTHON_EXECUTABLE=/home/crowdbot/miniconda3/envs/py38cuda110/bin/python \
+      ..
 make -j$(nproc)
 make install
 
@@ -177,11 +190,34 @@ make conda-package
 python -c "import open3d"
 ```
 
+- other dependancy
+
+```
+conda install -c conda-forge scipy==1.4.0
+# pip install scipy==1.4.0 --user
+# validate by `python -c "import scipy; print(scipy.__version__)"`
+```
+
 #### viz with Open3D
+
+- running scripts
 
 ```
 # generate images
 python3 qolo/gen_viz_img_o3d.py -f nocam_rosbags
+python3 qolo/gen_viz_img_o3d.py -f 0424_shared_control
+python3 qolo/gen_viz_img_o3d.py -f 0424_rds_detector
+```
+
+- **TODO: headless rendering: http://www.open3d.org/docs/latest/tutorial/visualization/headless_rendering.html **
+
+```sh
+cmake -DENABLE_HEADLESS_RENDERING=ON \
+                 -DBUILD_GUI=OFF \
+                 -DBUILD_WEBRTC=OFF \
+                 -DUSE_SYSTEM_GLEW=OFF \
+                 -DUSE_SYSTEM_GLFW=OFF \
+                 ..
 ```
 
 #### viz with mayavi
@@ -197,7 +233,9 @@ python3 qolo/gen_viz_img.py -f 0424_rds_detector
 
 ```sh
 # generate video
+# TODO: check correctly or not
 # ffmpeg -y -r 15 -pattern_type glob -i "tmp/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "tmp/frames.mp4"
+# ffmpeg -y -r 15 -pattern_type glob -i "viz_imgs/nocam_2021-04-24-11-48-21/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "videos/nocam_2021-04-24-11-48-21.mp4"
 python3 qolo/gen_video.py -f nocam_rosbags
 python3 qolo/gen_video.py -f 0424_shared_control
 python3 qolo/gen_video.py -f 0424_rds_detector
@@ -224,5 +262,4 @@ python3 qolo/gen_video.py -f 0424_rds_detector
       ├── 0424_shared_control -> /hdd/data_qolo/lausanne_2021/24_04_2021/shared_control
       └── nocam_rosbags -> /hdd/data_qolo/lausanne_2021/nocam_rosbags/
   ```
-
-## 
+  

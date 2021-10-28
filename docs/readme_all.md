@@ -162,8 +162,8 @@ sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
 ```sh
 # convert the data format from rosbag
 cd path/to/crowdbot_tools
-python3 qolo/gen_lidar_from_rosbags.py -f 0424_shared_control
 python3 qolo/gen_lidar_from_rosbags.py -f nocam_rosbags
+python3 qolo/gen_lidar_from_rosbags.py -f 0424_shared_control
 python3 qolo/gen_lidar_from_rosbags.py -f 0424_rds_detector
 ```
 
@@ -189,6 +189,16 @@ python3 qolo/gen_lidar_from_rosbags.py -f 0424_rds_detector
           ├── nocam_2021-04-24-13-16-58
           └── nocam_2021-05-08-11-32-47
   ```
+
+### Extracting pose_stamped from rosbag
+
+#### run the detection code
+
+```sh
+python3 qolo/gen_pose_with_timestamp.py -f nocam_rosbags
+python3 qolo/gen_pose_with_timestamp.py -f 0424_shared_control
+python3 qolo/gen_pose_with_timestamp.py -f 0424_rds_detector
+```
 
 ### Running detector with Person-MinkUNet
 
@@ -307,7 +317,9 @@ libtbb-dev libosmesa6-dev libudev-dev autoconf libtool
 mkdir installed
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=../installed -DPYTHON_EXECUTABLE=/home/crowdbot/miniconda3/envs/py38cuda110/bin/python ..
+cmake -DCMAKE_INSTALL_PREFIX=../installed \
+      -DPYTHON_EXECUTABLE=/home/crowdbot/miniconda3/envs/py38cuda110/bin/python \
+      ..
 make -j$(nproc)
 make install
 
@@ -317,11 +329,34 @@ make conda-package
 python -c "import open3d"
 ```
 
+- other dependancy
+
+```
+conda install -c conda-forge scipy==1.4.0
+# pip install scipy==1.4.0 --user
+# validate by `python -c "import scipy; print(scipy.__version__)"`
+```
+
 #### viz with Open3D
+
+- running scripts
 
 ```
 # generate images
 python3 qolo/gen_viz_img_o3d.py -f nocam_rosbags
+python3 qolo/gen_viz_img_o3d.py -f 0424_shared_control
+python3 qolo/gen_viz_img_o3d.py -f 0424_rds_detector
+```
+
+- **TODO: headless rendering: http://www.open3d.org/docs/latest/tutorial/visualization/headless_rendering.html **
+
+```sh
+cmake -DENABLE_HEADLESS_RENDERING=ON \
+                 -DBUILD_GUI=OFF \
+                 -DBUILD_WEBRTC=OFF \
+                 -DUSE_SYSTEM_GLEW=OFF \
+                 -DUSE_SYSTEM_GLFW=OFF \
+                 ..
 ```
 
 #### viz with mayavi
@@ -337,7 +372,9 @@ python3 qolo/gen_viz_img.py -f 0424_rds_detector
 
 ```sh
 # generate video
+# TODO: check correctly or not
 # ffmpeg -y -r 15 -pattern_type glob -i "tmp/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "tmp/frames.mp4"
+# ffmpeg -y -r 15 -pattern_type glob -i "viz_imgs/nocam_2021-04-24-11-48-21/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "videos/nocam_2021-04-24-11-48-21.mp4"
 python3 qolo/gen_video.py -f nocam_rosbags
 python3 qolo/gen_video.py -f 0424_shared_control
 python3 qolo/gen_video.py -f 0424_rds_detector
@@ -388,11 +425,10 @@ python3 qolo/gen_video.py -f 0424_rds_detector
 
   - [ ] organize documentation
 
-  - [ ] sync data with lidar from
-
 - [ ] other topic data
 
     - [x] visual odom -> robot trajectory (1026)
+    - [x] pose 3d viz (1027)
     - [ ] robot velocity
     - [ ] synchronize all data
 
