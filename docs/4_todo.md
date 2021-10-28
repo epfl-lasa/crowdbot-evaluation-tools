@@ -1,10 +1,14 @@
 ## TODO
 
+### Main
+
+- [ ] Implement test and style-check with LASA python guide
+
 - [ ] reimplement viz with open3d
   - [x] basic viz  (1026)
   - [x] display within dist (1026)
   - [x] extract robot pose in lidar frame (1027)
-  - [ ] add robot pose into each frame viz
+  - [x] add robot pose into each frame viz (1028)
   - [ ] headless image rendering
 
 - [ ] visualize in the world frame
@@ -19,31 +23,31 @@
     - timestamp of tf
     - timestamp of robot
 
-  - [ ] organize documentation
+  - [x] organize documentation (1028)
 
-- [ ] other topic data
+- [ ] other topic data processing
 
+    - [ ] synchronize all data
     - [x] visual odom -> robot trajectory (1026)
     - [x] pose 3d viz (1027)
     - [ ] robot velocity
-    - [ ] synchronize all data
-
-- [ ] refactor AllFrames class (1026)
-
-  - [x] refactor and rename as "viz_util.py"
-  - [x] image generation (1026)
-  - [x] video generation (1026)
-  - [x] pose extraction (1026)
-  - [ ] detection
-  - [ ] tracking
-
-- [ ] robot state and control input (X and U) amd its derivative
-
-- [ ] compact data storage, reference: other 3D detection dataset!
+    - [ ] compact data storage, reference: other 3D detection dataset!
+    - [ ] control input (X and U) amd its derivative
 
 - [ ] visualize bbox. traj, velo in rviz (orientation)
 
     ref: spencer viz: https://github.com/spencer-project/spencer_people_tracking/tree/master/visualization
+
+### Others
+
+- [ ] refactor AllFrames class
+
+  - [x] refactor and rename as "viz_util.py"
+  - [x] image generation (1026)
+  - [x] video generation (1026)
+  - [x] pose extraction (1027)
+  - [ ] detection
+  - [ ] tracking
 
 - [ ] consider using mutliprocessing when generating images
 
