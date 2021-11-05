@@ -1,6 +1,6 @@
 # -*-coding:utf-8 -*-
 '''
-@File    :   gen_pose_with_timestamp.py
+@File    :   gen_pose_ts.py
 @Time    :   2021/10/26
 @Author  :   Yujie He
 @Version :   1.1

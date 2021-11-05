@@ -28,7 +28,6 @@ if __name__ == "__main__":
 
     allf = AllFrames(args)
 
-    # print(allf.nr_seqs())
 
     for seq_idx in range(allf.nr_seqs()):
 
@@ -42,12 +41,11 @@ if __name__ == "__main__":
             print("Images will be saved in {}".format(img_seq_dir))
             os.makedirs(img_seq_dir, exist_ok=True)
 
-            # !!! consider pose_stamped
+            # TODO: create new !!! consider pose_stamped
             consider_pose = True
             if consider_pose:
-                lidar_stamped_filepath = os.path.join(allf.pose_dir, seq+'_lidar_pose_stamped.npy')
-                lidar_pose_stamped_dict_np = np.load(lidar_stamped_filepath, allow_pickle=True)
-                lidar_pose_stamped = lidar_pose_stamped_dict_np.item()
+                lidar_stamped_path = os.path.join(allf.pose_dir, seq+'_lidar_pose_stamped.npy')
+                lidar_pose_stamped = np.load(lidar_stamped_path, allow_pickle=True).item()
 
             # generate image every step_viz frames
             step_viz = 4
