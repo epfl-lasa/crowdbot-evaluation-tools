@@ -219,9 +219,9 @@ downloads [checkpoints](https://github.com/VisualComputingInstitute/Person_MinkU
 
 #### run the detection code
 
-```
-python3 qolo/gen_detection_res.py -f 0424_shared_control
+```sh
 python3 qolo/gen_detection_res.py -f nocam_rosbags
+python3 qolo/gen_detection_res.py -f 0424_shared_control
 python3 qolo/gen_detection_res.py -f 0424_rds_detector
 ```
 
@@ -248,7 +248,7 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
 
 - possible error caused by incomplete installation of numba
 
-  ```
+  ```sh
   $ python -c 'import numba' 
   Traceback (most recent call last):
     File "<string>", line 1, in <module>
@@ -269,8 +269,8 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
 #### run the tracking code
 
 ```sh
-python3 qolo/gen_tracking_res.py -f 0424_shared_control
 python3 qolo/gen_tracking_res.py -f nocam_rosbags
+python3 qolo/gen_tracking_res.py -f 0424_shared_control
 python3 qolo/gen_tracking_res.py -f 0424_rds_detector
 ```
 
@@ -402,11 +402,27 @@ python3 qolo/gen_video.py -f 0424_rds_detector
       └── nocam_rosbags -> /hdd/data_qolo/lausanne_2021/nocam_rosbags/
   ```
 
+### Evaluating crowd density and min. dist. from detecion/tracking results
+
+#### run the evaluation code
+
+```sh
+python3 qolo/gen_crowd_eval.py -f nocam_rosbags
+python3 qolo/gen_crowd_eval.py -f 0424_shared_control
+python3 qolo/gen_crowd_eval.py -f 0424_rds_detector
+```
+
+results will be saved into `metrics/` subfolder
+
 ## TODO
 
 ### Main
 
 - [ ] Implement test and style-check with LASA python guide
+
+- [x] Crowd evaluation code (1104)
+  - [x] compute crowd density
+  - [x] compute min. dist. from robot
 
 - [ ] reimplement viz with open3d
   - [x] basic viz  (1026)
@@ -441,6 +457,8 @@ python3 qolo/gen_video.py -f 0424_rds_detector
 - [ ] visualize bbox. traj, velo in rviz (orientation)
 
     ref: spencer viz: https://github.com/spencer-project/spencer_people_tracking/tree/master/visualization
+
+- [ ] deface the rosbag data before open=source the dataset
 
 ### Others
 

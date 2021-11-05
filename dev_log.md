@@ -6,6 +6,19 @@
 - Store all the lidars, detections, trackings in compact format (such as csv, npy, tar.gz, etc.)
     should refer to kitti or jrdb dataset
 - Implement test and style-check with LASA python guide
+- Deployment on Jeston AGX
+
+## Week4
+
+- THu, 2021/11/04
+
+    - reorganize the rosbag folder into three main catagories: RDS, MDS, shared control
+    - continue integrate the evalCrowdDensity into pipeline => `qolo/gen_crowd_eval.py` can be used for evaluate the min. dist. from qolo and crowd density within 10m of qolo and save corresponding images
+
+- Tue, 2021/11/02
+
+    - test the evalMetricCrowdDensity.py code in `qolo-evaluation/`, countered and fixed a bug related to the changed API in numpy package. The original code is based on bag2Npy.py to extract the online detection of DR-SPAAM-Detector while our implementation is based on offline detection using Person_MinkUNet
+    - implement the evalMetricCrowdDensity in my current framework
 
 ## Week3
 

@@ -4,6 +4,10 @@
 
 - [ ] Implement test and style-check with LASA python guide
 
+- [x] Crowd evaluation code (1104)
+  - [x] compute crowd density
+  - [x] compute min. dist. from robot
+
 - [ ] reimplement viz with open3d
   - [x] basic viz  (1026)
   - [x] display within dist (1026)
@@ -37,6 +41,8 @@
 - [ ] visualize bbox. traj, velo in rviz (orientation)
 
     ref: spencer viz: https://github.com/spencer-project/spencer_people_tracking/tree/master/visualization
+
+- [ ] deface the rosbag data before open=source the dataset
 
 ### Others
 
