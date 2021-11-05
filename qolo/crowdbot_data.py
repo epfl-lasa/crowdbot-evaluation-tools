@@ -8,6 +8,8 @@
 @State   :   Dev
 '''
 
+# TODO: adding overwrite to all argparse
+
 import os
 import numpy as np
 
@@ -23,7 +25,11 @@ class AllFrames(object):
         # image and video folder for visualization
         self.imgs_dir = os.path.join(data_processed_dir, "viz_imgs")
         self.video_dir = os.path.join(data_processed_dir, "videos")
-        self.pose_dir = os.path.join(data_processed_dir, "pose_stamped")
+        # TODO: only imply source_data folder and include pose_stamped and twist inside it!
+        # TODO: change subfolder to pose!!! or directly save to single file without subfolder!
+        self.source_data_dir = os.path.join(data_processed_dir, "source_data")
+        self.pose_dir = os.path.join(data_processed_dir, "source_data", "pose_stamped")
+        self.twist_dir = os.path.join(data_processed_dir, "source_data", "twist")
         self.metrics_dir = os.path.join(data_processed_dir, "metrics")
 
         # store _stamped.npy in the same folder
