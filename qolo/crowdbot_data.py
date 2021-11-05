@@ -24,6 +24,7 @@ class AllFrames(object):
         self.imgs_dir = os.path.join(data_processed_dir, "viz_imgs")
         self.video_dir = os.path.join(data_processed_dir, "videos")
         self.pose_dir = os.path.join(data_processed_dir, "pose_stamped")
+        self.metrics_dir = os.path.join(data_processed_dir, "metrics")
 
         # store _stamped.npy in the same folder
         self.seqs = [f for f in os.listdir(self.lidar_dir) if f.split('.')[-1] != 'npy']

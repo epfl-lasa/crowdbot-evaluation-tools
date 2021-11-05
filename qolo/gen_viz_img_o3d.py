@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     allf = AllFrames(args)
 
-    print(allf.nr_seqs())
+    # print(allf.nr_seqs())
 
     for seq_idx in range(allf.nr_seqs()):
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
                 lidar_pose_stamped_dict_np = np.load(lidar_stamped_filepath, allow_pickle=True)
                 lidar_pose_stamped = lidar_pose_stamped_dict_np.item()
 
-            # generate image every 2 frames
+            # generate image every step_viz frames
             step_viz = 4
             for fr_idx in range(0, allf.nr_frames(seq_idx), step_viz):
                 # !!! consider pose_stamped
