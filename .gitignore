@@ -9,6 +9,7 @@ tmp
 *.pyc
 *.png
 *.mp4
+!example/*.png
 
 # subfolders
 qolo/rosbag/
