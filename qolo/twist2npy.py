@@ -1,6 +1,6 @@
 # -*-coding:utf-8 -*-
 '''
-@File    :   gen_twist_ts.py
+@File    :   twist2npy.py
 @Time    :   2021/11/05
 @Author  :   Yujie He
 @Version :   1.0
@@ -13,8 +13,11 @@
 import os
 import sys
 import argparse
+
 import numpy as np
+
 import rosbag
+
 from crowdbot_data import AllFrames, bag_file_filter
 
 #%% extract twist_stamped from rosbag without rosbag play
@@ -26,16 +29,12 @@ def ts_to_sec(ts):
     return ts.secs + ts.nsecs / float(1e9)
 
 def extract_twist_from_rosbag(bag_file_path, args):
-    # load rosbag and BagTfTransformer
-    # bag = rosbag.Bag(bag_file_path)
     twist_msg_sum = 0
     num_msgs_between_logs = 50
     x_list, zrot_list, t_list = [], [], []
 
     with rosbag.Bag(bag_file_path, 'r') as bag:
         # Look for the topics that are available and save the total number of messages for each topic (useful for the progress bar)
-        total_num_twist_msgs = 0
-        # TODO: need fixing total_num_twist_msgs
         total_num_twist_msgs = bag.get_message_count(topic_filters=args.twist_topic)
         print('Found twist topic: {} with {} messages'.format(args.twist_topic, total_num_twist_msgs))
 
@@ -50,9 +49,8 @@ def extract_twist_from_rosbag(bag_file_path, args):
                 zrot_list.append(zrot_vel)
                 t_list.append(ts_vel)
 
-                # TODO: need fixing total_num_twist_msgs
                 if twist_msg_sum % num_msgs_between_logs == 0 or twist_msg_sum >= total_num_twist_msgs - 1:
-                    print('Event messages: {} / {}'.format(twist_msg_sum + 1, total_num_twist_msgs))
+                    print('twist messages: {} / {}'.format(twist_msg_sum + 1, total_num_twist_msgs))
                 twist_msg_sum += 1
 
     t_np = np.asarray(t_list, dtype=np.float64)
@@ -64,7 +62,6 @@ def extract_twist_from_rosbag(bag_file_path, args):
                           'zrot': z_np}
     print('Current twist extracted!')
     return twist_stamped_dict
-
 
 #%% main file
 if __name__ == "__main__":
@@ -78,6 +75,9 @@ if __name__ == "__main__":
                         help='different subfolder in rosbag/ dir')
     parser.add_argument('--twist_topic', default='/qolo/twist', type=str,
                         help='topic for qolo twist')
+    parser.add_argument('--overwrite', dest='overwrite', action='store_true',
+                        help="Whether to overwrite existing rosbags (default: false)")
+    parser.set_defaults(feature=False)
     args = parser.parse_args()
 
     allf = AllFrames(args)
@@ -101,11 +101,12 @@ if __name__ == "__main__":
 
         twist_stamped_filepath = os.path.join(allf.twist_dir, bag_name+'_twist_stamped.npy')
 
-        if not os.path.exists(twist_stamped_filepath):
+        if (not os.path.exists(twist_stamped_filepath)) or (args.overwrite):
             twist_stamped_dict = extract_twist_from_rosbag(bag_path, args)
             np.save(twist_stamped_filepath, twist_stamped_dict)
         else:
-            print("{} already existed!".format(twist_stamped_filepath))
+            print("Detecting the generated {} already existed!".format(twist_stamped_filepath))
+            print('Will not overwrite. If you want to overwrite, use flag --overwrite')
             continue
     
     print("Finish extracting all twist_stamped msg!")

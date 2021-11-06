@@ -1,6 +1,6 @@
 # -*-coding:utf-8 -*-
 '''
-@File    :   gen_pose_ts.py
+@File    :   tfqolo2npy.py
 @Time    :   2021/10/26
 @Author  :   Yujie He
 @Version :   1.1
@@ -98,6 +98,9 @@ if __name__ == "__main__":
                         help='data folder, i.e., the name of folder that stored extracted raw data and processed data')
     parser.add_argument('-f', '--folder', default='nocam_rosbags', type=str,
                         help='different subfolder in rosbag/ dir')
+    parser.add_argument('--overwrite', dest='overwrite', action='store_true',
+                        help="Whether to overwrite existing rosbags (default: false)")
+    parser.set_defaults(feature=False)
     args = parser.parse_args()
 
     allf = AllFrames(args)
@@ -112,8 +115,8 @@ if __name__ == "__main__":
     data_processed_dir = os.path.join(args.base, args.data, data_processed)
     if not os.path.exists(allf.lidar_dir):
         print("ERROR: please use `gen_lidar_from_rosbags.py` to extract lidar files first!")
-    if not os.path.exists(allf.pose_dir):
-        os.makedirs(allf.pose_dir)
+    if not os.path.exists(allf.qolo_tf_dir):
+        os.makedirs(allf.qolo_tf_dir)
 
     print("Starting extracting pose_stamped files from {} rosbags!".format(len(bag_files)))
 
@@ -124,8 +127,8 @@ if __name__ == "__main__":
         counter += 1
         print("({}/{}): {}".format(counter, len(bag_files), bag_path))
 
-        all_stamped_filepath = os.path.join(allf.pose_dir, bag_name+'_all_pose_stamped.npy')
-        lidar_stamped_filepath = os.path.join(allf.pose_dir, bag_name+'_lidar_pose_stamped.npy')
+        all_stamped_filepath = os.path.join(allf.qolo_tf_dir, bag_name+'_all_pose_stamped.npy')
+        lidar_stamped_filepath = os.path.join(allf.qolo_tf_dir, bag_name+'_lidar_pose_stamped.npy')
 
         if os.path.exists(lidar_stamped_filepath):
             continue

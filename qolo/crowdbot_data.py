@@ -28,7 +28,8 @@ class AllFrames(object):
         # TODO: only imply source_data folder and include pose_stamped and twist inside it!
         # TODO: change subfolder to pose!!! or directly save to single file without subfolder!
         self.source_data_dir = os.path.join(data_processed_dir, "source_data")
-        self.pose_dir = os.path.join(data_processed_dir, "source_data", "pose_stamped")
+        self.qolo_tf_dir = os.path.join(data_processed_dir, "source_data", "qolo_tf")
+        self.pose_dir = os.path.join(data_processed_dir, "source_data", "pose")
         self.twist_dir = os.path.join(data_processed_dir, "source_data", "twist")
         self.metrics_dir = os.path.join(data_processed_dir, "metrics")
 
