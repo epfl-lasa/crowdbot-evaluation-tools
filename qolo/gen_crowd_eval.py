@@ -17,11 +17,120 @@ TODO: read /rds_to_gui in `rds_network_ros/ToGui` to get start timestamp and sto
 
 import os
 import argparse
+
 import numpy as np
 import pandas as pd
+# use TeX-like rendering: https://matplotlib.org/3.1.1/tutorials/text/mathtext.html
 import matplotlib.pyplot as plt
+
 from crowdbot_data import AllFrames
 
+#%% utility functions
+def compute_metrics(trks):
+
+    # 1. all_det
+    all_det = np.shape(trks)[0]
+
+    # 2. within_det
+    # r_square_within = (trks[:,0]**2 + trks[:,1]**2) < args.dist**2
+    # within_det = np.shape(trks[r_square_within,:])[0]
+    all_dist = np.linalg.norm(trks[:,[0,1]], axis=1)
+    within_det5 = np.sum(np.less(all_dist, 5.0))
+    within_det10 = np.sum(np.less(all_dist, 10.0))
+
+    # 3. min_dist
+    # b = np.random.rand(5,3)
+    # b01_norm = np.linalg.norm(b[:,[0,1]], axis=1)
+    min_dist = min(all_dist)
+
+    # 4. crowd_density
+    area_local5 = np.pi*5.0**2
+    crowd_density5 = within_det5/area_local5
+    area_local10 = np.pi*10.0**2
+    crowd_density10 = within_det10/area_local10
+    return (all_det, 
+            within_det5, within_det10, 
+            crowd_density5, crowd_density10, 
+            min_dist)
+
+# save crowd_density plotting
+def save_cd_img(eval_dict, base_dir, seq_name):
+    # unpack md data from eval_dict
+    ts = eval_dict.get('timestamp')
+    cd5 = eval_dict.get('crowd_density5')
+    cd10 = eval_dict.get('crowd_density10')
+    start_ts = eval_dict.get('start_command_ts')
+
+    duration = np.max(ts)-np.min(ts)
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    # crowd_density chart
+    l1, = ax.plot(ts-np.min(ts), cd5, linewidth=1, color='coral', label='x = 5')
+    l2, = ax.plot(ts-np.min(ts), cd10, linewidth=1, color='navy', label='x = 10')
+
+    # start_ts vertical line
+    start_ts_offset = np.max([start_ts-np.min(ts), 0.0])
+    ax.axvline(x=start_ts_offset, linestyle='--', linewidth=2, color='red')
+    plt.text(x=start_ts_offset+1, y=0.45, 
+        s='$t_s$={0:.1f}s'.format(start_ts_offset), 
+        horizontalalignment='left',
+        fontsize=10)
+
+    ax.legend(handles=[l1, l2])
+    ax.set_title("Crowd Density within x [m] of qolo ({0:.1f}s)".format(duration), fontsize=15)
+    _ = ax.set_xlabel("t [s]")
+    _ = ax.set_ylabel("Density [1/m^2]")
+
+    ax.set_xlim(left=0.0)
+    ax.set_ylim(bottom=0.0, top=0.5)
+
+    fig.tight_layout()
+    cd_img_path = os.path.join(base_dir, seq_name+'_crowd_density.png')
+    plt.savefig(cd_img_path, dpi=300) # png, pdf
+
+# save min. dist. plotting
+def save_md_img(eval_dict, base_dir, seq_name):
+    # unpack md data from eval_dict
+    ts = eval_dict.get('timestamp')
+    md = eval_dict.get('min_dist')
+    start_ts = eval_dict.get('start_command_ts')
+
+    duration = np.max(ts)-np.min(ts)
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    # min_dist chart
+    ax.plot(ts-np.min(ts), md, linewidth=1, color='coral')
+
+    # start_ts vertical line
+    start_ts_offset = np.max([start_ts-np.min(ts), 0.0])
+    ax.axvline(x=start_ts_offset, linestyle='--', linewidth=2, color='red')
+    plt.text(x=start_ts_offset+1, y=4.5, 
+        s='$t_s$={0:.1f}s'.format(start_ts_offset), 
+        horizontalalignment='left',
+        fontsize=10)
+
+    # y=0.3 horizontal line
+    # 'xmin' in Axes.axhline denotes the maximum of the axis
+    # ax.axhline(y=0.3, xmin=0.0, xmax=duration, linestyle='--', color='navy')
+    ax.plot((0.0, duration), (0.3, 0.3), linestyle='--', color='navy')
+    plt.text(x=duration/2, y=0.4, s=r'$\mathrm{dist}_{\min}=0.3$', 
+         horizontalalignment='center', verticalalignment="baseline",
+         fontsize=10)
+
+    ax.set_title("Min. Distance of Pedestrain from qolo ({0:.1f}s)".format(duration), fontsize=15)
+    _ = ax.set_xlabel("t [s]")
+    _ = ax.set_ylabel("Distance [m]")
+    
+    ax.set_xlim(left=0.0)
+    ax.set_ylim(bottom=0.0, top=5.0)
+
+    fig.tight_layout()
+    md_img_path = os.path.join(base_dir, seq_name+'_min_dist.png')
+    plt.savefig(md_img_path, dpi=300) # png, pdf
+
+#%% main function
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='convert data from rosbag')
     
@@ -39,7 +148,10 @@ if __name__ == "__main__":
     parser.set_defaults(save_img=True)
     parser.add_argument('--overwrite', dest='overwrite', action='store_true',
                         help="Whether to overwrite existing rosbags (default: false)")
-    parser.set_defaults(feature=False)
+    parser.set_defaults(overwrite=False)
+    parser.add_argument('--replot', dest='replot', action='store_true',
+                        help="Whether to re-plot existing images (default: false)")
+    parser.set_defaults(replot=False)
     args = parser.parse_args()
 
     allf = AllFrames(args)
@@ -75,109 +187,82 @@ if __name__ == "__main__":
         # TODO: consider adding a threshold
 
 
-        # dest
+        # dest: seq+'_crowd_eval.npy' file in eval_res_dir
         crowd_eval_npy = os.path.join(eval_res_dir, seq+'_crowd_eval.npy')
 
-        if (not os.path.exists(crowd_eval_npy)) or (args.overwrite):
+        # only for plotting function update!
+        if args.replot:
+            crowd_eval_dict = np.load(crowd_eval_npy, allow_pickle=True).item()
 
-            # timestamp can be read from lidars/ folder
-            stamp_file_path = os.path.join(allf.lidar_dir, seq+'_stamped.npy')
-            lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
-            ts_np = lidar_stamped_dict.item().get('timestamp')
-            all_det_list = []
-            within_det5_list = []
-            within_det10_list = []
-            min_dist_list = []
-            crowd_density5_list = []
-            crowd_density10_list = []
+            # figure1: crowd density
+            save_cd_img(crowd_eval_dict, eval_res_dir, seq)
 
-            for fr_idx in range(allf.nr_frames(seq_idx)):
+            # figure2: min. dist.
+            save_md_img(crowd_eval_dict, eval_res_dir, seq)
 
-                _, _, _, trks = allf[seq_idx, fr_idx]
-
-                # 1. all_det
-                all_det = np.shape(trks)[0]
-
-                # 2. within_det
-                # r_square_within = (trks[:,0]**2 + trks[:,1]**2) < args.dist**2
-                # within_det = np.shape(trks[r_square_within,:])[0]
-                all_dist = np.linalg.norm(trks[:,[0,1]], axis=1)
-                within_det5 = np.sum(np.less(all_dist, 5.0))
-                within_det10 = np.sum(np.less(all_dist, 10.0))
-                print("Seq {}/{} - Frame {}/{}: filtered/overall boxes within 10m: {}/{}"
-                      .format(seq_idx+1, allf.nr_seqs(),
-                              fr_idx+1, allf.nr_frames(seq_idx), 
-                              within_det10, all_det))
-
-                # 3. min_dist
-                # b = np.random.rand(5,3)
-                # b01_norm = np.linalg.norm(b[:,[0,1]], axis=1)
-                min_dist = min(all_dist)
-
-                # 4. crowd_density
-                area_local5 = np.pi*5.0**2
-                crowd_density5 = within_det5/area_local5
-                area_local10 = np.pi*10.0**2
-                crowd_density10 = within_det10/area_local10
-
-                # append into list
-                all_det_list.append(all_det)
-                within_det5_list.append(within_det5)
-                within_det10_list.append(within_det10)
-                min_dist_list.append(min_dist)
-                crowd_density5_list.append(crowd_density5)
-                crowd_density10_list.append(crowd_density10)
-
-            ad_np = np.asarray(all_det_list, dtype=np.uint8)
-            wd5_np = np.asarray(within_det5_list, dtype=np.uint8)
-            wd10_np = np.asarray(within_det10_list, dtype=np.uint8)
-            md_np = np.asarray(min_dist_list, dtype=np.float32)
-            cd5_np = np.asarray(crowd_density5_list, dtype=np.float32)
-            cd10_np = np.asarray(crowd_density10_list, dtype=np.float32)
-            crowd_eval_dict = {'timestamp': ts_np, 
-                            'all_det': ad_np, 
-                            'within_det5': wd5_np, 
-                            'within_det10': wd10_np, 
-                            'min_dist': md_np, 
-                            'crowd_density5': cd5_np,
-                            'crowd_density10': cd10_np}
-            np.save(crowd_eval_npy, crowd_eval_dict)
-
-            if args.save_img:
-                # figure1: crowd density
-                fig, ax = plt.subplots(figsize=(8, 4))
-
-                l1, = ax.plot(ts_np-np.min(ts_np), cd5_np, linewidth=1, color='coral', label='x = 5')
-                l2, = ax.plot(ts_np-np.min(ts_np), cd10_np, linewidth=1, color='navy', label='x = 10')
-
-                ax.legend(handles=[l1, l2])
-                ax.set_title("Crowd Density within x [m] of qolo", fontsize=15)
-                _ = ax.set_xlabel("t [s]")
-                _ = ax.set_ylabel("Density [1/m^2]")
-
-                ax.set_xlim(left=0.0)
-                ax.set_ylim(bottom=0.0)
-
-                fig.tight_layout()
-                cd_img_path = os.path.join(eval_res_dir, seq+'_crowd_density.png')
-                plt.savefig(cd_img_path, dpi=300) # png, pdf
-
-                # figure2: min. dist.
-                fig2, ax2 = plt.subplots(figsize=(8, 4))
-
-                ax2.plot(ts_np-np.min(ts_np), md_np, linewidth=1, color='coral')
-                ax2.axhline(y=0.3, xmin=0.0, xmax=np.max(ts_np)-np.min(ts_np), linestyle='--', color='navy')
-
-                ax2.set_title("Min. Distance of Pedestrain from qolo", fontsize=15)
-                _ = ax2.set_xlabel("t [s]")
-                _ = ax2.set_ylabel("Distance [m]")
-                
-                ax2.set_xlim(left=0.0)
-                ax2.set_ylim(bottom=0.0, top=5.0)
-
-                fig2.tight_layout()
-                md_img_path = os.path.join(eval_res_dir, seq+'_min_dist.png')
-                plt.savefig(md_img_path, dpi=300) # png, pdf
+            print("Replotted images!")
         else:
-            print("Crowd density of {} already generated!!!".format(seq))
-            continue
+            if (not os.path.exists(crowd_eval_npy)) or (args.overwrite):
+
+                # timestamp can be read from lidars/ folder
+                stamp_file_path = os.path.join(allf.lidar_dir, seq+'_stamped.npy')
+                lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
+                ts = lidar_stamped_dict.item().get('timestamp')
+
+                # targeted metrics and correspoding dtype
+                attrs = ('all_det', 
+                        'within_det5', 'within_det10', 
+                        'crowd_density5', 'crowd_density10',
+                        'min_dist')
+                dtypes = (np.uint8, 
+                            np.uint8, np.uint8, 
+                            np.float32, np.float32,
+                            np.float32)
+
+                crowd_eval_list_dict = {k:[] for k in attrs}
+
+                num_msgs_between_logs = 200
+                nr_frames = allf.nr_frames(seq_idx)
+
+                for fr_idx in range(nr_frames):
+
+                    _, _, _, trks = allf[seq_idx, fr_idx]
+
+                    metrics = compute_metrics(trks)
+
+                    if fr_idx % num_msgs_between_logs == 0 or fr_idx >= nr_frames - 1:
+                        print("Seq {}/{} - Frame {}/{}: filtered/overall boxes within 10m: {}/{}"
+                        .format(seq_idx+1, allf.nr_seqs(),
+                                fr_idx+1, nr_frames, 
+                                metrics[2], metrics[0]))
+
+                    # update value for each attr
+                    for idx, val in enumerate(metrics):
+                        crowd_eval_list_dict[attrs[idx]].append(val)
+
+                crowd_eval_dict = {name:np.asarray(crowd_eval_list_dict[attrs[idx]], dtype=dtype) for idx, (name, dtype) in enumerate(zip(attrs, dtypes))}
+
+                # other attributes
+                crowd_eval_dict.update({'timestamp': ts})
+
+                crowd_eval_dict.update({'start_command_ts': start_ts})
+
+                # avg_min_dict = np.average(crowd_eval_dict['min_dict'])
+                for attr in attrs:
+                    avg_attr = 'avg_' + attr
+                    crowd_eval_dict.update({avg_attr: np.average(crowd_eval_dict[attr])})
+
+                np.save(crowd_eval_npy, crowd_eval_dict)
+
+                if args.save_img:
+                    # figure1: crowd density
+                    save_cd_img(crowd_eval_dict, eval_res_dir, seq)
+
+                    # figure2: min. dist.
+                    save_md_img(crowd_eval_dict, eval_res_dir, seq)
+            else:
+                print("Detecting the generated {} already existed!".format(crowd_eval_npy))
+                print('Will not overwrite. If you want to overwrite, use flag --overwrite')
+                continue
+
+    print("Finish crowd evaluation!")
