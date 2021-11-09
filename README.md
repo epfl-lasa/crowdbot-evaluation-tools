@@ -11,14 +11,24 @@
 
 ## Examples
 
-- animation with qolo trajectories and detection/tracking results within 8 meter
+<details>
+    <summary><b>animation with qolo trajectories and detection/tracking results within 8 meter</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21.gif" alt="example video"   width="500" > </div>
+</details>
 
-    <img src="./example/nocam_2021-04-24-11-48-21.gif" alt="example video"  width="500" />
+<details>
+    <summary><b>crowd_density variations along the timestamps</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21_crowd_density.png" alt="crowd_density"   width="500" > </div>
+</details>
 
-- crowd_density variations along the timestamps
+<details>
+    <summary><b>min_dist variations along the timestamps</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21_min_dist.png" alt="min_dist"   width="500" > </div>
+</details>
 
-    <img src="./example/2021-04-24-13-07-54_crowd_density.png" alt="example video"  width="500" />
+## Dataset
 
-- min_dist variations along the timestamps
+<details open>
+    <summary><b>Proposed dataset structure</b></summary> <div align="center"> <img src="./example/dataset_stucture.png" alt="dataset"   width="500" > </div>
+</details>
 
-    <img src="./example/2021-04-24-13-07-54_min_dist.png" alt="example video"  width="500" />
+## Acknowledgment
+
+:construction:
