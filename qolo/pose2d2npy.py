@@ -31,7 +31,7 @@ def ts_to_sec(ts):
 
 def extract_pose2d_from_rosbag(bag_file_path, args):
     pose2d_msg_sum = 0
-    num_msgs_between_logs = 50
+    num_msgs_between_logs = 100
     x_list, y_list, theta_list, t_list = [], [], [], []
 
     with rosbag.Bag(bag_file_path, 'r') as bag:
@@ -49,7 +49,7 @@ def extract_pose2d_from_rosbag(bag_file_path, args):
                 theta = tf.transformations.euler_from_quaternion([quat.x,quat.y,quat.z,quat.w])
                 ts   = ts_to_sec(msg.header.stamp)
                 x_list.append(x)
-                y_list.append(x)
+                y_list.append(y)
                 theta_list.append(theta)
                 t_list.append(ts)
 
