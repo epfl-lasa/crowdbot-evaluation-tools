@@ -83,7 +83,7 @@ if __name__ == "__main__":
                         help='topic for qolo odom')
     parser.add_argument('--overwrite', dest='overwrite', action='store_true',
                         help="Whether to overwrite existing rosbags (default: false)")
-    parser.set_defaults(feature=False)
+    parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
     allf = AllFrames(args)
