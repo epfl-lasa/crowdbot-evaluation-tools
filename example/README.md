@@ -23,9 +23,6 @@
     <details open>
         <summary><b>min_dist variations along the timestamps</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21_min_dist.png" alt="min_dist"   width="500" > </div>
     </details>
-    <details open>
-        <summary><b>path/time to goal</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21_path.png" alt="path"   width="500" > </div>
-    </details>
 </details>
 
 ## Dataset
