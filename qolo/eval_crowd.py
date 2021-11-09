@@ -1,6 +1,6 @@
 # -*-coding:utf-8 -*-
 '''
-@File    :   gen_crowd_eval.py
+@File    :   eval_crowd.py
 @Time    :   2021/11/02
 @Author  :   Yujie He
 @Version :   1.0
@@ -11,8 +11,6 @@
 """
 evaluate the min. dist. from qolo and crowd density within 10m of qolo and save corresponding images
 TODO: compare with detected pedestrain from the rosbag!
-TODO: separate the plotting code into a independent part in eval/
-TODO: read /rds_to_gui in `rds_network_ros/ToGui` to get start timestamp and stoptimestamp
 """
 
 import os
@@ -20,29 +18,12 @@ import argparse
 
 import numpy as np
 import pandas as pd
-# use TeX-like rendering: https://matplotlib.org/3.1.1/tutorials/text/mathtext.html
 import matplotlib.pyplot as plt
 
 from crowdbot_data import AllFrames
 
-#%% utility functions
+#%% utility functions to evaluate qolo
 def compute_time_path(qolo_twist, qolo_pose2d):
-    """
-    twist_dir = os.path.join(source_data_dir, 'twist')
-    qolo_twist_path = os.path.join(twist_dir, seq+'_twist_stamped.npy')
-    if not os.path.exists(qolo_twist_path):
-        print("ERROR: Please extract twist_stamped by using twist2npy.py")
-    qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
-
-    pose2d_dir = os.path.join(source_data_dir, 'pose2d')
-    qolo_pose2d_path = os.path.join(pose2d_dir, seq+'_pose2d.npy')
-    if not os.path.exists(qolo_pose2d_path):
-        print("ERROR: Please extract pose2d by using pose2d2npy.py")
-    qolo_pose2d = np.load(qolo_pose2d_path, allow_pickle=True).item()
-
-    time_path_computed = compute_time_path(qolo_twist, qolo_pose2d)
-    """
-
     # 1. calculate starting timestamp based on nonzero twist command
     # starting: larger than zero
     start_idx = np.min([np.min(np.nonzero(qolo_twist.get("x"))), 
@@ -107,6 +88,7 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     path_img_path = os.path.join(base_dir, seq_name+'_path.png')
     plt.savefig(path_img_path, dpi=300) # png, pdf
 
+#%% utility functions to evaluate crowd
 def compute_metrics(trks):
 
     # 1. all_det
@@ -251,12 +233,12 @@ if __name__ == "__main__":
 
     allf = AllFrames(args)
 
-    print("Starting extracting crowd_density files from {} rosbags!".format(allf.nr_seqs()))
+    print("Starting evaluating crowd from {} sequences!".format(allf.nr_seqs()))
 
     eval_res_dir = os.path.join(allf.metrics_dir)
 
     if not os.path.exists(eval_res_dir):
-        print("Crowd density images and npy will be saved in {}".format(eval_res_dir))
+        print("Result images and npy will be saved in {}".format(eval_res_dir))
         os.makedirs(eval_res_dir, exist_ok=True)
 
     for seq_idx in range(allf.nr_seqs()):
