@@ -44,18 +44,11 @@ if __name__ == "__main__":
         if not os.path.exists(video_seq_filepath):
             print("Images will be converted into {}".format(video_seq_filepath))
 
-            # use ffmpeg-py
-            (
-                ffmpeg
-                .input('{}/*.png'.format(img_seq_dir), pattern_type='glob', framerate=25)
-                .output(video_seq_filepath)
-                .run()
-            )
-
             # old verion (deprecated)
             # cat *.png | ffmpeg -f image2pipe -i - output.mp4
             # ffmpeg -framerate 10 -pattern_type glob -i '*.png' -c:v libx264 -pix_fmt yuv420p out.mp4
-            # TODO: fix bugs by integrating `%04d`
+             
+            # method1: generate with os.system()
             # """
             # generate video using ffmpeg via os.system()
             # os.system("ffmpeg -y -r 15 -pattern_type glob -i 'tmp/*.png' -c:v libx264 -vf fps=30 -pix_fmt yuv420p 'tmp/frames.mp4'")
@@ -66,6 +59,24 @@ if __name__ == "__main__":
             cmd = header_cmd+in_images+middle_cmd+out_video
             os.system(cmd)
             # """
+
+            # images to gifs: ffmpeg -i lapse.mp4 -r 12 -s 640x360 output.gif
+            header_cmd = "ffmpeg -i "
+            in_images = "'{}'".format(video_seq_filepath)
+            middle_cmd = " -r 12 -s 640x480 "
+            out_gif = "{}".format(video_seq_filepath.replace('mp4', 'gif')) # "'tmp/frames.mp4'"
+            cmd = header_cmd+in_images+middle_cmd+out_gif
+            os.system(cmd)
+
+            """
+            # use ffmpeg-py
+            (
+                ffmpeg
+                .input('{}/*.png'.format(img_seq_dir), pattern_type='glob', framerate=25)
+                .output(video_seq_filepath)
+                .run()
+            )
+            """
         else:
             print("{} already generated!!!".format(video_seq_filepath))
             continue

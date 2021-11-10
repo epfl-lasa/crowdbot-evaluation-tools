@@ -28,7 +28,6 @@ if __name__ == "__main__":
 
     allf = AllFrames(args)
 
-
     for seq_idx in range(allf.nr_seqs()):
 
         seq = allf.seqs[seq_idx]
@@ -45,7 +44,7 @@ if __name__ == "__main__":
             consider_pose = True
             if consider_pose:
                 qolo_tf_dir = os.path.join(allf.source_data_dir, "qolo_tf")
-                lidar_stamped_path = os.path.join(qolo_tf_dir, seq+'_lidar_pose_stamped.npy')
+                lidar_stamped_path = os.path.join(qolo_tf_dir, seq+'_tfqolo_sampled.npy')
                 lidar_pose_stamped = np.load(lidar_stamped_path, allow_pickle=True).item()
 
             # generate image every step_viz frames

@@ -320,7 +320,7 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
     if pose:
         (trans_list, rot_quat_list) = pose
         trans_curr = trans_list[-1,:]
-        print(trans_curr)
+        # print(trans_curr)
         # scipy: (x, y, z, w) from https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_quat.html
         # open3d: (w, x, y, z) `Eigen::Quaterniond` from https://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html
         # https://github.com/isl-org/Open3D/blob/master/cpp/open3d/geometry/Geometry3D.cpp#L216
@@ -407,7 +407,6 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
         # for i, trans in enumerate(trans_list):
         mesh = o3d.geometry.TriangleMesh.create_sphere(radius=0.15)
         mesh.compute_vertex_normals()
-        print(np.shape(trans_list)[0])
         # mode 1: show past 50 frames traj
         # viz_trans_list = trans_list[-50:,:] # trans_list
         # mode 2: show past traj sparsely (every 20 frame)

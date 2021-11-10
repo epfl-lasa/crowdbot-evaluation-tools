@@ -65,7 +65,7 @@ if __name__ == "__main__":
         counter += 1
         print("({}/{}): {} frames".format(counter, seq_num, allf.nr_frames(seq_idx)))
 
-        # seq dest: data/xxxx_processed/tracks/seq
+        # seq dest: data/xxxx_processed/alg_res/tracks/seq
         trk_seq_dir = os.path.join(allf.trks_dir, allf.seqs[seq_idx])
         
         if not os.path.exists(trk_seq_dir):
@@ -78,15 +78,6 @@ if __name__ == "__main__":
                 trks = tracker.update(trk_input)
                 trks = reorder_back(trks)
 
-                # plot_frame(lidar, trks, out_path=f"./tmp/{fr_idx}.png")
-
-                # save to file
-                # f_path = os.path.join(
-                #     allf.trks_dir,
-                #     allf.seqs[seq_idx],
-                #     allf.frames[seq_idx][fr_idx].replace("nby", "txt"),
-                # )
-                # os.makedirs(os.path.dirname(f_path), exist_ok=True)
                 f_path = os.path.join(trk_seq_dir, 
                                      allf.frames[seq_idx][fr_idx]
                                      .replace("nby", "txt")

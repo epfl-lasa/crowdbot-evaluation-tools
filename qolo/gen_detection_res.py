@@ -13,6 +13,7 @@ import os
 import argparse
 import numpy as np
 
+from crowdbot_data import AllFrames
 from lidar_det.detector import DetectorWithClock
 
 
@@ -34,38 +35,43 @@ if __name__ == "__main__":
                         type=str, help='checkpoints filename')
     args = parser.parse_args()
 
+    allf = AllFrames(args)
+
     # model checkpoints
     ckpt_path = os.path.join(args.base, "qolo", "Person_MinkUNet", "models", args.model)
     detector = DetectorWithClock(ckpt_path)
 
     # source: lidar data in data/xxxx_processed/lidars
     data_processed = args.folder + "_processed"
-    data_processed_folder = os.path.join(args.base, args.data, data_processed)
-    lidar_file_folder = os.path.join(data_processed_folder, "lidars")
-    seqs = os.listdir(lidar_file_folder)
+    data_processed_dir = os.path.join(args.base, args.data, data_processed)
+    lidar_file_dir = allf.lidar_dir
 
     # destination: generated detection data in data/xxxx_processed/detections
-    detection_file_folder = os.path.join(data_processed_folder, "detections")
+    detection_file_dir = allf.dets_dir
 
-    print("Starting detection from {} lidar sequences!".format(len(seqs)))
+    seq_num = allf.nr_seqs()
+    print("Starting detection from {} lidar sequences!".format(seq_num))
 
     counter = 0
-    for seq in seqs:
+    for seq_idx in range(seq_num):
+
+        seq = allf.seqs[seq_idx]
+
         #print(seq)
         counter += 1
-        print("({}/{}): {}".format(counter, len(seqs), seq))
-        frames = os.listdir(os.path.join(lidar_file_folder, seq))
+        print("({}/{}): {}".format(counter, seq_num, seq))
+        frames = os.listdir(os.path.join(lidar_file_dir, seq))
         frames.sort()
 
         # seq dest: data/xxxx_processed/detections/seq
-        det_seq_dir = os.path.join(detection_file_folder, seq)
+        det_seq_dir = os.path.join(detection_file_dir, seq)
 
         # os.makedirs(det_seq_dir, exist_ok=True)
         if not os.path.exists(det_seq_dir):
             os.makedirs(det_seq_dir)
 
             for frame in frames:
-                with open(os.path.join(lidar_file_folder, seq, frame), "rb") as f:
+                with open(os.path.join(lidar_file_dir, seq, frame), "rb") as f:
                     pc = np.load(f)
 
                 boxes, scores = detector(pc.T)
