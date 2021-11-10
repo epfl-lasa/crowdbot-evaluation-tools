@@ -3,7 +3,7 @@
 @File    :   tfqolo2npy.py
 @Time    :   2021/10/26
 @Author  :   Yujie He
-@Version :   1.1
+@Version :   1.2
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
 '''
@@ -111,11 +111,9 @@ if __name__ == "__main__":
         counter += 1
         print("({}/{}): {}".format(counter, len(bag_files), bag_path))
 
-        # all_stamped_filepath = os.path.join(allf.qolo_tf_dir, bag_name+'_all_pose_stamped.npy')
-        # lidar_stamped_filepath = os.path.join(allf.qolo_tf_dir, bag_name+'_lidar_pose_stamped.npy')
-        all_stamped_filepath = os.path.join(qolo_tf_dir, bag_name+'_pose_stamped.npy')
+        all_stamped_filepath = os.path.join(qolo_tf_dir, bag_name+'_tfqolo.npy')
         # sample with lidar frame
-        lidar_stamped_filepath = os.path.join(qolo_tf_dir, bag_name+'_pose_sampled.npy')
+        lidar_stamped_filepath = os.path.join(qolo_tf_dir, bag_name+'_tfqolo_sampled.npy')
 
         if not os.path.exists(lidar_stamped_filepath):
             if (not os.path.exists(all_stamped_filepath)) or (args.overwrite):

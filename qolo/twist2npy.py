@@ -31,7 +31,7 @@ def ts_to_sec(ts):
 
 def extract_twist_from_rosbag(bag_file_path, args):
     twist_msg_sum = 0
-    num_msgs_between_logs = 50
+    num_msgs_between_logs = 100
     x_list, zrot_list, t_list = [], [], []
 
     with rosbag.Bag(bag_file_path, 'r') as bag:
@@ -84,17 +84,20 @@ def interp_twist(twist_stamped_dict, target_dict):
     interp_dict['zrot'] = interp_translation(source_ts, interp_ts, source_zrot)
     return interp_dict
 
-def compute_twist_derivative(twist_stamped_dict):
-    source_ts = twist_stamped_dict.get('timestamp')
-    source_x = twist_stamped_dict.get('x')
-    source_zrot = twist_stamped_dict.get('zrot')
-    x_acc = np.gradient(source_x, source_ts, axis=0)
-    zrot_acc = np.gradient(source_zrot, source_ts, axis=0)
-    acc_stamped_dict = {'timestamp': source_ts, 
-                          'x': x_acc, 
-                          'zrot': zrot_acc}
+def compute_motion_derivative(motion_stamped_dict):
+    """
+    motion_stamped_dict can be pose, twist, or acc
+    """
+    source_ts = motion_stamped_dict.get('timestamp')
+    source_x = motion_stamped_dict.get('x')
+    source_zrot = motion_stamped_dict.get('zrot')
+    dx_dt = np.gradient(source_x, source_ts, axis=0)
+    dzrot_dt = np.gradient(source_zrot, source_ts, axis=0)
+    dmotion_dt_dict = {'timestamp': source_ts, 
+                        'x': dx_dt, 
+                        'zrot': dzrot_dt}
     print('Current twist extracted!')
-    return acc_stamped_dict
+    return dmotion_dt_dict
 
 #%% main file
 if __name__ == "__main__":
@@ -136,11 +139,11 @@ if __name__ == "__main__":
         counter += 1
         print("({}/{}): {}".format(counter, len(bag_files), bag_path))
 
-        twist_stamped_filepath = os.path.join(twist_dir, bag_name+'_twist_stamped.npy')
+        twist_stamped_filepath = os.path.join(twist_dir, bag_name+'_twist.npy')
         # sample with lidar frame
         twist_sampled_filepath = os.path.join(twist_dir, bag_name+'_twist_sampled.npy')
 
-        if not os.path.exists(twist_sampled_filepath):
+        if not os.path.exists(twist_sampled_filepath) or (args.overwrite):
             if (not os.path.exists(twist_stamped_filepath)) or (args.overwrite):
                 twist_stamped_dict = extract_twist_from_rosbag(bag_path, args)
                 np.save(twist_stamped_filepath, twist_stamped_dict)
@@ -149,9 +152,13 @@ if __name__ == "__main__":
                 print('If you want to overwrite, use flag --overwrite')
                 twist_stamped_dict = np.load(twist_stamped_filepath, allow_pickle=True).item()
 
+            print('twist_stamped_dict', len(twist_stamped_dict['x']))
+
             lidar_stamped = np.load(os.path.join(allf.lidar_dir, bag_name+"_stamped.npy"), allow_pickle=True).item()
             twist_sampled_dict = interp_twist(twist_stamped_dict, lidar_stamped)
             np.save(twist_sampled_filepath, twist_sampled_dict)
+
+            print('twist_sampled_dict', len(twist_sampled_dict['x']))
             
             source_len = len(twist_stamped_dict['timestamp'])
             target_len = len(lidar_stamped['timestamp'])
@@ -168,13 +175,17 @@ if __name__ == "__main__":
             if (not os.path.exists(acc_stamped_filepath)) or (args.overwrite):
                 if not ('twist_stamped_dict' in locals().keys()):
                     twist_stamped_dict = np.load(twist_stamped_filepath, allow_pickle=True).item()
-                acc_stamped_dict = compute_twist_derivative(twist_stamped_dict)
+                acc_stamped_dict = compute_motion_derivative(twist_stamped_dict)
                 np.save(acc_stamped_filepath, acc_stamped_dict)
+
+                print('acc_stamped_dict', len(acc_stamped_dict['x']))
 
                 if not ('lidar_stamped' in locals().keys()):
                     lidar_stamped = np.load(os.path.join(allf.lidar_dir, bag_name+"_stamped.npy"), allow_pickle=True).item()
                 acc_sampled_dict = interp_twist(acc_stamped_dict, lidar_stamped)
                 np.save(acc_sampled_filepath, acc_sampled_dict)
+
+                print('acc_sampled_dict', len(acc_sampled_dict['x']))
     
     print("Finish extracting all twist!")
     if args.gen_acc:

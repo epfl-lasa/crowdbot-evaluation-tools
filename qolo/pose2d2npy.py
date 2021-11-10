@@ -9,6 +9,7 @@
 '''
 
 # TODO: should specify which part of pose/odom data is saved instead of saving two many zeros
+# TODO: interpolate to a reasonable timestamp (e.g., lidar frame)
 
 import os
 import sys
