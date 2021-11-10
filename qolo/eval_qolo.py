@@ -39,7 +39,7 @@ def compute_time_path(qolo_twist, qolo_pose2d):
 
     # determine when the closest point to the goal is reached
     min_dist2goal = np.inf
-    idx_min_dist = -1
+    end_idx = -1
     for idx in range(len(pose_ts)):
         dist2goal = np.sqrt((pose_x[idx] - goal[0])**2 + (pose_y[idx] - goal[1])**2)
         if dist2goal < min_dist2goal:
@@ -114,22 +114,40 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
 
 def save_motion_img(qolo_eval_dict, base_dir, seq_name):
     ts = qolo_eval_dict['timestamp']
+    start_ts = qolo_eval_dict.get('start_command_ts')
+    duration2goal = qolo_eval_dict.get('duration2goal')
+    
+    new_start_ts = np.max([start_ts-np.min(ts), 0.0])
+    new_end_ts = new_start_ts + duration2goal
+
     plot_attr = ('x', 'zrot', 'x_acc', 'zrot_acc', 'x_jerk', 'zrot_jerk')
-    unit = ('$V$ [$m/s$]', '$V_w$ [$rad/s$]', '$a$ [$m/s^2$]', '$a_w$ [$rad/s^2$]', '$J$ [$m/s^3$]', '$J_w$[$rad/s^3$]')
+    unit = ('$V$ [$m/s$]', '$V_w$ [$rad/s$]', '$a$ [$m/s^2$]', '$a_w$ [$rad/s^2$]', '$J$ [$m/s^3$]', '$J_w$ [$rad/s^3$]')
 
     # ref: https://jakevdp.github.io/PythonDataScienceHandbook/04.08-multiple-subplots.html
-    fig, ax = plt.subplots(3, 2, sharex='col',figsize=(7, 4))
+    fig, ax = plt.subplots(3, 2, sharex='col',figsize=(10, 4))
     fig.subplots_adjust(hspace=0.4, wspace=0.4)
+    # ref: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_zoom_effect.html#sphx-glr-gallery-subplots-axes-and-figures-axes-zoom-effect-py
+    # ref: https://matplotlib.org/stable/gallery/shapes_and_collections/artist_reference.html#sphx-glr-gallery-shapes-and-collections-artist-reference-py
+    import matplotlib.patches as mpatches
+    # (left, bottom), width, height
+    # rect = mpatches.Rectangle((new_start_ts, 0), duration2goal, 10, facecolor="red", alpha=0.1)
+    # ax.add_patch(rect)
+
     for i in range(3):
         for j in range(2):
-            # ax[i, j].text(0.5, 0.5, str((i, j)),
-            #             fontsize=18, ha='center')
-            print('{} has {} frames'.format(plot_attr[i*2+j], len(qolo_eval_dict[plot_attr[i*2+j]])))
-            print('ts has {} frames'.format(len(ts)))
-            ax[i, j].plot(ts-np.min(ts), qolo_eval_dict[plot_attr[i*2+j]])
+            xx = ts-np.min(ts)
+            yy = qolo_eval_dict[plot_attr[i*2+j]]
+            ax[i, j].plot(xx, yy, linewidth=0.8, color='purple')
+            ax[i, j].axvline(x=new_start_ts, linestyle='--', linewidth=1.5, color='red')
+            ax[i, j].axvline(x=new_end_ts, linestyle='--', linewidth=1.5, color='red')
+
+            # ref: https://stackoverflow.com/questions/50753721/can-not-reset-the-axes
+            ax[i, j].add_patch(mpatches.Rectangle((new_start_ts, 0), duration2goal, 100, facecolor="red", alpha=0.2))
+
             ax[i, j].set_ylabel(unit[i*2+j])
             if i==2:
                 ax[i, j].set_xlabel("t [s]")
+            
             ax[i, j].set_ylim(bottom=0.0)
     fig.tight_layout()
     twist_acc_jerk_img_path = os.path.join(base_dir, seq_name+'_twist_acc_jerk.png')
@@ -187,11 +205,9 @@ if __name__ == "__main__":
         qolo_twist_sampled = np.load(qolo_twist_sampled_path, allow_pickle=True).item()
 
         acc_dir = os.path.join(allf.source_data_dir, 'acc')
-        qolo_acc_path = os.path.join(acc_dir, seq+'_acc.npy')
         qolo_acc_sampled_path = os.path.join(acc_dir, seq+'_acc_sampled.npy')
-        if not os.path.exists(qolo_acc_path):
+        if not os.path.exists(qolo_acc_sampled_path):
             print("ERROR: Please extract acc by using twist2npy.py")
-        qolo_acc = np.load(qolo_acc_path, allow_pickle=True).item()
         qolo_acc_sampled = np.load(qolo_acc_sampled_path, allow_pickle=True).item()
 
         # 00. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)

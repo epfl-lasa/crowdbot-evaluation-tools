@@ -152,13 +152,9 @@ if __name__ == "__main__":
                 print('If you want to overwrite, use flag --overwrite')
                 twist_stamped_dict = np.load(twist_stamped_filepath, allow_pickle=True).item()
 
-            print('twist_stamped_dict', len(twist_stamped_dict['x']))
-
             lidar_stamped = np.load(os.path.join(allf.lidar_dir, bag_name+"_stamped.npy"), allow_pickle=True).item()
             twist_sampled_dict = interp_twist(twist_stamped_dict, lidar_stamped)
             np.save(twist_sampled_filepath, twist_sampled_dict)
-
-            print('twist_sampled_dict', len(twist_sampled_dict['x']))
             
             source_len = len(twist_stamped_dict['timestamp'])
             target_len = len(lidar_stamped['timestamp'])
@@ -168,24 +164,25 @@ if __name__ == "__main__":
             acc_dir = os.path.join(allf.source_data_dir, 'acc')
             if not os.path.exists(acc_dir):
                 os.makedirs(acc_dir)
-            acc_stamped_filepath = os.path.join(acc_dir, bag_name+'_acc.npy')
+            
             # sample with lidar frame
             acc_sampled_filepath = os.path.join(acc_dir, bag_name+'_acc_sampled.npy')
 
-            if (not os.path.exists(acc_stamped_filepath)) or (args.overwrite):
-                if not ('twist_stamped_dict' in locals().keys()):
-                    twist_stamped_dict = np.load(twist_stamped_filepath, allow_pickle=True).item()
-                acc_stamped_dict = compute_motion_derivative(twist_stamped_dict)
-                np.save(acc_stamped_filepath, acc_stamped_dict)
-
-                print('acc_stamped_dict', len(acc_stamped_dict['x']))
-
+            if (not os.path.exists(acc_sampled_filepath)) or (args.overwrite):
                 if not ('lidar_stamped' in locals().keys()):
                     lidar_stamped = np.load(os.path.join(allf.lidar_dir, bag_name+"_stamped.npy"), allow_pickle=True).item()
-                acc_sampled_dict = interp_twist(acc_stamped_dict, lidar_stamped)
-                np.save(acc_sampled_filepath, acc_sampled_dict)
+                if not ('twist_sampled_dict' in locals().keys()):
+                    twist_sampled_dict = np.load(twist_sampled_filepath, allow_pickle=True).item()
 
-                print('acc_sampled_dict', len(acc_sampled_dict['x']))
+                # no need to generate acc_stamped_dict
+                # acc_stamped_filepath = os.path.join(acc_dir, bag_name+'_acc.npy')
+                # acc_stamped_dict = compute_motion_derivative(twist_stamped_dict)
+                # np.save(acc_stamped_filepath, acc_stamped_dict)
+                # print('acc_stamped_dict', len(acc_stamped_dict['x']))
+                # acc_sampled_dict = interp_twist(acc_stamped_dict, lidar_stamped)
+
+                acc_sampled_dict = compute_motion_derivative(twist_sampled_dict)
+                np.save(acc_sampled_filepath, acc_sampled_dict)
     
     print("Finish extracting all twist!")
     if args.gen_acc:
