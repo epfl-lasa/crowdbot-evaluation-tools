@@ -190,14 +190,35 @@ python3 qolo/gen_lidar_from_rosbags.py -f 0424_rds_detector
           └── nocam_2021-05-08-11-32-47
   ```
 
-### Extracting pose_stamped from rosbag
+### Extracting source data from rosbag
 
-#### run the detection code
+#### run the extraction code
+
+- tfqolo2npy
 
 ```sh
-python3 qolo/gen_pose_with_timestamp.py -f nocam_rosbags
-python3 qolo/gen_pose_with_timestamp.py -f 0424_shared_control
-python3 qolo/gen_pose_with_timestamp.py -f 0424_rds_detector
+python3 qolo/tfqolo2npy.py -f nocam_rosbags
+
+# with --overwrite flag to regenerate
+python3 qolo/tfqolo2npy.py -f nocam_rosbags --overwrite
+```
+
+- twist2npy
+
+```sh
+python3 qolo/twist2npy.py -f nocam_rosbags
+
+# with --overwrite flag to regenerate
+python3 qolo/twist2npy.py -f nocam_rosbags --overwrite
+```
+
+- pose2d2npy
+
+```sh
+python3 qolo/pose2d2npy.py -f nocam_rosbags
+
+# with --overwrite flag to regenerate
+python3 qolo/pose2d2npy.py -f nocam_rosbags --overwrite
 ```
 
 ### Running detector with Person-MinkUNet
@@ -404,12 +425,28 @@ python3 qolo/gen_video.py -f 0424_rds_detector
 
 ### Evaluating crowd density and min. dist. from detecion/tracking results
 
-#### run the evaluation code
+#### run the crowd evaluation code
 
 ```sh
-python3 qolo/gen_crowd_eval.py -f nocam_rosbags
-python3 qolo/gen_crowd_eval.py -f 0424_shared_control
-python3 qolo/gen_crowd_eval.py -f 0424_rds_detector
+python3 qolo/eval_crowd.py -f nocam_rosbags
+python3 qolo/eval_crowd.py -f 0424_shared_control
+python3 qolo/eval_crowd.py -f 0424_rds_detector
+
+python3 qolo/eval_crowd.py -f nocam_rosbags --overwrite
+python3 qolo/eval_crowd.py -f nocam_rosbags --replot
+```
+
+results will be saved into `metrics/` subfolder
+
+#### run the crowd evaluation code
+
+```sh
+python3 qolo/eval_qolo.py -f nocam_rosbags
+python3 qolo/eval_qolo.py -f 0424_shared_control
+python3 qolo/eval_qolo.py -f 0424_rds_detector
+
+python3 qolo/eval_qolo.py -f nocam_rosbags --overwrite
+python3 qolo/eval_qolo.py -f nocam_rosbags --replot
 ```
 
 results will be saved into `metrics/` subfolder
