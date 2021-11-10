@@ -59,6 +59,8 @@ def compute_time_path(qolo_twist, qolo_pose2d):
 
     return (start_ts, end_ts, duration2goal, path_length2goal, end_idx, goal, min_dist2goal)
 
+"""
+# move to `eval_qolo.py`
 def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     pose_x = qolo_pose2d.get("x")
     pose_y = qolo_pose2d.get("y")
@@ -87,6 +89,7 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     fig.tight_layout()
     path_img_path = os.path.join(base_dir, seq_name+'_path.png')
     plt.savefig(path_img_path, dpi=300) # png, pdf
+"""
 
 #%% utility functions to evaluate crowd
 def compute_metrics(trks):
@@ -248,7 +251,7 @@ if __name__ == "__main__":
 
         # load twist, pose2d
         twist_dir = os.path.join(allf.source_data_dir, 'twist')
-        qolo_twist_path = os.path.join(twist_dir, seq+'_twist_stamped.npy')
+        qolo_twist_path = os.path.join(twist_dir, seq+'_twist.npy')
         if not os.path.exists(qolo_twist_path):
             print("ERROR: Please extract twist_stamped by using twist2npy.py")
         qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
@@ -276,7 +279,7 @@ if __name__ == "__main__":
             save_md_img(crowd_eval_dict, eval_res_dir, seq)
 
             # figure3: path
-            save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
+            # save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
 
             print("Replot images!")
         else:
@@ -342,7 +345,7 @@ if __name__ == "__main__":
                     save_md_img(crowd_eval_dict, eval_res_dir, seq)
 
                     # figure3: path
-                    save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
+                    # save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
             else:
                 print("Detecting the generated {} already existed!".format(crowd_eval_npy))
                 print('Will not overwrite. If you want to overwrite, use flag --overwrite')
