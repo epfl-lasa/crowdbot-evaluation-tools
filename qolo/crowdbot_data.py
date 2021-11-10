@@ -3,7 +3,7 @@
 @File    :   crowdbot_data.py
 @Time    :   2021/10/26
 @Author  :   Yujie He
-@Version :   1.0
+@Version :   1.1
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
 '''
@@ -17,19 +17,22 @@ class AllFrames(object):
     def __init__(self, args):
         data_processed = args.folder + "_processed"
         data_processed_dir = os.path.join(args.base, args.data, data_processed)
+
+        # lidars/
         self.lidar_dir = os.path.join(data_processed_dir, "lidars")
-        self.dets_dir = os.path.join(data_processed_dir, "detections")
-        self.trks_dir = os.path.join(data_processed_dir, "tracks")
-        # image and video folder for visualization
-        self.imgs_dir = os.path.join(data_processed_dir, "viz_imgs")
-        self.video_dir = os.path.join(data_processed_dir, "videos")
-        # only imply source_data folder and include pose_stamped and twist inside it!
-        # TODO: change subfolder to pose!!! or directly save to single file without subfolder!
+
+        # alg_res/
+        self.dets_dir = os.path.join(data_processed_dir, "alg_res", "detections")
+        self.trks_dir = os.path.join(data_processed_dir, "alg_res", "tracks")
+
+        # source_data/[qolo_tf/pose/twist/acc]
         self.source_data_dir = os.path.join(data_processed_dir, "source_data")
-        # self.qolo_tf_dir = os.path.join(data_processed_dir, "source_data", "qolo_tf")
-        # self.pose_dir = os.path.join(data_processed_dir, "source_data", "pose")
-        # self.twist_dir = os.path.join(data_processed_dir, "source_data", "twist")
+        
         self.metrics_dir = os.path.join(data_processed_dir, "metrics")
+
+        # media/[viz_imgs/videos]
+        self.imgs_dir = os.path.join(data_processed_dir, "media", "viz_imgs")
+        self.video_dir = os.path.join(data_processed_dir, "media", "videos")
 
         # store _stamped.npy in the same folder
         self.seqs = [f for f in os.listdir(self.lidar_dir) if f.split('.')[-1] != 'npy']
