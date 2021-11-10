@@ -12,19 +12,26 @@
 ## Examples
 
 <details>
-    <summary><b>animation with qolo trajectories and detection/tracking results within 8 meter</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21.gif" alt="example video"   width="500" > </div>
+    <summary><b>animation with qolo trajectories and detection/tracking results within 8 meter</b></summary> <div align="center"> <img src="./example/2021-04-10-12-36-29.gif" alt="example video"   width="500" > </div>
 </details>
 
 <details>
-    <summary><b>crowd_density/min_dist/path&time2goal in a nutshell</b></summary>
-    <details open>
-        <summary><b>crowd_density variations along the timestamps</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21_crowd_density.png" alt="crowd_density"   width="500" > </div>
+    <summary><b>eval_crowd demo</b></summary>
+    <details>
+        <summary><b>crowd_density variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-10-12-36-29_crowd_density.png" alt="crowd_density"   width="500" > </div>
+    </details>
+    <details>
+        <summary><b>min_dist variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-10-12-36-29_min_dist.png" alt="min_dist"   width="500" > </div>
+    </details>
+</details>
+
+<details open>
+    <summary><b>eval_qolo demo</b></summary>
+    <details>
+        <summary><b>path/time to goal</b></summary> <div align="center"> <img src="./example/2021-04-10-12-36-29_path.png" alt="path"   width="500" > </div>
     </details>
     <details open>
-        <summary><b>min_dist variations along the timestamps</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21_min_dist.png" alt="min_dist"   width="500" > </div>
-    </details>
-    <details open>
-        <summary><b>path/time to goal</b></summary> <div align="center"> <img src="./example/nocam_2021-04-24-11-48-21_path.png" alt="path"   width="500" > </div>
+        <summary><b>twist_acc_jerk</b></summary> <div align="center"> <img src="./example/2021-04-10-12-36-29_twist_acc_jerk.png" alt="twist_acc_jerk"   width="500" > </div>
     </details>
 </details>
 
