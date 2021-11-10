@@ -141,7 +141,9 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
     for frame_id, ts in enumerate(sync_ts):
         id_list.append(frame_id)
         ts_list.append(ts+offset) # adding offset
-    lidar_stamped_dict = {'timestamp': ts_list, 'id': frame_id}
+
+    lidar_stamped_dict = {'timestamp': np.asarray(ts_list, dtype=np.float64), 
+                        'id': np.array(frame_id)}
     bagname = out_dir.split('/')[-1]
     stamp_file_path = os.path.join(out_dir, '..', bagname+'_stamped.npy')
     np.save(stamp_file_path, lidar_stamped_dict)

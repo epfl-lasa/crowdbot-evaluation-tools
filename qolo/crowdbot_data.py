@@ -25,7 +25,7 @@ class AllFrames(object):
         self.dets_dir = os.path.join(data_processed_dir, "alg_res", "detections")
         self.trks_dir = os.path.join(data_processed_dir, "alg_res", "tracks")
 
-        # source_data/[qolo_tf/pose/twist/acc]
+        # source_data/[tf_qolo/pose/twist/acc]
         self.source_data_dir = os.path.join(data_processed_dir, "source_data")
         
         self.metrics_dir = os.path.join(data_processed_dir, "metrics")
@@ -84,11 +84,11 @@ class AllFrames(object):
 
         return lidar, dets, dets_conf, trks
 
-# yujie: filter the files with specific extensions
+# filter the files with specific extensions
 # https://newbedev.com/list-files-only-in-the-current-directory
 # https://stackoverflow.com/questions/2225564/get-a-filtered-list-of-files-in-a-directory/2225582
 # https://www.kite.com/python/answers/how-to-filter-file-types-in-a-directory-in-python
-# TODO: consider using fnmatch.filter(os.listdir(path), "*.ext")
+# ENHANCEMENT: consider using fnmatch.filter(os.listdir(path), "*.ext")
 def bag_file_filter(f):
     if f[-4:] in ['.bag']:
         return True

@@ -40,11 +40,11 @@ if __name__ == "__main__":
             print("Images will be saved in {}".format(img_seq_dir))
             os.makedirs(img_seq_dir, exist_ok=True)
 
-            # TODO: create new pose_stamped based visualization
+            # pose_stamped based visualization
             consider_pose = True
             if consider_pose:
-                qolo_tf_dir = os.path.join(allf.source_data_dir, "qolo_tf")
-                lidar_stamped_path = os.path.join(qolo_tf_dir, seq+'_tfqolo_sampled.npy')
+                tf_qolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
+                lidar_stamped_path = os.path.join(tf_qolo_dir, seq+'_tfqolo_sampled.npy')
                 lidar_pose_stamped = np.load(lidar_stamped_path, allow_pickle=True).item()
 
             # generate image every step_viz frames

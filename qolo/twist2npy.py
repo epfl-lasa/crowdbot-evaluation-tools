@@ -9,6 +9,7 @@
 '''
 
 # TODO: should specify which part of Twist data is saved instead of saving two many zeros
+# TODO: consider transforming velocity to global frame (ref: bagToNpy.py)!
 
 import os
 import sys
@@ -19,7 +20,7 @@ import numpy as np
 import rosbag
 
 from crowdbot_data import AllFrames, bag_file_filter
-from interp_util import interp_translation
+from process_util import interp_translation, compute_motion_derivative
 
 #%% extract twist_stamped from rosbag without rosbag play
 def timestamp_str(ts):
@@ -83,21 +84,6 @@ def interp_twist(twist_stamped_dict, target_dict):
     interp_dict['x'] = interp_translation(source_ts, interp_ts, source_x)
     interp_dict['zrot'] = interp_translation(source_ts, interp_ts, source_zrot)
     return interp_dict
-
-def compute_motion_derivative(motion_stamped_dict):
-    """
-    motion_stamped_dict can be pose, twist, or acc
-    """
-    source_ts = motion_stamped_dict.get('timestamp')
-    source_x = motion_stamped_dict.get('x')
-    source_zrot = motion_stamped_dict.get('zrot')
-    dx_dt = np.gradient(source_x, source_ts, axis=0)
-    dzrot_dt = np.gradient(source_zrot, source_ts, axis=0)
-    dmotion_dt_dict = {'timestamp': source_ts, 
-                        'x': dx_dt, 
-                        'zrot': dzrot_dt}
-    print('Current twist extracted!')
-    return dmotion_dt_dict
 
 #%% main file
 if __name__ == "__main__":
@@ -184,9 +170,11 @@ if __name__ == "__main__":
                 acc_sampled_dict = compute_motion_derivative(twist_sampled_dict)
                 np.save(acc_sampled_filepath, acc_sampled_dict)
     
-    print("Finish extracting all twist!")
+    finish_output = "Finish extracting all twist!"
     if args.gen_acc:
-        print("& computing acc (derivative of twist)!")
+        finish_output = finish_output.replace("!", " ") + "& computing acc (derivative of twist)!"
+    print(finish_output)
+
 """
 ref: https://github.com/uzh-rpg/rpg_e2vid/blob/master/scripts/extract_events_from_rosbag.py
 http://wiki.ros.org/rosbag/Code%20API#Python_API

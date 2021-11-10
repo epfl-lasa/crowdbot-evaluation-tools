@@ -17,6 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from crowdbot_data import AllFrames
+from process_util import compute_motion_derivative
 
 #%% utility functions to evaluate qolo
 # TODO: check data source from pose2d (odom) or tf_qolo
@@ -67,7 +68,6 @@ def compute_fluency(qolo_twist):
     fluency_v = []
     fluency_w = []
     
-    # TODO: what's the difference between starting from 2 or 1 -> matlab?
     for idx in range(1, len(vel)):
         if vel[idx] or omega[idx]:
             fluency_v.append(1 - np.abs(vel[idx] - vel[idx-1])/v_max)
@@ -243,7 +243,6 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({'zrot_acc': qolo_acc_sampled['zrot']})
 
                 # 1. jerk
-                from twist2npy import compute_motion_derivative
                 qolo_jerk_sampled = compute_motion_derivative(qolo_acc_sampled)
                 qolo_eval_dict.update({'x_jerk': qolo_jerk_sampled['x']})
                 qolo_eval_dict.update({'zrot_jerk': qolo_jerk_sampled['zrot']})

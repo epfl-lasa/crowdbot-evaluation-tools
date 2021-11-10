@@ -335,12 +335,12 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
         # print(scipy_r.as_euler('zxy', degrees=True))
         """
 
-        # TODO: compute relative rotation to frame1
         from scipy.spatial.transform import Rotation as R
         scipy_rots = R.from_quat(rot_quat_list)
+        # compute relative rotation to frame1
         scipy_rots_aligned = scipy_rots.reduce(left=R.from_quat(rot_quat_list[0,:]).inv())
         rot_quat_list_aligned = scipy_rots_aligned.as_quat()
-        # TODO: compute relative rotation to frame1
+        # different quat description in o3d and scipy
         rot_quat_list_aligned[:,[0, 1, 2, 3]] = rot_quat_list_aligned[:,[1, 2, 3, 0]]
         rot_quat_curr = rot_quat_list_aligned[-1,:]
 

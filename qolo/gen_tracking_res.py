@@ -51,7 +51,6 @@ if __name__ == "__main__":
                         help='different subfolder in rosbag/ dir')
     args = parser.parse_args()
 
-    # todo: can be integrated into args
     min_conf = 0.5
 
     allf = AllFrames(args)
