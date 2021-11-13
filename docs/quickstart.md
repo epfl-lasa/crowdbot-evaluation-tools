@@ -1,43 +1,55 @@
 # Quickstart
 
-- two rosbag fromshared_control
+> After following the guide in [2_config.md](./2_config.md), you could realize evaluation with following code step by step
+
+## Simplified starting commands
+
+1. Create symbolic link of shared_test folder (including two rosbags) in current workspace
 
     ```sh
+    cd path/to/crowdbot-evaluation-tools
     ln -s  /hdd/data_qolo/crowd_qolo_recordings/shared_test/ data/rosbag/shared_test
     ```
 
-- data conversion
+2. data conversion from original rosbags
 
     ```sh
     python3 qolo/gen_lidar_from_rosbags.py -f shared_test
 
-    python3 qolo/tfqolo2npy.py -f shared_test --overwrite
-    python3 qolo/twist2npy.py -f shared_test --overwrite
-    python3 qolo/pose2d2npy.py -f shared_test --overwrite
+    python3 qolo/tfqolo2npy.py --overwrite -f shared_test
+    python3 qolo/twist2npy.py --overwrite -f shared_test
+    python3 qolo/pose2d2npy.py --overwrite -f shared_test
     ```
 
-- algorithms
+    - `--overwrite` flag is used to overwrite existing data
+    - `-f` flag is used to specify data folder
+
+3. apply algorithms to extracted data
 
     ```sh
     python3 qolo/gen_detection_res.py -f shared_test
     python3 qolo/gen_tracking_res.py -f shared_test
     ```
 
-- viz
+4. visualization of current evaluation result
 
     ```sh
     python3 qolo/gen_viz_img_o3d.py -f shared_test
     python3 qolo/gen_video.py -f shared_test
     ```
 
-- eval
+    The visualization results can be found in `./data/shared_test_processed/media/`
+
+5. evaluate the qolo and crowd data from algorithm result and extracted data
 
     ```sh
-    python3 qolo/eval_crowd.py --overwrite -f shared_test 
-    python3 qolo/eval_qolo.py --overwrite -f shared_test 
+    python3 qolo/eval_crowd.py --overwrite -f shared_test
+    python3 qolo/eval_qolo.py --overwrite -f shared_test
     ```
 
-# resulted data structure
+    The visualization results can be found in `./data/shared_test_processed/metrics/`
+
+## Resulted data structure
 
 ```shell
 shared_test_processed$ tree -L 2
@@ -69,6 +81,6 @@ shared_test_processed$ tree -L 2
 └── source_data
     ├── acc
     ├── pose2d
-    ├── qolo_tf
+    ├── tf_qolo
     └── twist
 ```
