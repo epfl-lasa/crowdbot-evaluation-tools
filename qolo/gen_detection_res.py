@@ -1,12 +1,12 @@
 # -*-coding:utf-8 -*-
-'''
+"""
 @File    :   gen_detection_res.py
 @Time    :   2021/10/20
 @Author  :   Yujie He
 @Version :   1.0
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
-'''
+"""
 
 
 import os
@@ -22,17 +22,33 @@ if __name__ == "__main__":
     # base_dir = "/globalwork/datasets/crowdbot/qolo_market_data"
     # lidar_dir = os.path.join(base_dir, "lidars")
 
-    parser = argparse.ArgumentParser(description='convert data from rosbag')
-    
-    parser.add_argument('-b', '--base', default='/home/crowdbot/Documents/yujie/crowdbot_tools', type=str,
-                        help='base folder, i.e., the path of the current workspace')
-    parser.add_argument('-d', '--data', default='data', type=str,
-                        help='data folder, i.e., the name of folder that stored extracted raw data and processed data')
-    parser.add_argument('-f', '--folder', required=True, type=str,
-                        help='different subfolder in rosbag/ dir')
+    parser = argparse.ArgumentParser(description="convert data from rosbag")
+
+    parser.add_argument(
+        "-b",
+        "--base",
+        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+        type=str,
+        help="base folder, i.e., the path of the current workspace",
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="data",
+        type=str,
+        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    )
+    parser.add_argument(
+        "-f",
+        "--folder",
+        required=True,
+        type=str,
+        help="different subfolder in rosbag/ dir",
+    )
     # ckpt_e40_train_val.pth | ckpt_e40_train.pth
-    parser.add_argument('--model', default='ckpt_e40_train.pth', 
-                        type=str, help='checkpoints filename')
+    parser.add_argument(
+        "--model", default="ckpt_e40_train.pth", type=str, help="checkpoints filename"
+    )
     args = parser.parse_args()
 
     allf = AllFrames(args)
@@ -57,7 +73,7 @@ if __name__ == "__main__":
 
         seq = allf.seqs[seq_idx]
 
-        #print(seq)
+        # print(seq)
         counter += 1
         print("({}/{}): {}".format(counter, seq_num, seq))
         frames = os.listdir(os.path.join(lidar_file_dir, seq))

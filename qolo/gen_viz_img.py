@@ -1,12 +1,12 @@
 # -*-coding:utf-8 -*-
-'''
+"""
 @File    :   gen_viz_img.py
 @Time    :   2021/10/20
 @Author  :   Yujie He
 @Version :   1.0
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
-'''
+"""
 
 import os
 import argparse
@@ -17,14 +17,29 @@ from crowdbot_data import AllFrames
 from viz_util import plot_frame
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='convert data from rosbag')
-    
-    parser.add_argument('-b', '--base', default='/home/crowdbot/Documents/yujie/crowdbot_tools', type=str,
-                        help='base folder, i.e., the path of the current workspace')
-    parser.add_argument('-d', '--data', default='data', type=str,
-                        help='data folder, i.e., the name of folder that stored extracted raw data and processed data')
-    parser.add_argument('-f', '--folder', default='nocam_rosbags', type=str,
-                        help='different subfolder in rosbag/ dir')
+    parser = argparse.ArgumentParser(description="convert data from rosbag")
+
+    parser.add_argument(
+        "-b",
+        "--base",
+        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+        type=str,
+        help="base folder, i.e., the path of the current workspace",
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="data",
+        type=str,
+        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    )
+    parser.add_argument(
+        "-f",
+        "--folder",
+        default="nocam_rosbags",
+        type=str,
+        help="different subfolder in rosbag/ dir",
+    )
     args = parser.parse_args()
 
     allf = AllFrames(args)
@@ -32,7 +47,11 @@ if __name__ == "__main__":
     for seq_idx in range(allf.nr_seqs()):
 
         seq = allf.seqs[seq_idx]
-        print("({}/{}): {} with {} frames".format(seq_idx+1, allf.nr_seqs(), seq, allf.nr_frames(seq_idx)))
+        print(
+            "({}/{}): {} with {} frames".format(
+                seq_idx + 1, allf.nr_seqs(), seq, allf.nr_frames(seq_idx)
+            )
+        )
 
         # seq dest: data/xxxx_processed/viz_imgs/seq
         img_seq_dir = os.path.join(allf.imgs_dir, seq)
@@ -50,4 +69,3 @@ if __name__ == "__main__":
         else:
             print("{} images already generated!!!".format(allf.seqs[seq_idx]))
             continue
-

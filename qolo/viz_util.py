@@ -1,12 +1,12 @@
 # -*-coding:utf-8 -*-
-'''
+"""
 @File    :   viz_util.py
 @Time    :   2021/10/20
 @Author  :   Yujie He
 @Version :   1.0
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
-'''
+"""
 
 
 import os
@@ -23,6 +23,7 @@ from mayavi import mlab
 
 import cv2
 
+
 def id2color(id_):
     c_hsv = np.empty((1, 1, 3), dtype=np.float32)
     c_hsv[0, :, 0] = float((id_ * 33) % 360)
@@ -31,9 +32,12 @@ def id2color(id_):
     c_bgr = cv2.cvtColor(c_hsv, cv2.COLOR_HSV2RGB)[0]
     return tuple(*c_bgr)
 
+
 # viz with open3d
 # ref: http://www.open3d.org/docs/release/index.html#python-api-index
 import open3d as o3d
+
+
 def plot_frame_o3d(lidar, boxes, out_path=None):
     # some nice colors
     gs_blue = (66.0 / 256, 133.0 / 256, 244.0 / 256)
@@ -50,6 +54,7 @@ def plot_frame_o3d(lidar, boxes, out_path=None):
         engine=None,
         size=(1600, 1000),
     )
+
 
 # viz with mlab
 def plot_frame(lidar, boxes, out_path=None):
@@ -75,7 +80,12 @@ def plot_frame(lidar, boxes, out_path=None):
 
     # visualize all lidar points -> include scale variations!!!
     mlab.points3d(
-        lidar[0], lidar[1], lidar[2], scale_factor=0.05, color=gs_blue, figure=fig,
+        lidar[0],
+        lidar[1],
+        lidar[2],
+        scale_factor=0.05,
+        color=gs_blue,
+        figure=fig,
     )
 
     # plot detections
@@ -120,4 +130,3 @@ def plot_frame(lidar, boxes, out_path=None):
         mlab.show()
 
     return fig
-

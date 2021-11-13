@@ -1,12 +1,12 @@
 # -*-coding:utf-8 -*-
-'''
+"""
 @File    :   gen_lidar_from_rosbags.py
 @Time    :   2021/10/19
 @Author  :   Yujie He
 @Version :   1.0
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
-'''
+"""
 
 
 import os
@@ -87,17 +87,20 @@ def load_lidar(bag, topic, tf_buffer, target_frame="tf_qolo"):
 
 
 def extract_lidar_from_rosbag(bag_path, out_dir, args):
-    """Extract and save combined laser scan from rosbag. Existing files will be overwritten.
-    """
-    #print("rosbag: {}".format(bag_path))
+    """Extract and save combined laser scan from rosbag. Existing files will be overwritten."""
+    # print("rosbag: {}".format(bag_path))
 
     # load lidar in a unified coordinate frame
     with rosbag.Bag(bag_path) as bag:
         tf_buffer = get_tf_tree(bag)
         front_msgs, front_ts = load_lidar(
-            bag, args.front_topic, tf_buffer # args.front_topic = "/front_lidar/velodyne_points"
+            bag,
+            args.front_topic,
+            tf_buffer,  # args.front_topic = "/front_lidar/velodyne_points"
         )
-        rear_msgs, rear_ts = load_lidar(bag, args.rear_topic, tf_buffer) # args.rear_topic = "/rear_lidar/velodyne_points"
+        rear_msgs, rear_ts = load_lidar(
+            bag, args.rear_topic, tf_buffer
+        )  # args.rear_topic = "/rear_lidar/velodyne_points"
 
     # sync lidar
     offset = min(front_ts.min(), rear_ts.min())
@@ -126,9 +129,6 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
     front_inds = get_sync_inds(front_ts, sync_ts)
     rear_inds = get_sync_inds(rear_ts, sync_ts)
 
-    # print(front_inds[:30])
-    # print(rear_inds[:30])
-
     # write frame to file
     for frame_id, (idx_front, idx_rear) in enumerate(zip(front_inds, rear_inds)):
         pc = np.concatenate((front_msgs[idx_front], rear_msgs[idx_rear]), axis=0)
@@ -140,12 +140,14 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
     id_list, ts_list = [], []
     for frame_id, ts in enumerate(sync_ts):
         id_list.append(frame_id)
-        ts_list.append(ts+offset) # adding offset
+        ts_list.append(ts + offset)  # adding offset
 
-    lidar_stamped_dict = {'timestamp': np.asarray(ts_list, dtype=np.float64), 
-                        'id': np.array(frame_id)}
-    bagname = out_dir.split('/')[-1]
-    stamp_file_path = os.path.join(out_dir, '..', bagname+'_stamped.npy')
+    lidar_stamped_dict = {
+        "timestamp": np.asarray(ts_list, dtype=np.float64),
+        "id": np.array(frame_id),
+    }
+    bagname = out_dir.split("/")[-1]
+    stamp_file_path = os.path.join(out_dir, "..", bagname + "_stamped.npy")
     np.save(stamp_file_path, lidar_stamped_dict)
 
     s = (
@@ -153,38 +155,62 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
         "topic: synced frames\n"
         "count: {}\n"
         "average time between frames: {}\n"
-    ).format(len(sync_ts), sync_dt,)
+    ).format(
+        len(sync_ts),
+        sync_dt,
+    )
     print(s)
 
-# yujie: filter the files with specific extensions
+
 def bag_file_filter(f):
-    if f[-4:] in ['.bag']:
+    """filter the files with specific extensions"""
+    if f[-4:] in [".bag"]:
         return True
     else:
         return False
 
 
 if __name__ == "__main__":
-    # base_dir = "/globalwork/datasets/crowdbot/qolo_market_data"
-    # bag_files = os.listdir(os.path.join(base_dir, "rosbag"))
+    parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    parser = argparse.ArgumentParser(description='convert data from rosbag')
-    
-    parser.add_argument('-b', '--base', default='/home/crowdbot/Documents/yujie/crowdbot_tools', type=str,
-                        help='base folder, i.e., the path of the current workspace')
-    parser.add_argument('-d', '--data', default='data', type=str,
-                        help='data folder, i.e., the name of folder that stored extracted raw data and processed data')
-    parser.add_argument('-f', '--folder', default='nocam_rosbags', type=str,
-                        help='different subfolder in rosbag/ dir')
-    parser.add_argument('--front_topic', default='/front_lidar/velodyne_points', type=str,
-                        help='topic for the front lidar')
-    parser.add_argument('--rear_topic', default='/rear_lidar/velodyne_points', type=str,
-                        help='topic for the rear lidar')                   
+    parser.add_argument(
+        "-b",
+        "--base",
+        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+        type=str,
+        help="base folder, i.e., the path of the current workspace",
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="data",
+        type=str,
+        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    )
+    parser.add_argument(
+        "-f",
+        "--folder",
+        default="nocam_rosbags",
+        type=str,
+        help="different subfolder in rosbag/ dir",
+    )
+    parser.add_argument(
+        "--front_topic",
+        default="/front_lidar/velodyne_points",
+        type=str,
+        help="topic for the front lidar",
+    )
+    parser.add_argument(
+        "--rear_topic",
+        default="/rear_lidar/velodyne_points",
+        type=str,
+        help="topic for the rear lidar",
+    )
     args = parser.parse_args()
 
     # source: rosbag data in data/rosbag/xxxx
     rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
-    bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir))) 
+    bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
     # destination: lidar data in data/xxxx_processed/lidars
     data_processed = args.folder + "_processed"

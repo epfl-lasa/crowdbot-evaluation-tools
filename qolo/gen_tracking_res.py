@@ -1,17 +1,16 @@
 # -*-coding:utf-8 -*-
-'''
+"""
 @File    :   gen_tracking_res.py
 @Time    :   2021/10/19
 @Author  :   Yujie He
 @Version :   1.0
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
-'''
-
+"""
 
 import os
 import sys
-# export PYTHONPATH="${PYTHONPATH}:${PWD}/qolo/AB3DMOT"
+
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "AB3DMOT"))
 import argparse
 import numpy as np
@@ -41,14 +40,29 @@ def reorder_back(boxes):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='convert data from rosbag')
-        
-    parser.add_argument('-b', '--base', default='/home/crowdbot/Documents/yujie/crowdbot_tools', type=str,
-                        help='base folder, i.e., the path of the current workspace')
-    parser.add_argument('-d', '--data', default='data', type=str,
-                        help='data folder, i.e., the name of folder that stored extracted raw data and processed data')
-    parser.add_argument('-f', '--folder', default='nocam_rosbags', type=str,
-                        help='different subfolder in rosbag/ dir')
+    parser = argparse.ArgumentParser(description="convert data from rosbag")
+
+    parser.add_argument(
+        "-b",
+        "--base",
+        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+        type=str,
+        help="base folder, i.e., the path of the current workspace",
+    )
+    parser.add_argument(
+        "-d",
+        "--data",
+        default="data",
+        type=str,
+        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    )
+    parser.add_argument(
+        "-f",
+        "--folder",
+        default="nocam_rosbags",
+        type=str,
+        help="different subfolder in rosbag/ dir",
+    )
     args = parser.parse_args()
 
     min_conf = 0.5
@@ -66,7 +80,7 @@ if __name__ == "__main__":
 
         # seq dest: data/xxxx_processed/alg_res/tracks/seq
         trk_seq_dir = os.path.join(allf.trks_dir, allf.seqs[seq_idx])
-        
+
         if not os.path.exists(trk_seq_dir):
             for fr_idx in range(allf.nr_frames(seq_idx)):
                 lidar, dets, dets_conf, _ = allf[seq_idx, fr_idx]
@@ -77,10 +91,9 @@ if __name__ == "__main__":
                 trks = tracker.update(trk_input)
                 trks = reorder_back(trks)
 
-                f_path = os.path.join(trk_seq_dir, 
-                                     allf.frames[seq_idx][fr_idx]
-                                     .replace("nby", "txt")
-                                     )
+                f_path = os.path.join(
+                    trk_seq_dir, allf.frames[seq_idx][fr_idx].replace("nby", "txt")
+                )
                 os.makedirs(trk_seq_dir, exist_ok=True)
                 np.savetxt(f_path, trks, delimiter=",")
         else:

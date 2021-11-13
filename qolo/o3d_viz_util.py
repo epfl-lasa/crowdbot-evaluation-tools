@@ -1,12 +1,12 @@
 # -*-coding:utf-8 -*-
-'''
+"""
 @File    :   o3d_viz_util.py
 @Time    :   2021/10/26
 @Author  :   Yujie He
 @Version :   1.0
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
-'''
+"""
 
 import os, copy
 from pickle import load, dump
@@ -50,8 +50,11 @@ class LineMesh(object):
             radius {float} -- radius of cylinder (default: {0.15})
         """
         self.points = np.array(points)
-        self.lines = np.array(
-            lines) if lines is not None else self.lines_from_ordered_points(self.points)
+        self.lines = (
+            np.array(lines)
+            if lines is not None
+            else self.lines_from_ordered_points(self.points)
+        )
         self.colors = np.array(colors)
         self.radius = radius
         self.cylinder_segments = []
@@ -80,14 +83,15 @@ class LineMesh(object):
             translation = first_points[i, :] + line_segment * line_length * 0.5
             # create cylinder and apply transformations
             cylinder_segment = o3d.geometry.TriangleMesh.create_cylinder(
-                self.radius, line_length)
-            cylinder_segment = cylinder_segment.translate(
-                translation, relative=False)
+                self.radius, line_length
+            )
+            cylinder_segment = cylinder_segment.translate(translation, relative=False)
             if axis is not None:
                 axis_a = axis * angle
                 cylinder_segment = cylinder_segment.rotate(
-                    R=o3d.geometry.get_rotation_matrix_from_axis_angle(axis_a), 
-                    center=cylinder_segment.get_center())
+                    R=o3d.geometry.get_rotation_matrix_from_axis_angle(axis_a),
+                    center=cylinder_segment.get_center(),
+                )
                 # cylinder_segment = cylinder_segment.rotate(
                 #     R=o3d.geometry.get_rotation_matrix_from_axis_angle(axis_a), center=True)
                 # cylinder_segment = cylinder_segment.rotate(
@@ -120,18 +124,29 @@ def id2color(id_):
     c_bgr = cv2.cvtColor(c_hsv, cv2.COLOR_HSV2RGB)[0]
     return tuple(*c_bgr)
 
+
 # convert box to bbox point set
 lines = [
-    [0, 1], [0, 3], [0, 4],
-    [1, 2], [1, 5], [2, 3],
-    [2, 6], [3, 7], [4, 5],
-    [4, 7], [5, 6], [6, 7],
-    [0, 5], [1, 4],
+    [0, 1],
+    [0, 3],
+    [0, 4],
+    [1, 2],
+    [1, 5],
+    [2, 3],
+    [2, 6],
+    [3, 7],
+    [4, 5],
+    [4, 7],
+    [5, 6],
+    [6, 7],
+    [0, 5],
+    [1, 4],
 ]
+
 
 def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
     """
-    :param boxes3d: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords, +x points to right (2 to 1), 
+    :param boxes3d: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords, +x points to right (2 to 1),
                     +y points front  (from 1 to 0), +z points upwards (from 2 to 6),
     :param bottom_center: whether z is on the bottom center of object
     :return: corners3d: (N, 8, 3)
@@ -145,12 +160,45 @@ def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
     """
     boxes_num = boxes3d.shape[0]
     dx, dy, dz = boxes3d[:, 3], boxes3d[:, 4], boxes3d[:, 5]
-    x_corners = np.array([dx / 2., dx / 2., -dx / 2., -dx / 2., 
-                            dx / 2., dx / 2., -dx / 2., -dx / 2.], dtype=np.float32).T
-    y_corners = np.array([dy / 2., -dy / 2., -dy / 2., dy / 2., 
-                            dy / 2., -dy / 2., -dy / 2., dy / 2.], dtype=np.float32).T
-    z_corners = np.array([dz / 2., dz / 2., dz / 2., dz / 2.,  
-                            -dz / 2.,  -dz / 2.,  -dz / 2.,  -dz / 2.], dtype=np.float32).T
+    x_corners = np.array(
+        [
+            dx / 2.0,
+            dx / 2.0,
+            -dx / 2.0,
+            -dx / 2.0,
+            dx / 2.0,
+            dx / 2.0,
+            -dx / 2.0,
+            -dx / 2.0,
+        ],
+        dtype=np.float32,
+    ).T
+    y_corners = np.array(
+        [
+            dy / 2.0,
+            -dy / 2.0,
+            -dy / 2.0,
+            dy / 2.0,
+            dy / 2.0,
+            -dy / 2.0,
+            -dy / 2.0,
+            dy / 2.0,
+        ],
+        dtype=np.float32,
+    ).T
+    z_corners = np.array(
+        [
+            dz / 2.0,
+            dz / 2.0,
+            dz / 2.0,
+            dz / 2.0,
+            -dz / 2.0,
+            -dz / 2.0,
+            -dz / 2.0,
+            -dz / 2.0,
+        ],
+        dtype=np.float32,
+    ).T
     # x_corners = np.array([dx / 2., dx / 2., -dx / 2., -dx / 2., dx / 2., dx / 2., -dx / 2., -dx / 2.], dtype=np.float32).T
     # y_corners = np.array([dy / 2., -dy / 2., -dy / 2., dy / 2., dy / 2., -dy / 2., -dy / 2., dy / 2.], dtype=np.float32).T
     # if bottom_center:
@@ -159,21 +207,37 @@ def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
     #     z_corners = np.array([dz / 2., dz / 2., dz / 2., dz / 2., -dz / 2.,  -dz / 2.,  -dz / 2.,  -dz / 2.], dtype=np.float32).T
 
     ry = boxes3d[:, 6]
-    zeros, ones = np.zeros(ry.size, dtype=np.float32), np.ones(ry.size, dtype=np.float32)
+    zeros, ones = np.zeros(ry.size, dtype=np.float32), np.ones(
+        ry.size, dtype=np.float32
+    )
     # ry = ry+np.pi/6
     # counter-clockwisely rotate the frame around z by an angle ry
-    # note the transform is done by Vector x Matrix instead of Matrix x Vector, 
+    # note the transform is done by Vector x Matrix instead of Matrix x Vector,
     # which means the Matrix need to be transposed when interpreted as a linear transform
-    rot_list = np.array([[np.cos(ry), np.sin(ry), zeros],
-                         [-np.sin(ry), np.cos(ry),  zeros],
-                         [zeros,      zeros,        ones]])  # (3, 3, N)
+    rot_list = np.array(
+        [
+            [np.cos(ry), np.sin(ry), zeros],
+            [-np.sin(ry), np.cos(ry), zeros],
+            [zeros, zeros, ones],
+        ]
+    )  # (3, 3, N)
     R_list = np.transpose(rot_list, (2, 0, 1))  # (N, 3, 3)
 
-    temp_corners = np.concatenate((x_corners.reshape(-1, 8, 1), y_corners.reshape(-1, 8, 1),
-                                   z_corners.reshape(-1, 8, 1)), axis=2)  # (N, 8, 3)
+    temp_corners = np.concatenate(
+        (
+            x_corners.reshape(-1, 8, 1),
+            y_corners.reshape(-1, 8, 1),
+            z_corners.reshape(-1, 8, 1),
+        ),
+        axis=2,
+    )  # (N, 8, 3)
 
     rotated_corners = np.matmul(temp_corners, R_list)  # (N, 8, 3)
-    x_corners, y_corners, z_corners = rotated_corners[:, :, 0], rotated_corners[:, :, 1], rotated_corners[:, :, 2]
+    x_corners, y_corners, z_corners = (
+        rotated_corners[:, :, 0],
+        rotated_corners[:, :, 1],
+        rotated_corners[:, :, 2],
+    )
 
     x_loc, y_loc, z_loc = boxes3d[:, 0], boxes3d[:, 1], boxes3d[:, 2]
 
@@ -181,44 +245,75 @@ def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
     y = y_loc.reshape(-1, 1) + y_corners.reshape(-1, 8)
     z = z_loc.reshape(-1, 1) + z_corners.reshape(-1, 8)
 
-    corners = np.concatenate((x.reshape(-1, 8, 1), y.reshape(-1, 8, 1), z.reshape(-1, 8, 1)), axis=2)
+    corners = np.concatenate(
+        (x.reshape(-1, 8, 1), y.reshape(-1, 8, 1), z.reshape(-1, 8, 1)), axis=2
+    )
 
     return corners.astype(np.float32)
 
+
 # filter detected pointcloud/pedestrain within the desired distance
-def filter_pointcloud_distance(in_cloud, dist=10., verbose=False):
-    r_square_within = (in_cloud[:,0]**2 + in_cloud[:,1]**2) < dist**2
-    out_cloud = in_cloud[r_square_within,:]
+def filter_pointcloud_distance(in_cloud, dist=10.0, verbose=False):
+    r_square_within = (in_cloud[:, 0] ** 2 + in_cloud[:, 1] ** 2) < dist ** 2
+    out_cloud = in_cloud[r_square_within, :]
     if verbose:
-        print("Filtered/Overall pts: {}/{}".format(np.shape(in_cloud)[0], np.shape(out_cloud)[0]))
+        print(
+            "Filtered/Overall pts: {}/{}".format(
+                np.shape(in_cloud)[0], np.shape(out_cloud)[0]
+            )
+        )
     return out_cloud
 
-def filter_detection_tracking_res(in_boxes, dist=10., verbose=False):
+
+def filter_detection_tracking_res(in_boxes, dist=10.0, verbose=False):
     """
     boxes3d: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords
     """
-    r_square_within = (in_boxes[:,0]**2 + in_boxes[:,1]**2) < dist**2
-    out_boxes = in_boxes[r_square_within,:]
+    r_square_within = (in_boxes[:, 0] ** 2 + in_boxes[:, 1] ** 2) < dist ** 2
+    out_boxes = in_boxes[r_square_within, :]
     if verbose:
-        print("Filtered/Overall boxes: {}/{}".format(np.shape(in_boxes)[0], np.shape(out_boxes)[0]))
+        print(
+            "Filtered/Overall boxes: {}/{}".format(
+                np.shape(in_boxes)[0], np.shape(out_boxes)[0]
+            )
+        )
     return out_boxes
 
 
-def load_camera_info(camera_param, fname='/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/saved_view.pkl'):
+def load_camera_info(
+    camera_param,
+    fname="/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/saved_view.pkl",
+):
     # ref: # https://github.com/pablospe/render_depthmap_example/blob/main/visualization.py
-    with open(fname, 'rb') as pickle_file:
+    with open(fname, "rb") as pickle_file:
         saved_view = load(pickle_file)
-    camera_param.extrinsic = saved_view['extrinsic']
+    camera_param.extrinsic = saved_view["extrinsic"]
     intrinsic = o3d.camera.PinholeCameraIntrinsic()
-    intrinsic.set_intrinsics(saved_view['width'], saved_view['height'], 
-                            saved_view['intrinsic'][0][0], saved_view['intrinsic'][1][1], 
-                            saved_view['intrinsic'][0][2], saved_view['intrinsic'][1][2])
+    intrinsic.set_intrinsics(
+        saved_view["width"],
+        saved_view["height"],
+        saved_view["intrinsic"][0][0],
+        saved_view["intrinsic"][1][1],
+        saved_view["intrinsic"][0][2],
+        saved_view["intrinsic"][1][2],
+    )
     camera_param.intrinsic = intrinsic
     return camera_param
 
+
 #%% Plot in qolo frame with Open3D
-def plot_robot_frame_o3d(lidar, boxes=None, out_path=None, width=1080, height=720, show_xyz=True, filtering=False, filter_dist=8.0, verbose=False):
-    
+def plot_robot_frame_o3d(
+    lidar,
+    boxes=None,
+    out_path=None,
+    width=1080,
+    height=720,
+    show_xyz=True,
+    filtering=False,
+    filter_dist=8.0,
+    verbose=False,
+):
+
     # some nice colors
     gs_blue = (66.0 / 256, 133.0 / 256, 244.0 / 256)
     gs_red = (234.0 / 256, 68.0 / 256, 52.0 / 256)
@@ -228,7 +323,9 @@ def plot_robot_frame_o3d(lidar, boxes=None, out_path=None, width=1080, height=72
     gs_blue_light = (70.0 / 256, 189.0 / 256, 196.0 / 256)
 
     show_list = []
-    origin_xyz = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1.0, origin=np.array([0, 0, 0]))
+    origin_xyz = o3d.geometry.TriangleMesh.create_coordinate_frame(
+        size=1.0, origin=np.array([0, 0, 0])
+    )
     if show_xyz:
         show_list.append(origin_xyz)
 
@@ -260,25 +357,26 @@ def plot_robot_frame_o3d(lidar, boxes=None, out_path=None, width=1080, height=72
 
                 line_set = o3d.geometry.LineSet(
                     points=o3d.utility.Vector3dVector(corners),
-                    lines=o3d.utility.Vector2iVector(lines))
+                    lines=o3d.utility.Vector2iVector(lines),
+                )
                 line_set.colors = o3d.utility.Vector3dVector(colors)
                 show_list.append(line_set)
-                
+
                 line_mesh = LineMesh(corners, lines, colors, radius=0.02)
                 line_mesh_geoms = line_mesh.cylinder_segments
                 # show_list.append([*line_mesh_geoms])
-                show_list += line_mesh_geoms # list of TriangleMesh
+                show_list += line_mesh_geoms  # list of TriangleMesh
 
     vis = o3d.visualization.Visualizer()
-    vis.create_window(window_name='crowdbot', width=width, height=height)
+    vis.create_window(window_name="crowdbot", width=width, height=height)
     # vis.create_window(visible = False)
     for item in show_list:
         vis.add_geometry(item)
-    
+
     # ViewControl: http://www.open3d.org/docs/0.12.0/python_api/open3d.visualization.ViewControl.html
     ctr = vis.get_view_control()
-    ctr.change_field_of_view(step=90.)
-    ctr.set_zoom(0.8) # will be overwritten by camera_param
+    ctr.change_field_of_view(step=90.0)
+    ctr.set_zoom(0.8)  # will be overwritten by camera_param
     # ctr.set_lookat([-3, -3, -1])
     # set viewpoint
     # camera_param = ctr.convert_to_pinhole_camera_parameters()
@@ -287,10 +385,10 @@ def plot_robot_frame_o3d(lidar, boxes=None, out_path=None, width=1080, height=72
 
     # RenderOption
     opt = vis.get_render_option()
-    opt.background_color = np.asarray([1, 1, 1]) # b: [0, 0, 0]; w: [1, 1, 1]
+    opt.background_color = np.asarray([1, 1, 1])  # b: [0, 0, 0]; w: [1, 1, 1]
     opt.point_size = float(2)
     # opt.line_width = float(8)
-    
+
     if out_path is not None:
         vis.poll_events()
         vis.update_renderer()
@@ -298,14 +396,26 @@ def plot_robot_frame_o3d(lidar, boxes=None, out_path=None, width=1080, height=72
         # o3d.io.write_image(os.path.join(out_path, "test.jpg"), img)
         # vis.capture_screen_image(out_path)
         image = vis.capture_screen_float_buffer(False)
-        plt.imsave(out_path, np.asarray(image), dpi = 300)
+        plt.imsave(out_path, np.asarray(image), dpi=300)
     else:
         vis.run()
 
+
 #%% Plot in world frame with Open3D
-def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None, 
-                        width=1080, height=720, show_xyz=False, show_origin=True, filtering=True, filter_dist=8.0, verbose=False):
-    
+def plot_world_frame_o3d(
+    lidar=None,
+    pose=None,
+    boxes=None,
+    out_path=None,
+    width=1080,
+    height=720,
+    show_xyz=False,
+    show_origin=True,
+    filtering=True,
+    filter_dist=8.0,
+    verbose=False,
+):
+
     # some nice colors
     gs_blue = (66.0 / 256, 133.0 / 256, 244.0 / 256)
     gs_red = (234.0 / 256, 68.0 / 256, 52.0 / 256)
@@ -319,7 +429,7 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
     ## visualize with robot pose
     if pose:
         (trans_list, rot_quat_list) = pose
-        trans_curr = trans_list[-1,:]
+        trans_curr = trans_list[-1, :]
         # print(trans_curr)
         # scipy: (x, y, z, w) from https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.as_quat.html
         # open3d: (w, x, y, z) `Eigen::Quaterniond` from https://eigen.tuxfamily.org/dox/classEigen_1_1Quaternion.html
@@ -336,16 +446,21 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
         """
 
         from scipy.spatial.transform import Rotation as R
+
         scipy_rots = R.from_quat(rot_quat_list)
         # compute relative rotation to frame1
-        scipy_rots_aligned = scipy_rots.reduce(left=R.from_quat(rot_quat_list[0,:]).inv())
+        scipy_rots_aligned = scipy_rots.reduce(
+            left=R.from_quat(rot_quat_list[0, :]).inv()
+        )
         rot_quat_list_aligned = scipy_rots_aligned.as_quat()
         # different quat description in o3d and scipy
-        rot_quat_list_aligned[:,[0, 1, 2, 3]] = rot_quat_list_aligned[:,[1, 2, 3, 0]]
-        rot_quat_curr = rot_quat_list_aligned[-1,:]
+        rot_quat_list_aligned[:, [0, 1, 2, 3]] = rot_quat_list_aligned[:, [1, 2, 3, 0]]
+        rot_quat_curr = rot_quat_list_aligned[-1, :]
 
         # robot_xyz = copy.deepcopy(origin_xyz)
-        robot_xyz = o3d.geometry.TriangleMesh.create_coordinate_frame(size=2.0, origin=np.array([0, 0, 0]))
+        robot_xyz = o3d.geometry.TriangleMesh.create_coordinate_frame(
+            size=2.0, origin=np.array([0, 0, 0])
+        )
         # http://www.open3d.org/docs/latest/tutorial/Basic/transformation.html
         rot = robot_xyz.get_rotation_matrix_from_quaternion(rot_quat_curr)
         # translate(self, translation, relative=True) numpy.ndarray[numpy.float64[3, 1]]
@@ -382,23 +497,22 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
 
                 line_set = o3d.geometry.LineSet(
                     points=o3d.utility.Vector3dVector(corners),
-                    lines=o3d.utility.Vector2iVector(lines))
+                    lines=o3d.utility.Vector2iVector(lines),
+                )
                 line_set.colors = o3d.utility.Vector3dVector(colors)
                 show_list.append(line_set)
-                
+
                 line_mesh = LineMesh(corners, lines, colors, radius=0.02)
                 line_mesh_geoms = line_mesh.cylinder_segments
                 # show_list.append([*line_mesh_geoms])
-                show_list += line_mesh_geoms # list of TriangleMesh
+                show_list += line_mesh_geoms  # list of TriangleMesh
 
     vis = o3d.visualization.Visualizer()
-    vis.create_window(window_name='crowdbot', width=width, height=height)
+    vis.create_window(window_name="crowdbot", width=width, height=height)
     # vis.create_window(visible = False)
     for item in show_list:
         if pose:
-            vis.add_geometry(item
-                            .rotate(rot, center=(0, 0, 0))
-                            .translate(trans_curr))
+            vis.add_geometry(item.rotate(rot, center=(0, 0, 0)).translate(trans_curr))
         else:
             vis.add_geometry(item)
 
@@ -410,19 +524,21 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
         # mode 1: show past 50 frames traj
         # viz_trans_list = trans_list[-50:,:] # trans_list
         # mode 2: show past traj sparsely (every 20 frame)
-        viz_trans_list = trans_list[0:-1:20,:]
+        viz_trans_list = trans_list[0:-1:20, :]
         traj_list = [copy.deepcopy(mesh) for elem in range(len(viz_trans_list))]
         for trans, traj in zip(viz_trans_list, traj_list):
             vis.add_geometry(traj.translate(trans))
 
-    origin_xyz = o3d.geometry.TriangleMesh.create_coordinate_frame(size=3.0, origin=np.array([-1, -1, -1]))
+    origin_xyz = o3d.geometry.TriangleMesh.create_coordinate_frame(
+        size=3.0, origin=np.array([-1, -1, -1])
+    )
     if show_origin:
         vis.add_geometry(origin_xyz)
-    
+
     # ViewControl: http://www.open3d.org/docs/0.12.0/python_api/open3d.visualization.ViewControl.html
     ctr = vis.get_view_control()
-    ctr.change_field_of_view(step=90.)
-    ctr.set_zoom(0.8) # will be overwritten by camera_param
+    ctr.change_field_of_view(step=90.0)
+    ctr.set_zoom(0.8)  # will be overwritten by camera_param
     # ctr.set_lookat([-3, -3, -1])
     # set viewpoint
     camera_param = ctr.convert_to_pinhole_camera_parameters()
@@ -431,10 +547,10 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
 
     # RenderOption
     opt = vis.get_render_option()
-    opt.background_color = np.asarray([1, 1, 1]) # b: [0, 0, 0]; w: [1, 1, 1]
+    opt.background_color = np.asarray([1, 1, 1])  # b: [0, 0, 0]; w: [1, 1, 1]
     opt.point_size = float(2)
     # opt.line_width = float(8)
-    
+
     if out_path is not None:
         vis.poll_events()
         vis.update_renderer()
@@ -442,6 +558,6 @@ def plot_world_frame_o3d(lidar=None, pose=None, boxes=None, out_path=None,
         # o3d.io.write_image(os.path.join(out_path, "test.jpg"), img)
         # vis.capture_screen_image(out_path)
         image = vis.capture_screen_float_buffer(False)
-        plt.imsave(out_path, np.asarray(image), dpi = 300)
+        plt.imsave(out_path, np.asarray(image), dpi=300)
     else:
         vis.run()

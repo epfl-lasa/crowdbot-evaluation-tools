@@ -1,19 +1,20 @@
 # -*-coding:utf-8 -*-
-'''
+"""
 @File    :   crowdbot_data.py
 @Time    :   2021/10/26
 @Author  :   Yujie He
 @Version :   1.1
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
-'''
+"""
 
 import os
 import numpy as np
 
+
 class AllFrames(object):
     # "./data/qolo_market_data"
-    #def __init__(self, data_dir="/home/crowdbot/Documents/yujie/crowdbot_tools/data"):
+    # def __init__(self, data_dir="/home/crowdbot/Documents/yujie/crowdbot_tools/data"):
     def __init__(self, args):
         data_processed = args.folder + "_processed"
         data_processed_dir = os.path.join(args.base, args.data, data_processed)
@@ -27,7 +28,7 @@ class AllFrames(object):
 
         # source_data/[tf_qolo/pose/twist/acc]
         self.source_data_dir = os.path.join(data_processed_dir, "source_data")
-        
+
         self.metrics_dir = os.path.join(data_processed_dir, "metrics")
 
         # media/[viz_imgs/videos]
@@ -35,7 +36,7 @@ class AllFrames(object):
         self.video_dir = os.path.join(data_processed_dir, "media", "videos")
 
         # store _stamped.npy in the same folder
-        self.seqs = [f for f in os.listdir(self.lidar_dir) if f.split('.')[-1] != 'npy']
+        self.seqs = [f for f in os.listdir(self.lidar_dir) if f.split(".")[-1] != "npy"]
         self.seqs.sort()
         self.frames = []
         for seq in self.seqs:
@@ -84,13 +85,14 @@ class AllFrames(object):
 
         return lidar, dets, dets_conf, trks
 
+
 # filter the files with specific extensions
 # https://newbedev.com/list-files-only-in-the-current-directory
 # https://stackoverflow.com/questions/2225564/get-a-filtered-list-of-files-in-a-directory/2225582
 # https://www.kite.com/python/answers/how-to-filter-file-types-in-a-directory-in-python
 # ENHANCEMENT: consider using fnmatch.filter(os.listdir(path), "*.ext")
 def bag_file_filter(f):
-    if f[-4:] in ['.bag']:
+    if f[-4:] in [".bag"]:
         return True
     else:
         return False
