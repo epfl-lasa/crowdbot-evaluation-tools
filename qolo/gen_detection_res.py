@@ -18,10 +18,6 @@ from lidar_det.detector import DetectorWithClock
 
 
 if __name__ == "__main__":
-    # ckpt_path = "/globalwork/jia/share/JRDB_cvpr21_workshop/logs/unet_bl_voxel_jrdb_0.05_0.1_20210519_232859/ckpt/ckpt_e40.pth"
-    # base_dir = "/globalwork/datasets/crowdbot/qolo_market_data"
-    # lidar_dir = os.path.join(base_dir, "lidars")
-
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(

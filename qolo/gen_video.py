@@ -13,6 +13,32 @@ import os
 import argparse
 from crowdbot_data import AllFrames
 
+
+def img_dir2video_ffmpeg(img_dir, video_path):
+    """Generate video using ffmpeg via os.system()"""
+
+    # TODO: consider using ffmpeg-py
+    # cmd: ffmpeg -y -r 15 -pattern_type glob -i 'tmp/*.png' -c:v libx264 -vf fps=30 -pix_fmt yuv420p 'tmp/frames.mp4'
+    header_cmd = "ffmpeg -y -r 15 -pattern_type glob -i "
+    in_images = "'{}/*.png'".format(img_dir)
+    middle_cmd = " -c:v libx264 -vf fps=30 -pix_fmt yuv420p "
+    out_video = "'{}'".format(video_path)
+    cmd = header_cmd + in_images + middle_cmd + out_video
+    os.system(cmd)
+
+
+def video2gif_ffmpeg(video_path, gif_path, w=640, h=480):
+    """Generate gif from video using ffmpeg via os.system()"""
+
+    # cmd: ffmpeg -i lapse.mp4 -r 12 -s 640x360 output.gif
+    header_cmd = "ffmpeg -i "
+    in_images = "'{}'".format(video_seq_filepath)
+    middle_cmd = " -r 12 -s {}x{} ".format(w, h)
+    out_gif = "{}".format(gif_path)
+    cmd = header_cmd + in_images + middle_cmd + out_gif
+    os.system(cmd)
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="convert data from rosbag")
@@ -60,23 +86,11 @@ if __name__ == "__main__":
         if not os.path.exists(video_seq_filepath):
             print("Images will be converted into {}".format(video_seq_filepath))
 
-            # method1: generate video using ffmpeg via os.system()
-            # TODO: consider using ffmpeg-py
-            # os.system("ffmpeg -y -r 15 -pattern_type glob -i 'tmp/*.png' -c:v libx264 -vf fps=30 -pix_fmt yuv420p 'tmp/frames.mp4'")
-            header_cmd = "ffmpeg -y -r 15 -pattern_type glob -i "
-            in_images = "'{}/*.png'".format(img_seq_dir)
-            middle_cmd = " -c:v libx264 -vf fps=30 -pix_fmt yuv420p "
-            out_video = "'{}'".format(video_seq_filepath)
-            cmd = header_cmd + in_images + middle_cmd + out_video
-            os.system(cmd)
+            img_dir2video_ffmpeg(img_seq_dir, video_seq_filepath)
 
-            # images to gifs: ffmpeg -i lapse.mp4 -r 12 -s 640x360 output.gif
-            header_cmd = "ffmpeg -i "
-            in_images = "'{}'".format(video_seq_filepath)
-            middle_cmd = " -r 12 -s 640x480 "
-            out_gif = "{}".format(video_seq_filepath.replace("mp4", "gif"))
-            cmd = header_cmd + in_images + middle_cmd + out_gif
-            os.system(cmd)
+            video2gif_ffmpeg(
+                video_seq_filepath, video_seq_filepath.replace("mp4", "gif")
+            )
 
         else:
             print("{} already generated!!!".format(video_seq_filepath))

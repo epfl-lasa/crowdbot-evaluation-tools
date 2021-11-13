@@ -21,59 +21,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from crowdbot_data import AllFrames
+from eval_qolo import compute_time_path
 
-#%% utility functions to evaluate qolo
-def compute_time_path(qolo_twist, qolo_pose2d):
-    # 1. calculate starting timestamp based on nonzero twist command
-    # starting: larger than zero
-    start_idx = np.min(
-        [
-            np.min(np.nonzero(qolo_twist.get("x"))),
-            np.min(np.nonzero(qolo_twist.get("zrot"))),
-        ]
-    )
-    start_ts = qolo_twist.get("timestamp")[start_idx]
-    print("starting timestamp: {}".format(start_ts))
-
-    # 2. calculate ending timestamp based on closest point to goal
-    pose_ts = qolo_pose2d.get("timestamp")
-    pose_x = qolo_pose2d.get("x")
-    pose_y = qolo_pose2d.get("y")
-    theta = qolo_pose2d.get("theta")
-    ## borrow from evalMetricsPathAndTimeToGoal.py
-    angle_init = np.sum(theta[9:19]) / 10.0
-    goal = np.array([np.cos(angle_init), np.sin(angle_init)]) * 20.0
-
-    # determine when the closest point to the goal is reached
-    min_dist2goal = np.inf
-    end_idx = -1
-    for idx in range(len(pose_ts)):
-        dist2goal = np.sqrt((pose_x[idx] - goal[0]) ** 2 + (pose_y[idx] - goal[1]) ** 2)
-        if dist2goal < min_dist2goal:
-            min_dist2goal = dist2goal
-            end_idx = idx
-
-    path_length2goal = np.sum(
-        np.sqrt(np.diff(pose_x[:end_idx]) ** 2 + np.diff(pose_y[:end_idx]) ** 2)
-    )
-    end_ts = pose_ts[end_idx]
-    duration2goal = end_ts - start_ts
-    print("ending timestamp: {}".format(end_ts))
-    print("Duration: {}s".format(duration2goal))
-    ## borrow from evalMetricsPathAndTimeToGoal.py
-
-    return (
-        start_ts,
-        end_ts,
-        duration2goal,
-        path_length2goal,
-        end_idx,
-        goal,
-        min_dist2goal,
-    )
-
-
-#%% utility functions to evaluate crowd
+#%% utility functions to evaluate crowd data
 def compute_metrics(trks):
 
     # 1. all_det

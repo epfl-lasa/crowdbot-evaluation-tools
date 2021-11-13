@@ -13,8 +13,6 @@ import numpy as np
 
 
 class AllFrames(object):
-    # "./data/qolo_market_data"
-    # def __init__(self, data_dir="/home/crowdbot/Documents/yujie/crowdbot_tools/data"):
     def __init__(self, args):
         data_processed = args.folder + "_processed"
         data_processed_dir = os.path.join(args.base, args.data, data_processed)

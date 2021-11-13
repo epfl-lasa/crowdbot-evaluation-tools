@@ -10,15 +10,15 @@
 
 
 import os
+import argparse
 import numpy as np
 
 import rospy
 import rosbag
-
 import tf2_py as tf2
 import ros_numpy
 
-import argparse
+from crowdbot_data import bag_file_filter
 
 # sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
@@ -87,7 +87,8 @@ def load_lidar(bag, topic, tf_buffer, target_frame="tf_qolo"):
 
 
 def extract_lidar_from_rosbag(bag_path, out_dir, args):
-    """Extract and save combined laser scan from rosbag. Existing files will be overwritten."""
+    """Extract and save combined laser scan from rosbag. Existing files will be overwritten"""
+
     # print("rosbag: {}".format(bag_path))
 
     # load lidar in a unified coordinate frame
@@ -117,10 +118,6 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
     sync_t0 = max(front_t0, rear_t0)
     sync_t1 = min(front_t1, rear_t1)
     sync_ts = np.arange(start=sync_t0, step=sync_dt, stop=sync_t1, dtype=np.float64)
-
-    # print(sync_ts[:30])
-    # print(front_ts[:30])
-    # print(rear_ts[:30])
 
     def get_sync_inds(ts, sync_ts):
         d = np.abs(sync_ts.reshape(-1, 1) - ts.reshape(1, -1))
@@ -160,14 +157,6 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
         sync_dt,
     )
     print(s)
-
-
-def bag_file_filter(f):
-    """filter the files with specific extensions"""
-    if f[-4:] in [".bag"]:
-        return True
-    else:
-        return False
 
 
 if __name__ == "__main__":

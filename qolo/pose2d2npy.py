@@ -21,13 +21,11 @@ import tf
 import rosbag
 
 from crowdbot_data import AllFrames, bag_file_filter
+from process_util import ts_to_sec
 
-#%% extract pose2d from rosbag without rosbag play
-def ts_to_sec(ts):
-    return ts.secs + ts.nsecs / float(1e9)
-
-
+#%% Utility function for extraction pose2d from rosbag and apply interpolation
 def extract_pose2d_from_rosbag(bag_file_path, args):
+    """extract pose2d from rosbag without rosbag play"""
     pose2d_msg_sum = 0
     num_msgs_between_logs = 100
     x_list, y_list, theta_list, t_list = [], [], [], []

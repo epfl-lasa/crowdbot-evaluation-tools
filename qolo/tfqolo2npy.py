@@ -21,12 +21,13 @@ from tf_bag import BagTfTransformer
 from crowdbot_data import AllFrames, bag_file_filter
 from process_util import interp_rotation, interp_translation, compute_motion_derivative
 
-#%% extract pose_stamped from rosbag without rosbag play
+#%% Utility function for extraction tf from rosbag and apply interpolation
 def extract_pose_from_rosbag(bag_file_path):
+    """Esxtract pose_stamped from rosbag without rosbag play"""
+
     # load rosbag and BagTfTransformer
     bag = rosbag.Bag(bag_file_path)
     bag_transformer = BagTfTransformer(bag)
-    # print(bag_transformer.getTransformGraphInfo())
 
     # "t265_pose_frame" -> "tf_qolo"
     # "t265_odom_frame" -> "t265_pose_frame"
@@ -55,7 +56,7 @@ def extract_pose_from_rosbag(bag_file_path):
 
 # deduplicate tf qolo
 def deduplicate_tf(qolo_tf):
-    # input: qolo_tf -> dict; output: unique_qolo_tf -> dict
+    """Delete duplicate tf in recorded rosbag"""
     ts = qolo_tf.get("timestamp")
     tf_qolo_pos = qolo_tf.get("position")
     tf_qolo_ori = qolo_tf.get("orientation")
@@ -88,16 +89,13 @@ def deduplicate_tf(qolo_tf):
     }
 
 
-# interpolate pose_stamped with scipy
 def interp_pose(source_dict, interp_ts):
-    """Calculate interpolations for all states"""
+    """Calculate interpolations for all states with scipy"""
     source_ts = source_dict.get("timestamp")
     source_pos = source_dict.get("position")
     source_ori = source_dict.get("orientation")
 
-    # print(min(interp_ts), max(interp_ts))
-    # print(min(source_ts), max(source_ts))
-    # don't resize, just discard the timestamps smaller than source
+    # don't resize, just discard timestamps smaller or bigger than source
     if min(interp_ts) < min(source_ts):
         interp_ts[interp_ts < min(source_ts)] = min(source_ts)
     elif max(interp_ts) > max(source_ts):
@@ -110,10 +108,10 @@ def interp_pose(source_dict, interp_ts):
     return interp_dict
 
 
-# computer angular velocity by differentiating
+#%% Utility function for computing angular velocity by differentiating
 def find_round_angle(angle, degrees=False):
-    # https://numpy.org/doc/stable/reference/generated/numpy.unwrap.html
-    # numpy.unwrap(angle, axis, period=period)
+    """Compute complementary angle that add up to 2pi/360 degrees"""
+    # TODO: consider using numpy.unwrap()
     if degrees:
         res = 360 - angle
     else:
@@ -122,12 +120,14 @@ def find_round_angle(angle, degrees=False):
 
 
 def to_euler_zyx(rot_quat, degrees=False):
+    """Convert quaternions to euler angles"""
     scipy_rot = R.from_quat(rot_quat)
     rot_zyx = scipy_rot.as_euler("zyx", degrees)
     return rot_zyx
 
 
 def compute_ang_vel(rpy_list, hz=200.0):
+    """Compute estimated angular velocity from list of orientations"""
     dt = 1 / hz
     rpy_list_ = np.vstack((rpy_list, rpy_list[-1, :]))
     ang_vel = np.zeros_like(rpy_list)

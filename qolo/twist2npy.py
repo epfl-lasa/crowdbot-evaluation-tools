@@ -20,16 +20,12 @@ import numpy as np
 import rosbag
 
 from crowdbot_data import AllFrames, bag_file_filter
-from process_util import interp_translation, compute_motion_derivative
-
-#%% extract twist_stamped from rosbag without rosbag play
-def ts_to_sec(ts):
-    """convert ros timestamp into second"""
-    return ts.secs + ts.nsecs / float(1e9) # "{:.12f}".format(t)
+from process_util import interp_translation, compute_motion_derivative, ts_to_sec
 
 
+#%% Utility function for extraction twist_stamped from rosbag and apply interpolation
 def extract_twist_from_rosbag(bag_file_path, args):
-    """Extract twist msg to .npy file"""
+    """Extract twist_stamped from rosbag without rosbag play"""
 
     twist_msg_sum = 0
     num_msgs_between_logs = 100

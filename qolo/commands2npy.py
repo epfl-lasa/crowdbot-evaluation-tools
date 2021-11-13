@@ -19,15 +19,11 @@ import numpy as np
 import rosbag
 
 from crowdbot_data import AllFrames, bag_file_filter
-from process_util import interp_translation
+from process_util import interp_translation, ts_to_sec
 
-#%% extract commands from `rds_network_ros/ToGui` in  rosbag without rosbag play
-def ts_to_sec(ts):
-    """convert ros timestamp into second"""
-    return ts.secs + ts.nsecs / float(1e9) # "{:.12f}".format(t)
-
-
+#%% Utility function for extraction `ToGui` from rosbag and apply interpolation
 def extract_cmd_from_rosbag(bag_file_path, args):
+    """extract commands from `rds_network_ros/ToGui` in rosbag without rosbag play"""
     command_msg_sum = 0
     num_msgs_between_logs = 100
     # x_list, zrot_list, t_list = [], [], []

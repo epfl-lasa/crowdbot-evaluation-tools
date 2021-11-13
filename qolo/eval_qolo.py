@@ -19,8 +19,11 @@ import matplotlib.pyplot as plt
 from crowdbot_data import AllFrames
 from process_util import compute_motion_derivative
 
-#%% utility functions to evaluate qolo
+
 # TODO: check data source from pose2d (odom) or tf_qolo
+
+
+#%% utility functions to evaluate qolo data
 def compute_time_path(qolo_twist, qolo_pose2d):
     """calculate starting and ending timestamp and path"""
 

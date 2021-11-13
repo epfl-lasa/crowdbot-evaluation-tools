@@ -18,9 +18,7 @@ import open3d as o3d
 
 #%% LineMesh module from https://github.com/isl-org/Open3D/pull/738#issuecomment-564785941 (line_width got deprecated)
 def align_vector_to_another(a=np.array([0, 0, 1]), b=np.array([1, 0, 0])):
-    """
-    Aligns vector a to vector b with axis angle rotation
-    """
+    """Aligns vector a to vector b with axis angle rotation"""
     if np.array_equal(a, b):
         return None, None
     axis_ = np.cross(a, b)
@@ -115,8 +113,9 @@ class LineMesh(object):
 
 #%% Utility functions for generate components
 
-# convert id to color series
+
 def id2color(id_):
+    """convert id to color series"""
     c_hsv = np.empty((1, 1, 3), dtype=np.float32)
     c_hsv[0, :, 0] = float((id_ * 33) % 360)
     c_hsv[0, :, 1] = 1
@@ -199,18 +198,11 @@ def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
         ],
         dtype=np.float32,
     ).T
-    # x_corners = np.array([dx / 2., dx / 2., -dx / 2., -dx / 2., dx / 2., dx / 2., -dx / 2., -dx / 2.], dtype=np.float32).T
-    # y_corners = np.array([dy / 2., -dy / 2., -dy / 2., dy / 2., dy / 2., -dy / 2., -dy / 2., dy / 2.], dtype=np.float32).T
-    # if bottom_center:
-    #     z_corners = np.array([0., 0., 0., 0., dz,  dz,  dz,  dz], dtype=np.float32).T
-    # else:
-    #     z_corners = np.array([dz / 2., dz / 2., dz / 2., dz / 2., -dz / 2.,  -dz / 2.,  -dz / 2.,  -dz / 2.], dtype=np.float32).T
 
     ry = boxes3d[:, 6]
     zeros, ones = np.zeros(ry.size, dtype=np.float32), np.ones(
         ry.size, dtype=np.float32
     )
-    # ry = ry+np.pi/6
     # counter-clockwisely rotate the frame around z by an angle ry
     # note the transform is done by Vector x Matrix instead of Matrix x Vector,
     # which means the Matrix need to be transposed when interpreted as a linear transform
@@ -252,8 +244,8 @@ def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
     return corners.astype(np.float32)
 
 
-# filter detected pointcloud/pedestrain within the desired distance
 def filter_pointcloud_distance(in_cloud, dist=10.0, verbose=False):
+    """filter detected pointcloud/pedestrain within the desired distance"""
     r_square_within = (in_cloud[:, 0] ** 2 + in_cloud[:, 1] ** 2) < dist ** 2
     out_cloud = in_cloud[r_square_within, :]
     if verbose:
@@ -267,7 +259,9 @@ def filter_pointcloud_distance(in_cloud, dist=10.0, verbose=False):
 
 def filter_detection_tracking_res(in_boxes, dist=10.0, verbose=False):
     """
-    boxes3d: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords
+    Filter detected pointcloud/pedestrain within the desired distance
+    Input:
+        in_boxes: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords
     """
     r_square_within = (in_boxes[:, 0] ** 2 + in_boxes[:, 1] ** 2) < dist ** 2
     out_boxes = in_boxes[r_square_within, :]

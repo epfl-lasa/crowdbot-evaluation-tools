@@ -9,8 +9,8 @@
 """
 
 
-import os
 import numpy as np
+import open3d as o3d
 
 from transformation_utils import boxes_to_corners
 
@@ -33,30 +33,6 @@ def id2color(id_):
     return tuple(*c_bgr)
 
 
-# viz with open3d
-# ref: http://www.open3d.org/docs/release/index.html#python-api-index
-import open3d as o3d
-
-
-def plot_frame_o3d(lidar, boxes, out_path=None):
-    # some nice colors
-    gs_blue = (66.0 / 256, 133.0 / 256, 244.0 / 256)
-    gs_red = (234.0 / 256, 68.0 / 256, 52.0 / 256)
-    gs_yellow = (251.0 / 256, 188.0 / 256, 4.0 / 256)
-    gs_green = (52.0 / 256, 168.0 / 256, 83.0 / 256)
-    gs_orange = (255.0 / 256, 109.0 / 256, 1.0 / 256)
-    gs_blue_light = (70.0 / 256, 189.0 / 256, 196.0 / 256)
-
-    fig = mlab.figure(
-        figure=None,
-        bgcolor=(1, 1, 1),
-        fgcolor=(0, 0, 0),
-        engine=None,
-        size=(1600, 1000),
-    )
-
-
-# viz with mlab
 def plot_frame(lidar, boxes, out_path=None):
     # some nice colors
     gs_blue = (66.0 / 256, 133.0 / 256, 244.0 / 256)
