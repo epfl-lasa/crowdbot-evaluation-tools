@@ -14,8 +14,10 @@ import numpy as np
 
 class AllFrames(object):
     def __init__(self, args):
+        base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+
         data_processed = args.folder + "_processed"
-        data_processed_dir = os.path.join(args.base, args.data, data_processed)
+        data_processed_dir = os.path.join(base_folder, args.data, data_processed)
 
         # lidars/
         self.lidar_dir = os.path.join(data_processed_dir, "lidars")

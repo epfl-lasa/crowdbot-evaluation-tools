@@ -92,12 +92,14 @@ def interp_twist(twist_stamped_dict, target_dict):
 
 #%% main file
 if __name__ == "__main__":
+    base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(
         "-b",
         "--base",
-        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+        default=base_folder,
         type=str,
         help="base folder, i.e., the path of the current workspace",
     )
