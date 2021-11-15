@@ -1,6 +1,22 @@
 # Quickstart
 
-> After following the guide in [2_config.md](./2_config.md), you could realize evaluation with following code step by step
+- Minimal environment for evaluation
+
+    ```shell
+    conda create -n crowdbot_eval python=3.8
+    conda activate crowdbot_eval
+    # or `source activate crowdbot_eval` in ubuntu
+    pip3 install -U pip
+    sudo apt-get install ros-$ROS_DISTRO-ros-numpy
+    sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
+
+    # install using requirements
+    pip3 install -r requirements_eval.txt
+
+    # install using scripts
+    pip3 install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
+    pip3 install --user rospkg pycryptodomex python-gnupg
+    ```
 
 ## Simplified starting commands
 
