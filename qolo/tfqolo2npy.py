@@ -19,7 +19,13 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "extern
 from tf_bag import BagTfTransformer
 
 from crowdbot_data import AllFrames, bag_file_filter
-from process_util import interp_rotation, interp_translation, compute_motion_derivative
+from process_util import (
+    interp_rotation,
+    interp_translation,
+    compute_motion_derivative,
+    smooth1d,
+    smooth,
+)
 
 #%% Utility function for extraction tf from rosbag and apply interpolation
 def extract_pose_from_rosbag(bag_file_path):
@@ -184,10 +190,17 @@ if __name__ == "__main__":
         "--hz", default=200.0, type=float, help="desired interpolated high frequency"
     )
     parser.add_argument(
+        "--smooth",
+        dest="smooth",
+        action="store_true",
+        help="Filter datapoints with Savitzky-Golay or moving-average filter (default: false)",
+    )
+    parser.set_defaults(smooth=True)
+    parser.add_argument(
         "--overwrite",
         dest="overwrite",
         action="store_true",
-        help="Whether to overwrite existing rosbags (default: false)",
+        help="Overwrite existing rosbags (default: false)",
     )
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
@@ -296,7 +309,18 @@ if __name__ == "__main__":
                 state_pose_g, subset=["x", "y", "z"]
             )
             # ang_vel_list = compute_ang_vel(np.hstack((roll_g, pitch_g, yaw_g)))
-            ang_vel_g = compute_ang_vel(ori_zyx[:, [2, 1, 0]])
+            rpy = ori_zyx[:, [2, 1, 0]]
+            # 211116: apply filter to angles
+            if smooth:
+                smoothed_rpy = smooth(
+                    rpy,
+                    filter='savgol',
+                    window=31,
+                    polyorder=3,
+                )
+                ang_vel_g = compute_ang_vel(smoothed_rpy)
+            else:
+                ang_vel_g = compute_ang_vel(rpy)
             state_vel_g.update({"xrot": ang_vel_g[:, 0]})
             state_vel_g.update({"yrot": ang_vel_g[:, 1]})
             state_vel_g.update({"zrot": ang_vel_g[:, 2]})
@@ -321,6 +345,7 @@ if __name__ == "__main__":
             # ref: https://numpy.org/doc/stable/reference/generated/numpy.matmul.html#numpy.matmul
             xyz_vel = np.matmul(w2r_rot_mat_aligned_list, xyz_vel_g)  # (frames, 3, 1)
             xyz_vel = np.reshape(xyz_vel, (-1, 3))
+            # TODO: issues in the exported angular velocity!
             ang_vel = np.matmul(w2r_rot_mat_aligned_list, ang_vel_g)  # (frames, 3, 1)
             ang_vel = np.reshape(ang_vel, (-1, 3))
 
@@ -329,14 +354,57 @@ if __name__ == "__main__":
                 "x": xyz_vel[:, 0],
                 "zrot": ang_vel[:, 2],
             }
-            state_dict.update({"x_vel": xyz_vel[:, 0]})
-            state_dict.update({"zrot_vel": ang_vel[:, 2]})
+            if smooth:
+                # 211116: unfiltered data
+                state_dict.update({"x_vel_uf": xyz_vel[:, 0]})
+                state_dict.update({"zrot_vel_uf": ang_vel[:, 2]})
+                # 211116: apply filter to computed vel
+                smoothed_x_vel = smooth1d(
+                    xyz_vel[:, 0],
+                    filter='savgol',
+                    window=31,
+                    polyorder=5,
+                    check_thres=True,
+                )
+                smoothed_zrot_vel = smooth1d(
+                    ang_vel[:, 2],
+                    filter='savgol',
+                    window=31,
+                    polyorder=5,
+                    check_thres=True,
+                    thres=[-4.124, 4.124],
+                )
+                state_dict.update({"x_vel": smoothed_x_vel})
+                state_dict.update({"zrot_vel": smoothed_zrot_vel})
+            else:
+                state_dict.update({"x_vel": xyz_vel[:, 0]})
+                state_dict.update({"zrot_vel": ang_vel[:, 2]})
 
             # acc
             print("Computing acc!")
             state_acc = compute_motion_derivative(state_vel)
-            state_dict.update({"x_acc": state_acc["x"]})
-            state_dict.update({"zrot_acc": state_acc["zrot"]})
+            if smooth:
+                # 211116: unfiltered data
+                state_dict.update({"x_acc_uf": state_acc["x"]})
+                state_dict.update({"zrot_acc_uf": state_acc["zrot"]})
+                # 211116: apply filter to computed acc
+                smoothed_x_acc = smooth1d(
+                    state_acc['x'],
+                    filter='savgol',
+                    window=31,
+                    polyorder=5,
+                )
+                smoothed_zrot_acc = smooth1d(
+                    state_acc['zrot'],
+                    filter='savgol',
+                    window=31,
+                    polyorder=5,
+                )
+                state_dict.update({"x_acc": smoothed_x_acc})
+                state_dict.update({"zrot_acc": smoothed_zrot_acc})
+            else:
+                state_dict.update({"x_acc": smoothed_x_acc})
+                state_dict.update({"zrot_acc": smoothed_zrot_acc})
 
             # jerk
             print("Computing jerk!")
