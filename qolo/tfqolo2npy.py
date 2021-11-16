@@ -311,7 +311,7 @@ if __name__ == "__main__":
             w2r_rot_mat_aligned_list = state_r_aligned.inv().as_matrix()
             # state_vel
             xyz_vel_g = np.hstack(
-                (state_pose_g["x"], state_pose_g["y"], state_pose_g["z"])
+                (state_vel_g["x"], state_vel_g["y"], state_vel_g["z"])
             )
             xyz_vel_g = np.reshape(xyz_vel_g, (-1, 3, 1))
             ang_vel_g = np.reshape(ang_vel_g, (-1, 3, 1))
