@@ -242,7 +242,7 @@ if __name__ == "__main__":
 
         # load twist, pose2d
         twist_dir = os.path.join(allf.source_data_dir, "twist")
-        qolo_twist_path = os.path.join(twist_dir, seq + "_twist.npy")
+        qolo_twist_path = os.path.join(twist_dir, seq + "_twist_raw.npy")  # _twist
         if not os.path.exists(qolo_twist_path):
             print("ERROR: Please extract twist_stamped by using twist2npy.py")
         qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()

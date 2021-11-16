@@ -78,11 +78,11 @@ def compute_time_path(qolo_twist, qolo_pose2d):
 
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/scripts/test_metrics.py
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py
-def compute_fluency(qolo_twist):
+def compute_fluency(qolo_command):
     """compute real qolo velocity in reference to command"""
 
-    vel = qolo_twist.get("x")
-    omega = qolo_twist.get("zrot")
+    vel = qolo_command.get("x_vel")
+    omega = qolo_command.get("zrot_vel")
     v_max, w_max = np.max(vel), np.max(omega)
 
     fluency_v = []
@@ -137,21 +137,20 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     ax.axis("equal")
 
     ax.set_title("Path. Closest distance to the goal={0:.1f}m".format(min_dist2goal))
-    # plt.show()
     fig.tight_layout()
     path_img_path = os.path.join(base_dir, seq_name + "_path.png")
     plt.savefig(path_img_path, dpi=300)  # png, pdf
 
 
-def save_motion_img(qolo_eval_dict, base_dir, seq_name):
-    ts = qolo_eval_dict["timestamp"]
+def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffix):
+    ts = qolo_command_dict["timestamp"]
     start_ts = qolo_eval_dict.get("start_command_ts")
     duration2goal = qolo_eval_dict.get("duration2goal")
 
     new_start_ts = np.max([start_ts - np.min(ts), 0.0])
     new_end_ts = new_start_ts + duration2goal
 
-    plot_attr = ("x", "zrot", "x_acc", "zrot_acc", "x_jerk", "zrot_jerk")
+    plot_attr = ("x_vel", "zrot_vel", "x_acc", "zrot_acc", "x_jerk", "zrot_jerk")
     unit = (
         "$V$ [$m/s$]",
         "$V_w$ [$rad/s$]",
@@ -171,26 +170,40 @@ def save_motion_img(qolo_eval_dict, base_dir, seq_name):
     for i in range(3):
         for j in range(2):
             xx = ts - np.min(ts)
-            yy = qolo_eval_dict[plot_attr[i * 2 + j]]
+            yy = qolo_command_dict[plot_attr[i * 2 + j]]
             ax[i, j].plot(xx, yy, linewidth=0.8, color="purple")
             ax[i, j].axvline(x=new_start_ts, linestyle="--", linewidth=1.5, color="red")
             ax[i, j].axvline(x=new_end_ts, linestyle="--", linewidth=1.5, color="red")
 
             # ref: https://stackoverflow.com/questions/50753721/can-not-reset-the-axes
-            ax[i, j].add_patch(
-                mpatches.Rectangle(
-                    (new_start_ts, 0), duration2goal, 100, facecolor="red", alpha=0.2
+            max_y = np.max(yy)
+            rect_up = mpatches.Rectangle(
+                (new_start_ts, 0), duration2goal, 2 * max_y, facecolor="red", alpha=0.2
+            )  # xy, width, height
+            ax[i, j].add_patch(rect_up)
+            if i != 0:
+                min_y = np.abs(np.min(yy))
+                rect_down = mpatches.Rectangle(
+                    (new_start_ts, -2 * min_y),
+                    duration2goal,
+                    2 * min_y,
+                    facecolor="red",
+                    alpha=0.2,
                 )
-            )
+                ax[i, j].add_patch(rect_down)
+                # TODO: cannot show correctly when `MAX=nan, MIN=-nan` occurs
+                print("MAX={}, MIN=-{}".format(max_y, min_y))
 
             ax[i, j].set_ylabel(unit[i * 2 + j])
             if i == 2:
                 ax[i, j].set_xlabel("t [s]")
-
-            ax[i, j].set_ylim(bottom=0.0)
+            if i == 0:  # only nominal velocity is always nonnegative
+                ax[i, j].set_ylim(bottom=0.0)
     fig.tight_layout()
-    twist_acc_jerk_img_path = os.path.join(base_dir, seq_name + "_twist_acc_jerk.png")
-    plt.savefig(twist_acc_jerk_img_path, dpi=300)  # png, pdf
+    qolo_img_path = os.path.join(
+        base_dir, seq_name + suffix + ".png"
+    )  # "_qolo_command"
+    plt.savefig(qolo_img_path, dpi=300)  # png, pdf
 
 
 #%% main function
@@ -260,29 +273,35 @@ if __name__ == "__main__":
             )
         )
 
-        # load pose2d, twist, acc (can be read in loop)
+        # load pose2d
         pose2d_dir = os.path.join(allf.source_data_dir, "pose2d")
         qolo_pose2d_path = os.path.join(pose2d_dir, seq + "_pose2d.npy")
         if not os.path.exists(qolo_pose2d_path):
             print("ERROR: Please extract pose2d by using pose2d2npy.py")
         qolo_pose2d = np.load(qolo_pose2d_path, allow_pickle=True).item()
 
+        # load twist, qolo_command
         twist_dir = os.path.join(allf.source_data_dir, "twist")
-        qolo_twist_path = os.path.join(twist_dir, seq + "_twist.npy")
-        qolo_twist_sampled_path = os.path.join(twist_dir, seq + "_twist_sampled.npy")
-        if not os.path.exists(qolo_twist_path):
+        qolo_twist_path = os.path.join(twist_dir, seq + "_twist_raw.npy")
+        command_sampled_filepath = os.path.join(twist_dir, seq + "_qolo_command.npy")
+        if (not os.path.exists(qolo_twist_path)) or (
+            not os.path.exists(command_sampled_filepath)
+        ):
             print("ERROR: Please extract twist_stamped by using twist2npy.py")
         qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
-        qolo_twist_sampled = np.load(qolo_twist_sampled_path, allow_pickle=True).item()
+        qolo_command_dict = np.load(command_sampled_filepath, allow_pickle=True).item()
+        # print("qolo_command_dict.keys()", qolo_command_dict.keys())
 
-        acc_dir = os.path.join(allf.source_data_dir, "acc")
-        qolo_acc_sampled_path = os.path.join(acc_dir, seq + "_acc_sampled.npy")
-        if not os.path.exists(qolo_acc_sampled_path):
-            print("ERROR: Please extract acc by using twist2npy.py")
-        qolo_acc_sampled = np.load(qolo_acc_sampled_path, allow_pickle=True).item()
+        # load qolo_state
+        tfqolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
+        qolo_state_filepath = os.path.join(tfqolo_dir, seq + "_qolo_state.npy")
+        if not os.path.exists(qolo_state_filepath):
+            print("ERROR: Please extract twist_stamped by using tfqolo2npy.py")
+        qolo_state_dict = np.load(qolo_state_filepath, allow_pickle=True).item()
+        # print("qolo_state_dict.keys()", qolo_state_dict.keys())
 
         # 00. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
-        time_path_computed = compute_time_path(qolo_twist_sampled, qolo_pose2d)
+        time_path_computed = compute_time_path(qolo_twist, qolo_pose2d)
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
         qolo_eval_npy = os.path.join(eval_res_dir, seq + "_qolo_eval.npy")
@@ -294,8 +313,21 @@ if __name__ == "__main__":
             # figure1: path
             save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
 
-            # figure2: viz twist, acc, jerk
-            save_motion_img(qolo_eval_dict, eval_res_dir, seq)
+            # figure2: viz twist, acc, jerk from qolo_command and qolo_state
+            save_motion_img(
+                qolo_command_dict,
+                qolo_eval_dict,
+                eval_res_dir,
+                seq,
+                suffix="_qolo_command",
+            )
+            save_motion_img(
+                qolo_state_dict,
+                qolo_eval_dict,
+                eval_res_dir,
+                seq,
+                suffix="_qolo_state",
+            )
 
             print("Replot images!")
         else:
@@ -309,23 +341,24 @@ if __name__ == "__main__":
                 attrs = ("jerk", "agreement", "fluency")
 
                 # 0. qolo_eval_dict (include twist, acc)
-                qolo_eval_dict = copy.deepcopy(qolo_twist_sampled)
-                qolo_eval_dict.update({"x_acc": qolo_acc_sampled["x"]})
-                qolo_eval_dict.update({"zrot_acc": qolo_acc_sampled["zrot"]})
+                # qolo_eval_dict = copy.deepcopy(qolo_command_dict)
+                # qolo_eval_dict.update({"x_acc": qolo_acc_sampled["x"]})
+                # qolo_eval_dict.update({"zrot_acc": qolo_acc_sampled["zrot"]})
 
                 # 1. jerk
-                qolo_jerk_sampled = compute_motion_derivative(qolo_acc_sampled)
-                qolo_eval_dict.update({"x_jerk": qolo_jerk_sampled["x"]})
-                qolo_eval_dict.update({"zrot_jerk": qolo_jerk_sampled["zrot"]})
+                # qolo_jerk_sampled = compute_motion_derivative(qolo_acc_sampled)
+                # qolo_eval_dict.update({"x_jerk": qolo_jerk_sampled["x"]})
+                # qolo_eval_dict.update({"zrot_jerk": qolo_jerk_sampled["zrot"]})
+                qolo_eval_dict = dict()
                 qolo_eval_dict.update(
-                    {"avg_x_jerk": np.average(qolo_jerk_sampled["x"])}
+                    {"avg_x_jerk": np.average(qolo_command_dict["x_jerk"])}
                 )
                 qolo_eval_dict.update(
-                    {"avg_zrot_jerk": np.average(qolo_jerk_sampled["zrot"])}
+                    {"avg_zrot_jerk": np.average(qolo_command_dict["zrot_jerk"])}
                 )
 
                 # 2. fluency
-                fluency = compute_fluency(qolo_twist_sampled)
+                fluency = compute_fluency(qolo_command_dict)
                 qolo_eval_dict.update({"avg_fluency": fluency[0]})
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
@@ -345,7 +378,20 @@ if __name__ == "__main__":
                     save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
 
                     # figure2: viz twist, acc, jerk
-                    save_motion_img(qolo_eval_dict, eval_res_dir, seq)
+                    save_motion_img(
+                        qolo_command_dict,
+                        qolo_eval_dict,
+                        eval_res_dir,
+                        seq,
+                        suffix="_qolo_command",
+                    )
+                    save_motion_img(
+                        qolo_state_dict,
+                        qolo_eval_dict,
+                        eval_res_dir,
+                        seq,
+                        suffix="_qolo_state",
+                    )
             else:
                 print(
                     "Detecting the generated {} already existed!".format(qolo_eval_npy)
