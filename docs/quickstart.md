@@ -22,23 +22,32 @@
 
 1. Create symbolic link of shared_test folder (including two rosbags) in current workspace
 
-    ```sh
+    ```shell
     cd path/to/crowdbot-evaluation-tools
     ln -s  /hdd/data_qolo/crowd_qolo_recordings/shared_test/ data/rosbag/shared_test
     ```
 
 2. data conversion from original rosbags
 
-    ```sh
-    python3 qolo/gen_lidar_from_rosbags.py -f shared_test
+    > Before exporting lidar files, please check whether PyKDL is installed successfully. If not, please check [pykdl_installation_guide.md](./pykdl_installation_guide.md)
 
-    python3 qolo/tfqolo2npy.py --overwrite -f shared_test
-    python3 qolo/twist2npy.py --overwrite -f shared_test
-    python3 qolo/pose2d2npy.py --overwrite -f shared_test
-    ```
+    - export pointcloud and lidar timestamp
 
-    - `--overwrite` flag is used to overwrite existing data
-    - `-f` flag is used to specify data folder
+        ```shell
+        python3 qolo/gen_lidar_from_rosbags.py --overwrite -f shared_test
+        ```
+
+      - `--overwrite` flag is used to overwrite existing data
+      - `--compressed` flag is used to save pointcloud as compressed pcd files (.pcd). If not, save with npy-like format
+      - `-f` flag is used to specify data folder
+
+    - export qolo status
+
+        ```shell
+        python3 qolo/tfqolo2npy.py --overwrite -f shared_test
+        python3 qolo/twist2npy.py --overwrite -f shared_test
+        python3 qolo/pose2d2npy.py --overwrite -f shared_test
+        ```
 
 3. apply algorithms to extracted data
 
@@ -49,7 +58,7 @@
 
 4. visualization of current evaluation result
 
-    ```sh
+    ```shell
     python3 qolo/gen_viz_img_o3d.py -f shared_test
     python3 qolo/gen_video.py -f shared_test
     ```
@@ -58,7 +67,7 @@
 
 5. evaluate the qolo and crowd data from algorithm result and extracted data
 
-    ```sh
+    ```shell
     python3 qolo/eval_crowd.py --overwrite -f shared_test
     python3 qolo/eval_qolo.py --overwrite -f shared_test
     ```
