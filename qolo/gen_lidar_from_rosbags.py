@@ -10,6 +10,7 @@
 
 
 import os
+import fnmatch
 import argparse
 import numpy as np
 
@@ -86,6 +87,24 @@ def load_lidar(bag, topic, tf_buffer, target_frame="tf_qolo"):
     return msgs, ts
 
 
+def save_lidar(filename, pc, library="numpy", write_ascii=False, compressed=True):
+    # save with numpy
+    if library == "numpy":
+        with open(filename + ".nby", "wb") as f:
+            np.save(f, pc)
+
+    # save with open3d
+    elif library == "open3d":
+        import open3d as o3d
+
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(pc)
+        # open3d.io.write_point_cloud(filename, pointcloud, write_ascii=False, compressed=False, print_progress=False)
+        o3d.io.write_point_cloud(
+            filename + ".pcd", pcd, write_ascii=write_ascii, compressed=compressed
+        )
+
+
 def extract_lidar_from_rosbag(bag_path, out_dir, args):
     """Extract and save combined laser scan from rosbag. Existing files will be overwritten"""
 
@@ -129,9 +148,23 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
     # write frame to file
     for frame_id, (idx_front, idx_rear) in enumerate(zip(front_inds, rear_inds)):
         pc = np.concatenate((front_msgs[idx_front], rear_msgs[idx_rear]), axis=0)
-        file_path = os.path.join(out_dir, "{0:05d}.nby".format(frame_id))
-        with open(file_path, "wb") as f:
+        file_path = os.path.join(out_dir, "{0:05d}".format(frame_id))
+        if args.compressed:
+            save_lidar(file_path, pc, library="open3d")
+        else:
+            save_lidar(file_path, pc)
+        """
+        # save with numpy
+        with open(file_path+".nby", "wb") as f:
             np.save(f, pc)
+
+        # save with open3d
+        import open3d as o3d
+
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(pc)
+        o3d.io.write_point_cloud(file_path+".pcd", pcd, write_ascii=False, compressed=True)
+        """
 
     # yujie: save sync frame id and timestamp
     id_list, ts_list = [], []
@@ -197,6 +230,20 @@ if __name__ == "__main__":
         type=str,
         help="topic for the rear lidar",
     )
+    parser.add_argument(
+        "--overwrite",
+        dest="overwrite",
+        action="store_true",
+        help="Overwrite existing rosbags (default: False)",
+    )
+    parser.set_defaults(overwrite=False)
+    parser.add_argument(
+        "--compressed",
+        dest="compressed",
+        action="store_true",
+        help="Save pointcloud with compressed format (default: True)",
+    )
+    parser.set_defaults(compressed=True)
     args = parser.parse_args()
 
     # source: rosbag data in data/rosbag/xxxx
@@ -212,16 +259,15 @@ if __name__ == "__main__":
 
     print("Starting extracting lidar files from {} rosbags!".format(len(bag_files)))
 
-    counter = 0
-    for bf in bag_files:
+    for idx, bf in enumerate(bag_files):
         bag_path = os.path.join(rosbag_dir, bf)
         out_dir = os.path.join(lidar_file_dir, bf.split(".")[0])
+        out_lidar_np = fnmatch.filter(os.listdir(out_dir), "*.nby")
+        out_pcd = fnmatch.filter(os.listdir(out_dir), "*.pcd")
 
-        counter += 1
-        print("({}/{}): {}".format(counter, len(bag_files), bag_path))
+        print("({}/{}): {}".format(idx + 1, len(bag_files), bag_path))
 
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
+        if (not out_pcd) or (args.overwrite):
             extract_lidar_from_rosbag(bag_path, out_dir, args)
         else:
             print("{} already extracted!!!".format(bf))

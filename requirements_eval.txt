@@ -3,6 +3,8 @@ numpy
 pandas
 matplotlib
 scipy==1.7.2
+# image generation
+opencv-python==3.4.8.29
 open3d==0.13.0
 # rosbag dependency
 rospkg

@@ -96,3 +96,4 @@ def bag_file_filter(f):
         return True
     else:
         return False
+
