@@ -13,31 +13,31 @@ import os
 import argparse
 import numpy as np
 
-from crowdbot_data import AllFrames
+from crowdbot_data import CrowdBotDatabase
 from lidar_det.detector import DetectorWithClock
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    parser.add_argument(
-        "-b",
-        "--base",
-        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
+    # parser.add_argument(
+    #     "-b",
+    #     "--base",
+    #     default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+    #     type=str,
+    #     help="base folder, i.e., the path of the current workspace",
+    # )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default="data",
+    #     type=str,
+    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    # )
     parser.add_argument(
         "-f",
         "--folder",
-        required=True,
+        default="shared_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -47,27 +47,22 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
     # model checkpoints
-    ckpt_path = os.path.join(args.base, "qolo", "Person_MinkUNet", "models", args.model)
+    ckpt_path = os.path.join("qolo", "Person_MinkUNet", "models", args.model)
     detector = DetectorWithClock(ckpt_path)
 
     # source: lidar data in data/xxxx_processed/lidars
-    data_processed = args.folder + "_processed"
-    data_processed_dir = os.path.join(args.base, args.data, data_processed)
-    lidar_file_dir = allf.lidar_dir
+    lidar_file_dir = cb_data.lidar_dir
 
-    # destination: generated detection data in data/xxxx_processed/detections
-    detection_file_dir = allf.dets_dir
-
-    seq_num = allf.nr_seqs()
+    seq_num = cb_data.nr_seqs()
     print("Starting detection from {} lidar sequences!".format(seq_num))
 
     counter = 0
     for seq_idx in range(seq_num):
 
-        seq = allf.seqs[seq_idx]
+        seq = cb_data.seqs[seq_idx]
 
         # print(seq)
         counter += 1
@@ -76,7 +71,7 @@ if __name__ == "__main__":
         frames.sort()
 
         # seq dest: data/xxxx_processed/detections/seq
-        det_seq_dir = os.path.join(detection_file_dir, seq)
+        det_seq_dir = os.path.join(cb_data.dets_dir, seq)
 
         # os.makedirs(det_seq_dir, exist_ok=True)
         if not os.path.exists(det_seq_dir):

@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from crowdbot_data import AllFrames
+from crowdbot_data import CrowdBotDatabase
 from eval_qolo import compute_time_path
 
 #%% utility functions to evaluate crowd data
@@ -175,29 +175,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(
-        "-b",
-        "--base",
-        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
-    parser.add_argument(
         "-f",
         "--folder",
         default="nocam_rosbags",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
-    # parser.add_argument('--dist', default=10., type=float, nargs='+',
-    #                     help='considered distance(s) in density evaluation')
-    # directly set limitation as [5, 10]
     parser.add_argument(
         "--save_img",
         dest="save_img",
@@ -221,33 +204,33 @@ if __name__ == "__main__":
     parser.set_defaults(replot=False)
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
-    print("Starting evaluating crowd from {} sequences!".format(allf.nr_seqs()))
+    print("Starting evaluating crowd from {} sequences!".format(cb_data.nr_seqs()))
 
-    eval_res_dir = os.path.join(allf.metrics_dir)
+    eval_res_dir = os.path.join(cb_data.metrics_dir)
 
     if not os.path.exists(eval_res_dir):
         print("Result images and npy will be saved in {}".format(eval_res_dir))
         os.makedirs(eval_res_dir, exist_ok=True)
 
-    for seq_idx in range(allf.nr_seqs()):
+    for seq_idx in range(cb_data.nr_seqs()):
 
-        seq = allf.seqs[seq_idx]
+        seq = cb_data.seqs[seq_idx]
         print(
             "({}/{}): {} with {} frames".format(
-                seq_idx + 1, allf.nr_seqs(), seq, allf.nr_frames(seq_idx)
+                seq_idx + 1, cb_data.nr_seqs(), seq, cb_data.nr_frames(seq_idx)
             )
         )
 
         # load twist, pose2d
-        twist_dir = os.path.join(allf.source_data_dir, "twist")
+        twist_dir = os.path.join(cb_data.source_data_dir, "twist")
         qolo_twist_path = os.path.join(twist_dir, seq + "_twist_raw.npy")  # _twist
         if not os.path.exists(qolo_twist_path):
             print("ERROR: Please extract twist_stamped by using twist2npy.py")
         qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
 
-        pose2d_dir = os.path.join(allf.source_data_dir, "pose2d")
+        pose2d_dir = os.path.join(cb_data.source_data_dir, "pose2d")
         qolo_pose2d_path = os.path.join(pose2d_dir, seq + "_pose2d.npy")
         if not os.path.exists(qolo_pose2d_path):
             print("ERROR: Please extract pose2d by using pose2d2npy.py")
@@ -274,7 +257,7 @@ if __name__ == "__main__":
             if (not os.path.exists(crowd_eval_npy)) or (args.overwrite):
 
                 # timestamp can be read from lidars/ folder
-                stamp_file_path = os.path.join(allf.lidar_dir, seq + "_stamped.npy")
+                stamp_file_path = os.path.join(cb_data.lidar_dir, seq + "_stamped.npy")
                 lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
                 ts = lidar_stamped_dict.item().get("timestamp")
 
@@ -299,11 +282,11 @@ if __name__ == "__main__":
                 crowd_eval_list_dict = {k: [] for k in attrs}
 
                 num_msgs_between_logs = 200
-                nr_frames = allf.nr_frames(seq_idx)
+                nr_frames = cb_data.nr_frames(seq_idx)
 
                 for fr_idx in range(nr_frames):
 
-                    _, _, _, trks = allf[seq_idx, fr_idx]
+                    _, _, _, trks = cb_data[seq_idx, fr_idx]
 
                     metrics = compute_metrics(trks)
 
@@ -311,7 +294,7 @@ if __name__ == "__main__":
                         print(
                             "Seq {}/{} - Frame {}/{}: filtered/overall boxes within 10m: {}/{}".format(
                                 seq_idx + 1,
-                                allf.nr_seqs(),
+                                cb_data.nr_seqs(),
                                 fr_idx + 1,
                                 nr_frames,
                                 metrics[2],

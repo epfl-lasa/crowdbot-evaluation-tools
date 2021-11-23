@@ -9,15 +9,50 @@
 """
 
 import os
+import yaml
 import numpy as np
+from pathlib import Path
 
 
-class AllFrames(object):
-    def __init__(self, args):
-        base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+class CrowdBotData(object):
+    DEFAULT_CONFIG_PATH = os.path.join(Path(__file__).parents[1], 'data/data.yaml')
+
+    def __init__(self, config=DEFAULT_CONFIG_PATH):
+        self.config = config
+        data_config = self.read_yaml()
+        self.bagbase_dir = data_config['bagbase_dir']
+        self.outbase_dir = data_config['outbase_dir']
+
+    def read_yaml(self):
+        with open(self.config, encoding='utf-8') as f:
+            data = yaml.load(f.read(), Loader=yaml.FullLoader)
+        return data
+
+    def write_yaml(self, data):
+        """
+        :param yaml_path:
+        :param data:
+        :param encoding:
+        """
+        with open(self.config, 'w', encoding='utf-8') as f:
+            yaml.dump(data, stream=f, allow_unicode=True)
+
+
+class CrowdBotDatabase(CrowdBotData):
+    def __init__(self, args, config=None):
+
+        if config is None:
+            super(CrowdBotDatabase, self).__init__()
+        else:
+            super(CrowdBotDatabase, self).__init__(config)
+        data_config = self.read_yaml()
+        self.bagbase_dir = data_config['bagbase_dir']
+        self.outbase_dir = data_config['outbase_dir']
 
         data_processed = args.folder + "_processed"
-        data_processed_dir = os.path.join(base_folder, args.data, data_processed)
+        base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+        # data_processed_dir = os.path.join(base_folder, "data", data_processed)
+        data_processed_dir = os.path.join(self.outbase_dir, data_processed)
 
         # lidars/
         self.lidar_dir = os.path.join(data_processed_dir, "lidars")

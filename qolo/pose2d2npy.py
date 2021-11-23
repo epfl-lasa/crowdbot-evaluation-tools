@@ -20,7 +20,7 @@ import numpy as np
 import tf
 import rosbag
 
-from crowdbot_data import AllFrames, bag_file_filter
+from crowdbot_data import CrowdBotDatabase, bag_file_filter
 from process_util import ts_to_sec
 
 #%% Utility function for extraction pose2d from rosbag and apply interpolation
@@ -78,24 +78,24 @@ def extract_pose2d_from_rosbag(bag_file_path, args):
 
 #%% main file
 if __name__ == "__main__":
-    base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    # base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    parser.add_argument(
-        "-b",
-        "--base",
-        default=base_folder,
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
+    # parser.add_argument(
+    #     "-b",
+    #     "--base",
+    #     default=base_folder,
+    #     type=str,
+    #     help="base folder, i.e., the path of the current workspace",
+    # )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default="data",
+    #     type=str,
+    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    # )
     parser.add_argument(
         "-f",
         "--folder",
@@ -118,14 +118,15 @@ if __name__ == "__main__":
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args=args)
 
     # source: rosbag data in data/rosbag/xxxx
-    rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
+    # rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
+    rosbag_dir = os.path.join(cb_data.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
     # destination: pose2d data in data/xxxx_processed/source_data/pose2d
-    pose2d_dir = os.path.join(allf.source_data_dir, "pose2d")
+    pose2d_dir = os.path.join(cb_data.source_data_dir, "pose2d")
     if not os.path.exists(pose2d_dir):
         os.makedirs(pose2d_dir)
 

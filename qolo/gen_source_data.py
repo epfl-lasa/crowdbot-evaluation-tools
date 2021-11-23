@@ -17,7 +17,7 @@ import numpy as np
 import tf
 import rosbag
 
-from crowdbot_data import AllFrames, bag_file_filter
+from crowdbot_data import CrowdBotDatabase, bag_file_filter
 from process_util import interp_translation, compute_motion_derivative, ts_to_sec
 
 
@@ -55,20 +55,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert all source data from rosbag")
 
     parser.add_argument(
-        "-b",
-        "--base",
-        default=base_folder,
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
-    parser.add_argument(
         "-f",
         "--folder",
         default="nocam_rosbags",
@@ -94,20 +80,20 @@ if __name__ == "__main__":
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
     # source: rosbag data in data/rosbag/xxxx
-    rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
+    rosbag_dir = os.path.join(cb_data.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
     # destination: twist data in data/xxxx_processed/source_data/twist
-    twist_dir = os.path.join(allf.source_data_dir, "twist")
+    twist_dir = os.path.join(cb_data.source_data_dir, "twist")
     if not os.path.exists(twist_dir):
         os.makedirs(twist_dir)
-    tf_qolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
+    tf_qolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
     if not os.path.exists(tf_qolo_dir):
         os.makedirs(tf_qolo_dir)
-    pose2d_dir = os.path.join(allf.source_data_dir, "pose2d")
+    pose2d_dir = os.path.join(cb_data.source_data_dir, "pose2d")
     if not os.path.exists(pose2d_dir):
         os.makedirs(pose2d_dir)
 

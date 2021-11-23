@@ -18,7 +18,7 @@ import rosbag
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "external"))
 from tf_bag import BagTfTransformer
 
-from crowdbot_data import AllFrames, bag_file_filter
+from crowdbot_data import CrowdBotDatabase, bag_file_filter
 from process_util import (
     interp_rotation,
     interp_translation,
@@ -161,24 +161,24 @@ def compute_ang_vel(rpy_list, hz=200.0):
 
 #%% main file
 if __name__ == "__main__":
-    base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    # base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    parser.add_argument(
-        "-b",
-        "--base",
-        default=base_folder,
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
+    # parser.add_argument(
+    #     "-b",
+    #     "--base",
+    #     default=base_dir,
+    #     type=str,
+    #     help="base folder, i.e., the path of the current workspace",
+    # )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default="data",
+    #     type=str,
+    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    # )
     parser.add_argument(
         "-f",
         "--folder",
@@ -205,18 +205,20 @@ if __name__ == "__main__":
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args=args)
 
     # source: rosbag data in data/rosbag/xxxx
-    rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
+    # base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    # rosbag_dir = os.path.join(base_dir, "data/rosbag", args.folder)
+    rosbag_dir = os.path.join(cb_data.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
-    if not os.path.exists(allf.lidar_dir):
+    if not os.path.exists(cb_data.lidar_dir):
         print(
             "ERROR: please use `gen_lidar_from_rosbags.py` to extract lidar files first!"
         )
 
     # destination: pose data in data/xxxx_processed/source_data/tfqolo
-    tfqolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
+    tfqolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
     if not os.path.exists(tfqolo_dir):
         os.makedirs(tfqolo_dir)
 
@@ -415,7 +417,7 @@ if __name__ == "__main__":
 
             # _stamped.npy
             lidar_stamped = np.load(
-                os.path.join(allf.lidar_dir, seq + "_stamped.npy"),
+                os.path.join(cb_data.lidar_dir, seq + "_stamped.npy"),
                 allow_pickle=True,
             ).item()
             lidar_ts = lidar_stamped.get("timestamp")
@@ -436,4 +438,4 @@ if __name__ == "__main__":
             lidar_stamped_dict.update({"zrot_vel": zrot_vel_sampled})
             np.save(lidar_stamped_filepath, lidar_stamped_dict)
 
-    print("Finish extracting all twist and compute state msg")
+    print("Finish extracting all twist and compute state msg!")

@@ -18,7 +18,7 @@ import numpy as np
 
 import rosbag
 
-from crowdbot_data import AllFrames, bag_file_filter
+from crowdbot_data import CrowdBotDatabase, bag_file_filter
 from process_util import interp_translation, ts_to_sec
 
 #%% Utility function for extraction `ToGui` from rosbag and apply interpolation
@@ -102,20 +102,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(
-        "-b",
-        "--base",
-        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
-    parser.add_argument(
         "-f",
         "--folder",
         default="nocam_rosbags",
@@ -137,14 +123,14 @@ if __name__ == "__main__":
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
     # source: rosbag data in data/rosbag/xxxx
-    rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
+    rosbag_dir = os.path.join(cb_data.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
     # destination: twist data in data/xxxx_processed/source_data/commands
-    cmd_dir = os.path.join(allf.source_data_dir, "commands")
+    cmd_dir = os.path.join(cb_data.source_data_dir, "commands")
     if not os.path.exists(cmd_dir):
         os.makedirs(cmd_dir)
 
@@ -177,7 +163,7 @@ if __name__ == "__main__":
                 ).item()
 
             lidar_stamped = np.load(
-                os.path.join(allf.lidar_dir, bag_name + "_stamped.npy"),
+                os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
                 allow_pickle=True,
             ).item()
             twist_sampled_dict = interp_twist(cmd_stamped_dict, lidar_stamped)

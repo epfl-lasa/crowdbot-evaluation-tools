@@ -19,7 +19,7 @@ import rosbag
 import tf2_py as tf2
 import ros_numpy
 
-from crowdbot_data import bag_file_filter
+from crowdbot_data import bag_file_filter, CrowdBotData
 
 # sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
@@ -193,28 +193,26 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
 
 
 if __name__ == "__main__":
-    base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    parser.add_argument(
-        "-b",
-        "--base",
-        default=base_folder,
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
+    # parser.add_argument(
+    #     "-b",
+    #     "--base",
+    #     default=base_folder,
+    #     type=str,
+    #     help="base folder, i.e., the path of the current workspace",
+    # )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default="data",
+    #     type=str,
+    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    # )
     parser.add_argument(
         "-f",
         "--folder",
-        default="nocam_rosbags",
+        default="shared_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -243,16 +241,22 @@ if __name__ == "__main__":
         action="store_true",
         help="Save pointcloud with compressed format (default: True)",
     )
-    parser.set_defaults(compressed=True)
+    parser.set_defaults(compressed=False)
     args = parser.parse_args()
 
+    qolo_dataset = CrowdBotData()
+
+    base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+
     # source: rosbag data in data/rosbag/xxxx
-    rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
+    # rosbag_dir = os.path.join(base_folder, "data", "rosbag", args.folder)
+    rosbag_dir = os.path.join(qolo_dataset.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
     # destination: lidar data in data/xxxx_processed/lidars
     data_processed = args.folder + "_processed"
-    data_processed_dir = os.path.join(args.base, args.data, data_processed)
+    # data_processed_dir = os.path.join(base_folder, "data", data_processed)
+    data_processed_dir = os.path.join(qolo_dataset.outbase_dir, data_processed)
     if not os.path.exists(data_processed_dir):
         os.makedirs(data_processed_dir)
     lidar_file_dir = os.path.join(data_processed_dir, "lidars")
@@ -262,6 +266,8 @@ if __name__ == "__main__":
     for idx, bf in enumerate(bag_files):
         bag_path = os.path.join(rosbag_dir, bf)
         out_dir = os.path.join(lidar_file_dir, bf.split(".")[0])
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
         out_lidar_np = fnmatch.filter(os.listdir(out_dir), "*.nby")
         out_pcd = fnmatch.filter(os.listdir(out_dir), "*.pcd")
 

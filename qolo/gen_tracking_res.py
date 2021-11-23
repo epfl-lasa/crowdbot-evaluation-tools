@@ -15,7 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "AB3DMO
 import argparse
 import numpy as np
 
-from crowdbot_data import AllFrames
+from crowdbot_data import CrowdBotDatabase
 from AB3DMOT.AB3DMOT_libs.model import AB3DMOT
 
 
@@ -42,24 +42,24 @@ def reorder_back(boxes):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    parser.add_argument(
-        "-b",
-        "--base",
-        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
+    # parser.add_argument(
+    #     "-b",
+    #     "--base",
+    #     default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+    #     type=str,
+    #     help="base folder, i.e., the path of the current workspace",
+    # )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default="data",
+    #     type=str,
+    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    # )
     parser.add_argument(
         "-f",
         "--folder",
-        default="nocam_rosbags",
+        default="shared_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -67,23 +67,23 @@ if __name__ == "__main__":
 
     min_conf = 0.5
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
     counter = 0
-    seq_num = allf.nr_seqs()
+    seq_num = cb_data.nr_seqs()
 
     for seq_idx in range(seq_num):
         tracker = AB3DMOT(max_age=2, min_hits=3)
 
         counter += 1
-        print("({}/{}): {} frames".format(counter, seq_num, allf.nr_frames(seq_idx)))
+        print("({}/{}): {} frames".format(counter, seq_num, cb_data.nr_frames(seq_idx)))
 
         # seq dest: data/xxxx_processed/alg_res/tracks/seq
-        trk_seq_dir = os.path.join(allf.trks_dir, allf.seqs[seq_idx])
+        trk_seq_dir = os.path.join(cb_data.trks_dir, cb_data.seqs[seq_idx])
 
         if not os.path.exists(trk_seq_dir):
-            for fr_idx in range(allf.nr_frames(seq_idx)):
-                lidar, dets, dets_conf, _ = allf[seq_idx, fr_idx]
+            for fr_idx in range(cb_data.nr_frames(seq_idx)):
+                lidar, dets, dets_conf, _ = cb_data[seq_idx, fr_idx]
 
                 dets = dets[dets_conf > min_conf]
                 dets = reorder(dets)
@@ -92,10 +92,12 @@ if __name__ == "__main__":
                 trks = reorder_back(trks)
 
                 f_path = os.path.join(
-                    trk_seq_dir, allf.frames[seq_idx][fr_idx].replace("nby", "txt")
+                    trk_seq_dir, cb_data.frames[seq_idx][fr_idx].replace("nby", "txt")
                 )
                 os.makedirs(trk_seq_dir, exist_ok=True)
                 np.savetxt(f_path, trks, delimiter=",")
         else:
-            print("{} tracking results already generated!!!".format(allf.seqs[seq_idx]))
+            print(
+                "{} tracking results already generated!!!".format(cb_data.seqs[seq_idx])
+            )
             continue

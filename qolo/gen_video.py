@@ -11,7 +11,7 @@
 
 import os
 import argparse
-from crowdbot_data import AllFrames
+from crowdbot_data import CrowdBotDatabase
 
 
 def img_dir2video_ffmpeg(img_dir, video_path):
@@ -44,13 +44,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(
-        "-b",
-        "--base",
-        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
         "-d",
         "--data",
         default="data",
@@ -66,22 +59,25 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
-    for seq_idx in range(allf.nr_seqs()):
+    for seq_idx in range(cb_data.nr_seqs()):
 
-        seq = allf.seqs[seq_idx]
+        seq = cb_data.seqs[seq_idx]
         print(
             "({}/{}): {} with {} frames".format(
-                seq_idx + 1, allf.nr_seqs(), seq, allf.nr_frames(seq_idx)
+                seq_idx + 1, cb_data.nr_seqs(), seq, cb_data.nr_frames(seq_idx)
             )
         )
 
         # seq source: data/xxxx_processed/viz_imgs/seq
-        img_seq_dir = os.path.join(allf.imgs_dir, seq)
+        img_seq_dir = os.path.join(cb_data.imgs_dir, seq)
+        if not os.path.exists(img_seq_dir):
+            print("please generate images with gen_viz_img_o3d.py")
+
         # seq dest: data/xxxx_processed/videos/seq.mp4
-        os.makedirs(allf.video_dir, exist_ok=True)
-        video_seq_filepath = os.path.join(allf.video_dir, seq + ".mp4")
+        os.makedirs(cb_data.video_dir, exist_ok=True)
+        video_seq_filepath = os.path.join(cb_data.video_dir, seq + ".mp4")
 
         if not os.path.exists(video_seq_filepath):
             print("Images will be converted into {}".format(video_seq_filepath))

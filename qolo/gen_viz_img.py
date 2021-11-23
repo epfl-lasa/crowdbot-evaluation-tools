@@ -13,7 +13,7 @@ import argparse
 import numpy as np
 from mayavi import mlab
 import cv2
-from crowdbot_data import AllFrames
+from crowdbot_data import CrowdBotDatabase
 from viz_util import plot_frame
 
 if __name__ == "__main__":
@@ -42,30 +42,30 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
-    for seq_idx in range(allf.nr_seqs()):
+    for seq_idx in range(cb_data.nr_seqs()):
 
-        seq = allf.seqs[seq_idx]
+        seq = cb_data.seqs[seq_idx]
         print(
             "({}/{}): {} with {} frames".format(
-                seq_idx + 1, allf.nr_seqs(), seq, allf.nr_frames(seq_idx)
+                seq_idx + 1, cb_data.nr_seqs(), seq, cb_data.nr_frames(seq_idx)
             )
         )
 
         # seq dest: data/xxxx_processed/viz_imgs/seq
-        img_seq_dir = os.path.join(allf.imgs_dir, seq)
+        img_seq_dir = os.path.join(cb_data.imgs_dir, seq)
 
         if not os.path.exists(img_seq_dir):
             print("Images will be saved in {}".format(img_seq_dir))
             os.makedirs(img_seq_dir, exist_ok=True)
 
             # generate image every 2 frames
-            for fr_idx in range(0, allf.nr_frames(seq_idx), 2):
-                lidar, dets, dets_conf, trks = allf[seq_idx, fr_idx]
+            for fr_idx in range(0, cb_data.nr_frames(seq_idx), 2):
+                lidar, dets, dets_conf, trks = cb_data[seq_idx, fr_idx]
                 figpath = os.path.join(img_seq_dir, "{0:04d}.png".format(fr_idx))
                 fig = plot_frame(lidar, trks, figpath)
                 mlab.close(fig)
         else:
-            print("{} images already generated!!!".format(allf.seqs[seq_idx]))
+            print("{} images already generated!!!".format(cb_data.seqs[seq_idx]))
             continue

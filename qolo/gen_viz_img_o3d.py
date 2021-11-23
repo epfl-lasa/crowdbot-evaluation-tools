@@ -12,7 +12,7 @@
 import os
 import argparse
 import numpy as np
-from crowdbot_data import AllFrames
+from crowdbot_data import CrowdBotDatabase
 from o3d_viz_util import plot_robot_frame_o3d, plot_world_frame_o3d
 
 if __name__ == "__main__":
@@ -41,19 +41,19 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    allf = AllFrames(args)
+    cb_data = CrowdBotDatabase(args)
 
-    for seq_idx in range(allf.nr_seqs()):
+    for seq_idx in range(cb_data.nr_seqs()):
 
-        seq = allf.seqs[seq_idx]
+        seq = cb_data.seqs[seq_idx]
         print(
             "({}/{}): {} with {} frames".format(
-                seq_idx + 1, allf.nr_seqs(), seq, allf.nr_frames(seq_idx)
+                seq_idx + 1, cb_data.nr_seqs(), seq, cb_data.nr_frames(seq_idx)
             )
         )
 
         # seq dest: data/xxxx_processed/viz_imgs/seq
-        img_seq_dir = os.path.join(allf.imgs_dir, seq)
+        img_seq_dir = os.path.join(cb_data.imgs_dir, seq)
 
         if not os.path.exists(img_seq_dir):
             print("Images will be saved in {}".format(img_seq_dir))
@@ -62,7 +62,7 @@ if __name__ == "__main__":
             # pose_stamped based visualization
             consider_pose = True
             if consider_pose:
-                tf_qolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
+                tf_qolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
                 lidar_stamped_path = os.path.join(
                     tf_qolo_dir, seq + "_tfqolo_sampled.npy"
                 )
@@ -72,19 +72,20 @@ if __name__ == "__main__":
 
             # generate image every step_viz frames
             step_viz = 4
-            for fr_idx in range(0, allf.nr_frames(seq_idx), step_viz):
+            for fr_idx in range(0, cb_data.nr_frames(seq_idx), step_viz):
                 # input a series of poses
                 if consider_pose:
                     trans = lidar_pose_stamped["position"][: fr_idx + 1]
                     rot_quat = lidar_pose_stamped["orientation"][: fr_idx + 1]
 
-                lidar, dets, dets_conf, trks = allf[seq_idx, fr_idx]
+                lidar, dets, dets_conf, trks = cb_data[seq_idx, fr_idx]
                 figpath = os.path.join(img_seq_dir, "{0:04d}.png".format(fr_idx))
                 print(
                     "({}/{}): {:1f}% remaining".format(
                         fr_idx // step_viz + 1,
-                        allf.nr_frames(seq_idx) // step_viz + 1,
-                        100 - (50 * fr_idx + 100) / (allf.nr_frames(seq_idx) // 2 + 1),
+                        cb_data.nr_frames(seq_idx) // step_viz + 1,
+                        100
+                        - (50 * fr_idx + 100) / (cb_data.nr_frames(seq_idx) // 2 + 1),
                     )
                 )
 
@@ -93,5 +94,5 @@ if __name__ == "__main__":
                 else:
                     plot_robot_frame_o3d(lidar.T, trks, figpath)
         else:
-            print("{} images already generated!!!".format(allf.seqs[seq_idx]))
+            print("{} images already generated!!!".format(cb_data.seqs[seq_idx]))
             continue
