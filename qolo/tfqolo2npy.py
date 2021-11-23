@@ -288,30 +288,57 @@ if __name__ == "__main__":
             # vel {x_vel, y_vel, z_vel, xrot_vel, yrot_vel, zrot_vel, ts}
             from scipy.spatial.transform import Rotation as R
 
-            state_pose_r = R.from_quat(state_dict["orientation"])
-            ori_zyx = state_pose_r.as_euler("zyx", degrees=True)
-            roll_g = ori_zyx[:, 2]  # X
-            pitch_g = ori_zyx[:, 1]  # Y
-            yaw_g = ori_zyx[:, 0]  # Z
+            quat_xyzw = state_dict["orientation"]
+            ts = state_dict["timestamp"]
+            state_pose_r = R.from_quat(quat_xyzw)
 
+            # rotate to local frame
+            # TODO: check if needing reduce compared to first frame?
+            state_r_aligned = state_pose_r.reduce(
+                left=R.from_quat(state_dict["orientation"][0, :]).inv()
+            )
+            # rot_mat_list_aligned (frame, 3, 3) robot -> world
+            r2w_rot_mat_aligned_list = state_r_aligned.as_matrix()
+            # world -> robot
+            w2r_rot_mat_aligned_list = state_r_aligned.inv().as_matrix()
+
+            print("Computing linear velocity!")
             state_pose_g = {
                 "x": state_dict["position"][:, 0],
                 "y": state_dict["position"][:, 1],
                 "z": state_dict["position"][:, 2],
-                "roll": roll_g,
-                "pitch": pitch_g,
-                "yaw": yaw_g,
-                "timestamp": state_dict["timestamp"],
+                "timestamp": ts,
             }
-            # vel
-            print("Computing vel!")
             state_vel_g = compute_motion_derivative(
                 state_pose_g, subset=["x", "y", "z"]
             )
+
+            xyz_vel_g = np.hstack(
+                (state_vel_g["x"], state_vel_g["y"], state_vel_g["z"])
+            )
+            xyz_vel_g = np.reshape(xyz_vel_g, (-1, 3, 1))
+            xyz_vel = np.matmul(w2r_rot_mat_aligned_list, xyz_vel_g)  # (frames, 3, 1)
+            xyz_vel = np.reshape(xyz_vel, (-1, 3))
+
+            print("Computing angular velocity velocity!")
+            import quaternion as Q
+            import quaternion.quaternion_time_series as qseries
+
+            quat_xyzw = quat_xyzw
+            quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
+            quat_wxyz_ = Q.as_quat_array(quat_wxyz)
+            ang_vel = qseries.angular_velocity(quat_wxyz_, ts)
+
+            """
+            211119: no need to convert to euler angles!!!
+            ori_zyx = state_pose_r.as_euler("zyx", degrees=True)
+            roll_g = ori_zyx[:, 2]  # X
+            pitch_g = ori_zyx[:, 1]  # Y
+            yaw_g = ori_zyx[:, 0]  # Z
+            # 211116: apply filter to angles
             # ang_vel_list = compute_ang_vel(np.hstack((roll_g, pitch_g, yaw_g)))
             rpy = ori_zyx[:, [2, 1, 0]]
-            # 211116: apply filter to angles
-            if smooth:
+            if args.smooth:
                 smoothed_rpy = smooth(
                     rpy,
                     filter='savgol',
@@ -325,36 +352,18 @@ if __name__ == "__main__":
             state_vel_g.update({"yrot": ang_vel_g[:, 1]})
             state_vel_g.update({"zrot": ang_vel_g[:, 2]})
 
-            # rotate to local frame
-            state_r_aligned = state_pose_r.reduce(
-                left=R.from_quat(state_dict["orientation"][0, :]).inv()
-            )
-            # rot_mat_list_aligned (frame, 3, 3) robot -> world
-            r2w_rot_mat_aligned_list = state_r_aligned.as_matrix()
-            # world -> robot
-            w2r_rot_mat_aligned_list = state_r_aligned.inv().as_matrix()
-            # state_vel
-            xyz_vel_g = np.hstack(
-                (state_vel_g["x"], state_vel_g["y"], state_vel_g["z"])
-            )
-            xyz_vel_g = np.reshape(xyz_vel_g, (-1, 3, 1))
-            ang_vel_g = np.reshape(ang_vel_g, (-1, 3, 1))
-
-            # matrix multiplication in high-dim (19635, 3, 3) * (19635, 3, 1)
-            # ref: https://stackoverflow.com/questions/23576973/python-numpy-matrix-multiplication-in-high-dimension
-            # ref: https://numpy.org/doc/stable/reference/generated/numpy.matmul.html#numpy.matmul
-            xyz_vel = np.matmul(w2r_rot_mat_aligned_list, xyz_vel_g)  # (frames, 3, 1)
-            xyz_vel = np.reshape(xyz_vel, (-1, 3))
             # TODO: issues in the exported angular velocity!
+            ang_vel_g = np.reshape(ang_vel_g, (-1, 3, 1))
             ang_vel = np.matmul(w2r_rot_mat_aligned_list, ang_vel_g)  # (frames, 3, 1)
             ang_vel = np.reshape(ang_vel, (-1, 3))
+            """
 
             state_vel = {
-                "timestamp": state_dict["timestamp"],
+                "timestamp": ts,
                 "x": xyz_vel[:, 0],
                 "zrot": ang_vel[:, 2],
             }
-            if smooth:
+            if args.smooth:
                 # 211116: unfiltered data
                 state_dict.update({"x_vel_uf": xyz_vel[:, 0]})
                 state_dict.update({"zrot_vel_uf": ang_vel[:, 2]})
@@ -383,7 +392,7 @@ if __name__ == "__main__":
             # acc
             print("Computing acc!")
             state_acc = compute_motion_derivative(state_vel)
-            if smooth:
+            if args.smooth:
                 # 211116: unfiltered data
                 state_dict.update({"x_acc_uf": state_acc["x"]})
                 state_dict.update({"zrot_acc_uf": state_acc["zrot"]})

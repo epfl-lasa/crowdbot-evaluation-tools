@@ -5,17 +5,20 @@
     ```shell
     conda create -n crowdbot_eval python=3.8
     conda activate crowdbot_eval
-    # or `source activate crowdbot_eval` in ubuntu
-    pip3 install -U pip
+    ## or `source activate crowdbot_eval` in ubuntu
+    python -m pip install -U pip
     sudo apt-get install ros-$ROS_DISTRO-ros-numpy
     sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
 
-    # install using requirements
+    ## install using requirements (recommended)
     pip3 install -r requirements_eval.txt
 
-    # install using scripts
-    pip3 install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
-    pip3 install --user rospkg pycryptodomex python-gnupg
+    ## install using scripts (optional)
+    python -m pip install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
+    python -m pip install --user rospkg pycryptodomex python-gnupg
+    # https://github.com/moble/quaternion
+    python -m pip install --upgrade --force-reinstall numba==0.53.1
+    python -m pip install --upgrade --force-reinstall numpy-quaternion
     ```
 
 ## Simplified starting commands

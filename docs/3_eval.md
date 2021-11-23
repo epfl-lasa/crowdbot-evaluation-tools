@@ -110,7 +110,7 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
 - possible error caused by incomplete installation of numba
 
   ```
-  $ python -c 'import numba' 
+  $ python -c 'import numba'
   Traceback (most recent call last):
     File "<string>", line 1, in <module>
     File "/home/crowdbot/.local/lib/python3.8/site-packages/numba/__init__.py", line 25, in <module>
@@ -124,8 +124,8 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
   ImportError: /home/crowdbot/.local/lib/python3.8/site-packages/numba/_dynfunc.cpython-38-x86_64-linux-gnu.so: undefined symbol: _PyObject_GC_UNTRACK
   ```
 
-  **solution**: `pip install --upgrade --force-reinstall numba==0.53.1`
-  
+  **solution**: `python -m pip install --upgrade --force-reinstall numba==0.53.1`
+
 
 #### run the tracking code
 
@@ -262,4 +262,3 @@ python3 qolo/gen_video.py -f 0424_rds_detector
       ├── 0424_shared_control -> /hdd/data_qolo/lausanne_2021/24_04_2021/shared_control
       └── nocam_rosbags -> /hdd/data_qolo/lausanne_2021/nocam_rosbags/
   ```
-  

@@ -35,8 +35,12 @@ class AllFrames(object):
         self.imgs_dir = os.path.join(data_processed_dir, "media", "viz_imgs")
         self.video_dir = os.path.join(data_processed_dir, "media", "videos")
 
-        # store _stamped.npy in the same folder
-        self.seqs = [f for f in os.listdir(self.lidar_dir) if f.split(".")[-1] != "npy"]
+        # filter sequence dir from self.lidar_dir (*_stamped.npy in the same folder)
+        self.seqs = [
+            f
+            for f in os.listdir(self.lidar_dir)
+            if os.path.isdir(os.path.join(self.lidar_dir, f))
+        ]
         self.seqs.sort()
         self.frames = []
         for seq in self.seqs:
@@ -96,4 +100,3 @@ def bag_file_filter(f):
         return True
     else:
         return False
-
