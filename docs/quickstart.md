@@ -9,10 +9,10 @@
     python -m pip install -U pip
     sudo apt-get install ros-$ROS_DISTRO-ros-numpy
     sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
-
+    
     ## install using requirements (recommended)
     pip3 install -r requirements_eval.txt
-
+    
     ## install using scripts (optional)
     python -m pip install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
     python -m pip install --user rospkg pycryptodomex python-gnupg
@@ -23,12 +23,33 @@
 
 ## Simplified starting commands
 
-1. Create symbolic link of shared_test folder (including two rosbags) in current workspace
+1. Set direcroty in `data/data.yaml`
 
-    ```shell
-    cd path/to/crowdbot-evaluation-tools
-    ln -s  /hdd/data_qolo/crowd_qolo_recordings/shared_test/ data/rosbag/shared_test
+    ```yaml
+    bagbase_dir: /hdd/data_qolo/crowd_qolo_recordings/
+    outbase_dir: /hdd/data_qolo/crowdbot_data_analysis/
     ```
+
+    - `bagbase_dir` is where rosbags are stored
+
+      ```shell
+      crowd_qolo_recordings$ tree -L 1
+      .
+      ├── 0325_rds
+      ├── MDS
+      ├── RDS
+      ├── shared_control
+      ├── shared_test
+      └── test
+      ```
+
+    - `outbase_dir` is where extracted lidar, qolo_state, algorithm result, and evaluation results are stored, In terms of example, please check [outbase_dir](#outbase_dir)
+
+    ~~Create symbolic link of shared_test folder (including two rosbags) in current workspace~~
+
+    ~~`cd path/to/crowdbot-evaluation-tools`~~
+
+    ~~`ln -s  /hdd/data_qolo/crowd_qolo_recordings/shared_test/ data/rosbag/shared_test`~~
 
 2. data conversion from original rosbags
 
@@ -77,38 +98,43 @@
 
     The visualization results can be found in `./data/shared_test_processed/metrics/`
 
-## Resulted data structure
+## outbase_dir
 
 ```shell
-shared_test_processed$ tree -L 2
+crowdbot_data_analysis$ tree -L 3
 .
-├── alg_res
-│   ├── detections
-│   └── tracks
-├── lidars
-│   ├── 2021-04-10-12-36-29
-│   ├── 2021-04-10-12-36-29_stamped.npy
-│   ├── 2021-04-10-12-38-25
-│   └── 2021-04-10-12-38-25_stamped.npy
-├── media
-│   ├── videos
-│   └── viz_imgs
-├── metrics
-│   ├── 2021-04-10-12-36-29_crowd_density.png
-│   ├── 2021-04-10-12-36-29_crowd_eval.npy
-│   ├── 2021-04-10-12-36-29_min_dist.png
-│   ├── 2021-04-10-12-36-29_path.png
-│   ├── 2021-04-10-12-36-29_qolo_eval.npy
-│   ├── 2021-04-10-12-36-29_twist_acc_jerk.png
-│   ├── 2021-04-10-12-38-25_crowd_density.png
-│   ├── 2021-04-10-12-38-25_crowd_eval.npy
-│   ├── 2021-04-10-12-38-25_min_dist.png
-│   ├── 2021-04-10-12-38-25_path.png
-│   ├── 2021-04-10-12-38-25_qolo_eval.npy
-│   └── 2021-04-10-12-38-25_twist_acc_jerk.png
-└── source_data
-    ├── acc
-    ├── pose2d
-    ├── tf_qolo
-    └── twist
+└── shared_test_processed
+    ├── alg_res
+    │   ├── detections
+    │   └── tracks
+    ├── lidars
+    │   ├── 2021-04-10-12-36-29
+    │   ├── 2021-04-10-12-36-29_stamped.npy
+    │   ├── 2021-04-10-12-38-25
+    │   └── 2021-04-10-12-38-25_stamped.npy
+    ├── media
+    │   ├── videos
+    │   └── viz_imgs
+    ├── metrics
+    │   ├── 2021-04-10-12-36-29_crowd_density.png
+    │   ├── 2021-04-10-12-36-29_crowd_eval.npy
+    │   ├── 2021-04-10-12-36-29_min_dist.png
+    │   ├── 2021-04-10-12-36-29_path.png
+    │   ├── 2021-04-10-12-36-29_qolo_command.png
+    │   ├── 2021-04-10-12-36-29_qolo_eval.npy
+    │   ├── 2021-04-10-12-36-29_qolo_state.png
+    │   ├── 2021-04-10-12-38-25_crowd_density.png
+    │   ├── 2021-04-10-12-38-25_crowd_eval.npy
+    │   ├── 2021-04-10-12-38-25_min_dist.png
+    │   ├── 2021-04-10-12-38-25_path.png
+    │   ├── 2021-04-10-12-38-25_qolo_command.png
+    │   ├── 2021-04-10-12-38-25_qolo_eval.npy
+    │   └── 2021-04-10-12-38-25_qolo_state.png
+    ├── pcd
+    │   ├── 2021-04-10-12-36-29
+    │   └── 2021-04-10-12-38-25
+    └── source_data
+        ├── pose2d
+        ├── tf_qolo
+        └── twist
 ```
