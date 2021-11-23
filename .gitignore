@@ -12,6 +12,10 @@ tmp
 *.mp4
 !example/*.png
 
+# intermediate files
+.DS_Store
+.idea
+
 # subfolders
 qolo/rosbag/
 qolo/lidar/
