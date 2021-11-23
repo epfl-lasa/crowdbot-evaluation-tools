@@ -88,3 +88,41 @@ def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffi
         base_dir, seq_name + suffix + ".png"
     )  # "_qolo_command"
     plt.savefig(qolo_img_path, dpi=300)  # png, pdf
+
+
+def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
+    pose_x = qolo_pose2d.get("x")
+    pose_y = qolo_pose2d.get("y")
+    duration2goal = time_path_computed[2]
+    path_length2goal = time_path_computed[3]
+    end_idx = time_path_computed[4]
+    goal = time_path_computed[5]
+    min_dist2goal = time_path_computed[6]
+
+    fig, ax = plt.subplots(figsize=(5, 3))
+    ax.plot(
+        pose_x[:end_idx],
+        pose_y[:end_idx],
+        "orangered",
+        linewidth=2,
+        label="path (l=%.1f m, t=%.1f s)" % (path_length2goal, duration2goal),
+    )
+    ax.plot(
+        pose_x[end_idx:],
+        pose_y[end_idx:],
+        "skyblue",
+        linewidth=2,
+        label="remaining path",
+    )
+    ax.plot([goal[0]], [goal[1]], "kx", label="goal")
+    ax.legend(fontsize="x-small")
+    ax.set_xlabel("x [m]")
+    ax.set_ylabel("y [m]")
+
+    # adjust plots with equal axis aspect ratios
+    ax.axis("equal")
+
+    ax.set_title("Path. Closest distance to the goal={0:.1f}m".format(min_dist2goal))
+    fig.tight_layout()
+    path_img_path = os.path.join(base_dir, seq_name + "_path.png")
+    plt.savefig(path_img_path, dpi=300)  # png, pdf

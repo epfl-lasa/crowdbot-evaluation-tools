@@ -9,16 +9,12 @@
 """
 
 import os
-import copy
 import argparse
 
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
 from crowdbot_data import AllFrames
-from eval_util import save_motion_img
-from process_util import compute_motion_derivative
+from eval_util import save_motion_img, save_path_img
 
 
 # TODO: check data source from pose2d (odom) or tf_qolo
@@ -77,10 +73,9 @@ def compute_time_path(qolo_twist, qolo_pose2d):
     )
 
 
-# https://github.com/epfl-lasa/qolo-evaluation/blob/main/scripts/test_metrics.py
-# https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py
+# https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L187
 def compute_fluency(qolo_command):
-    """compute real qolo velocity in reference to command"""
+    """compute consistency of the velocity command"""
 
     vel = qolo_command.get("x_vel")
     omega = qolo_command.get("zrot_vel")
@@ -105,42 +100,47 @@ def compute_fluency(qolo_command):
         return (fluencyw, fluencyw_sd)
 
 
-def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
-    pose_x = qolo_pose2d.get("x")
-    pose_y = qolo_pose2d.get("y")
-    duration2goal = time_path_computed[2]
-    path_length2goal = time_path_computed[3]
-    end_idx = time_path_computed[4]
-    goal = time_path_computed[5]
-    min_dist2goal = time_path_computed[6]
+# https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L222
+def compute_agreement(qolo_command, qolo_state):
+    """compute real qolo velocity in reference to command"""
+    vel_c = qolo_command.get("x_vel")
+    omega_c = qolo_command.get("zrot_vel")
+    vc_max, wc_max = np.max(vel_c), np.max(omega_c)
+    # max_v, max_w
+    vec_size = vel_c.shape[0]
 
-    fig, ax = plt.subplots(figsize=(5, 3))
-    ax.plot(
-        pose_x[:end_idx],
-        pose_y[:end_idx],
-        "orangered",
-        linewidth=2,
-        label="path (l=%.1f m, t=%.1f s)" % (path_length2goal, duration2goal),
-    )
-    ax.plot(
-        pose_x[end_idx:],
-        pose_y[end_idx:],
-        "skyblue",
-        linewidth=2,
-        label="remaining path",
-    )
-    ax.plot([goal[0]], [goal[1]], "kx", label="goal")
-    ax.legend(fontsize="x-small")
-    ax.set_xlabel("x [m]")
-    ax.set_ylabel("y [m]")
+    vel_r = qolo_state.get("x_vel")
+    omega_r = qolo_state.get("zrot_vel")
 
-    # adjust plots with equal axis aspect ratios
-    ax.axis("equal")
+    angle_U = np.arctan2(vel_c / vc_max, omega_c / wc_max)
+    angle_R = np.arctan2(vel_r / vc_max, omega_r / wc_max)
+    angle_diff = angle_R - angle_U
 
-    ax.set_title("Path. Closest distance to the goal={0:.1f}m".format(min_dist2goal))
-    fig.tight_layout()
-    path_img_path = os.path.join(base_dir, seq_name + "_path.png")
-    plt.savefig(path_img_path, dpi=300)  # png, pdf
+    ccount = 0
+    omega_diff = []
+    vel_diff = []
+    agreement_vec = []
+    for idx in range(2, vec_size):
+        if vel_c[idx] or omega_c[idx]:
+            vel_diff.append(np.abs(vel_r[idx] - vel_c[idx]) / vc_max)
+            omega_diff.append(np.abs(omega_r[idx] - omega_c[idx]) / wc_max)
+            agreement_vec.append(1 - (abs(angle_diff[idx]) / np.pi))
+            ccount += 1  # TODO: check unused?
+    command_diff = np.column_stack((np.array(vel_diff), np.array(omega_diff)))
+    command_vec = np.linalg.norm(command_diff, axis=1)
+
+    vel_diff = np.array(vel_diff)
+    omega_diff = np.array(omega_diff)
+    agreement_vec = np.array(agreement_vec)
+    # TODO: check directional_agreement unused?
+    directional_agreement = [np.mean(agreement_vec), np.std(agreement_vec)]
+
+    linear_dis = [np.mean(vel_diff), np.std(vel_diff)]
+    heading_dis = [np.mean(omega_diff), np.std(omega_diff)]
+
+    disagreement = [np.mean(np.array(command_vec)), np.std(np.array(command_vec))]
+
+    return (linear_dis, heading_dis, disagreement)  # Contribution
 
 
 #%% main function
@@ -277,15 +277,7 @@ if __name__ == "__main__":
 
                 attrs = ("jerk", "agreement", "fluency")
 
-                # 0. qolo_eval_dict (include twist, acc)
-                # qolo_eval_dict = copy.deepcopy(qolo_command_dict)
-                # qolo_eval_dict.update({"x_acc": qolo_acc_sampled["x"]})
-                # qolo_eval_dict.update({"zrot_acc": qolo_acc_sampled["zrot"]})
-
                 # 1. jerk
-                # qolo_jerk_sampled = compute_motion_derivative(qolo_acc_sampled)
-                # qolo_eval_dict.update({"x_jerk": qolo_jerk_sampled["x"]})
-                # qolo_eval_dict.update({"zrot_jerk": qolo_jerk_sampled["zrot"]})
                 qolo_eval_dict = dict()
                 qolo_eval_dict.update(
                     {"avg_x_jerk": np.average(qolo_command_dict["x_jerk"])}

@@ -231,11 +231,12 @@ if __name__ == "__main__":
         counter += 1
         print("({}/{}): {}".format(counter, len(bag_files), bag_path))
 
-        all_stamped_filepath = os.path.join(tf_qolo_dir, bag_name + "_tfqolo_raw.npy")
         # sample with lidar frame
+        all_stamped_filepath = os.path.join(tf_qolo_dir, bag_name + "_tfqolo_raw.npy")
         lidar_stamped_filepath = os.path.join(
             tf_qolo_dir, bag_name + "_tfqolo_sampled.npy"
         )
+
         # sample at high frequency (200Hz)
         state_filepath = os.path.join(tf_qolo_dir, bag_name + "_qolo_state.npy")
 
@@ -259,7 +260,7 @@ if __name__ == "__main__":
                     all_stamped_filepath, allow_pickle=True
                 ).item()
 
-            # _tfqolo_sampled.npy
+            # _stamped.npy
             lidar_stamped = np.load(
                 os.path.join(allf.lidar_dir, bag_name + "_stamped.npy"),
                 allow_pickle=True,
