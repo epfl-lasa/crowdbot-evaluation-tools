@@ -1,7 +1,7 @@
 # -*-coding:utf-8 -*-
 """
 @File    :   metrics.py
-@Time    :   2021/11/23 11:13:35
+@Time    :   2021/11/23
 @Author  :   Yujie He
 @Version :   1.0
 @Contact :   yujie.he@epfl.ch
@@ -84,6 +84,7 @@ def compute_fluency(qolo_command):
     fluencyw = np.mean(np.array(fluency_w))
     fluencyw_sd = np.std(np.array(fluency_w))
 
+    # TODO: check which one makes more sense to report
     if fluencyv < fluencyw:
         return (fluencyv, fluencyv_sd)
     else:
@@ -112,8 +113,10 @@ def compute_agreement(qolo_command, qolo_state):
     agreement_vec = []
     for idx in range(2, vec_size):
         if vel_c[idx] or omega_c[idx]:
-            vel_diff.append(np.abs(vel_r[idx] - vel_c[idx]) / vc_max)
-            omega_diff.append(np.abs(omega_r[idx] - omega_c[idx]) / wc_max)
+            # vc_max
+            vel_diff.append(np.abs(vel_r[idx] - vel_c[idx]) / vel_c[idx])
+            # wc_max
+            omega_diff.append(np.abs(omega_r[idx] - omega_c[idx]) / omega_c[idx])
             agreement_vec.append(1 - (abs(angle_diff[idx]) / np.pi))
             ccount += 1  # TODO: check unused?
     command_diff = np.column_stack((np.array(vel_diff), np.array(omega_diff)))
@@ -125,9 +128,11 @@ def compute_agreement(qolo_command, qolo_state):
     # TODO: check directional_agreement unused?
     directional_agreement = [np.mean(agreement_vec), np.std(agreement_vec)]
 
+    # contribution and std
     linear_dis = [np.mean(vel_diff), np.std(vel_diff)]
     heading_dis = [np.mean(omega_diff), np.std(omega_diff)]
 
     disagreement = [np.mean(np.array(command_vec)), np.std(np.array(command_vec))]
 
-    return (linear_dis, heading_dis, disagreement)  # Contribution
+    # TODO: add directional_agreement
+    return (linear_dis, heading_dis, disagreement)
