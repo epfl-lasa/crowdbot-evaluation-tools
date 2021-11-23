@@ -216,9 +216,9 @@ if __name__ == "__main__":
         )
 
     # destination: pose data in data/xxxx_processed/source_data/tfqolo
-    tf_qolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
-    if not os.path.exists(tf_qolo_dir):
-        os.makedirs(tf_qolo_dir)
+    tfqolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
+    if not os.path.exists(tfqolo_dir):
+        os.makedirs(tfqolo_dir)
 
     print(
         "Starting extracting pose_stamped files from {} rosbags!".format(len(bag_files))
@@ -227,18 +227,16 @@ if __name__ == "__main__":
     counter = 0
     for bf in bag_files:
         bag_path = os.path.join(rosbag_dir, bf)
-        bag_name = bf.split(".")[0]
+        seq = bf.split(".")[0]
         counter += 1
         print("({}/{}): {}".format(counter, len(bag_files), bag_path))
 
         # sample with lidar frame
-        all_stamped_filepath = os.path.join(tf_qolo_dir, bag_name + "_tfqolo_raw.npy")
-        lidar_stamped_filepath = os.path.join(
-            tf_qolo_dir, bag_name + "_tfqolo_sampled.npy"
-        )
+        all_stamped_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_raw.npy")
+        lidar_stamped_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_sampled.npy")
 
         # sample at high frequency (200Hz)
-        state_filepath = os.path.join(tf_qolo_dir, bag_name + "_qolo_state.npy")
+        state_filepath = os.path.join(tfqolo_dir, seq + "_qolo_state.npy")
 
         if (
             (not os.path.exists(lidar_stamped_filepath))
@@ -259,15 +257,6 @@ if __name__ == "__main__":
                 pose_stamped_dict_ = np.load(
                     all_stamped_filepath, allow_pickle=True
                 ).item()
-
-            # _stamped.npy
-            lidar_stamped = np.load(
-                os.path.join(allf.lidar_dir, bag_name + "_stamped.npy"),
-                allow_pickle=True,
-            ).item()
-            lidar_interp_ts = lidar_stamped.get("timestamp")
-            lidar_pose_dict = interp_pose(pose_stamped_dict_, lidar_interp_ts)
-            np.save(lidar_stamped_filepath, lidar_pose_dict)
 
             # _qolo_state.npy
             init_ts = pose_stamped_dict_.get("timestamp")
@@ -290,7 +279,6 @@ if __name__ == "__main__":
             from scipy.spatial.transform import Rotation as R
 
             quat_xyzw = state_dict["orientation"]
-            ts = state_dict["timestamp"]
             state_pose_r = R.from_quat(quat_xyzw)
 
             # rotate to local frame
@@ -308,7 +296,7 @@ if __name__ == "__main__":
                 "x": state_dict["position"][:, 0],
                 "y": state_dict["position"][:, 1],
                 "z": state_dict["position"][:, 2],
-                "timestamp": ts,
+                "timestamp": high_interp_ts,
             }
             state_vel_g = compute_motion_derivative(
                 state_pose_g, subset=["x", "y", "z"]
@@ -328,7 +316,7 @@ if __name__ == "__main__":
             quat_xyzw = quat_xyzw
             quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
             quat_wxyz_ = Q.as_quat_array(quat_wxyz)
-            ang_vel = qseries.angular_velocity(quat_wxyz_, ts)
+            ang_vel = qseries.angular_velocity(quat_wxyz_, high_interp_ts)
 
             """
             211119: no need to convert to euler angles!!!
@@ -360,7 +348,7 @@ if __name__ == "__main__":
             """
 
             state_vel = {
-                "timestamp": ts,
+                "timestamp": high_interp_ts,
                 "x": xyz_vel[:, 0],
                 "zrot": ang_vel[:, 2],
             }
@@ -423,7 +411,29 @@ if __name__ == "__main__":
             state_dict.update({"zrot_jerk": state_jerk["zrot"]})
             state_dict.update({"avg_x_jerk": np.average(state_jerk["x"])})
             state_dict.update({"avg_zrot_jerk": np.average(state_jerk["zrot"])})
-
             np.save(state_filepath, state_dict)
+
+            # _stamped.npy
+            lidar_stamped = np.load(
+                os.path.join(allf.lidar_dir, seq + "_stamped.npy"),
+                allow_pickle=True,
+            ).item()
+            lidar_ts = lidar_stamped.get("timestamp")
+            lidar_stamped_dict = interp_pose(pose_stamped_dict_, lidar_ts)
+
+            # interpolate velocity
+            if min(lidar_ts) < min(high_interp_ts):
+                lidar_ts[lidar_ts < min(high_interp_ts)] = min(high_interp_ts)
+            elif max(lidar_ts) > max(high_interp_ts):
+                lidar_ts[lidar_ts > max(high_interp_ts)] = max(high_interp_ts)
+            x_vel_sampled = interp_translation(
+                high_interp_ts, lidar_ts, state_dict["x_vel"]
+            )
+            zrot_vel_sampled = interp_translation(
+                high_interp_ts, lidar_ts, state_dict["zrot_vel"]
+            )
+            lidar_stamped_dict.update({"x_vel": x_vel_sampled})
+            lidar_stamped_dict.update({"zrot_vel": zrot_vel_sampled})
+            np.save(lidar_stamped_filepath, lidar_stamped_dict)
 
     print("Finish extracting all twist and compute state msg")

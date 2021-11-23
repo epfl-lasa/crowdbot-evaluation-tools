@@ -232,9 +232,13 @@ if __name__ == "__main__":
         # load qolo_state
         tfqolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
         qolo_state_filepath = os.path.join(tfqolo_dir, seq + "_qolo_state.npy")
+        qolo_lidarstamp_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_sampled.npy")
         if not os.path.exists(qolo_state_filepath):
             print("ERROR: Please extract twist_stamped by using tfqolo2npy.py")
         qolo_state_dict = np.load(qolo_state_filepath, allow_pickle=True).item()
+        qolo_lidarstamp_dict = np.load(
+            qolo_lidarstamp_filepath, allow_pickle=True
+        ).item()
         # print("qolo_state_dict.keys()", qolo_state_dict.keys())
 
         # 00. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
@@ -291,8 +295,9 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"avg_fluency": fluency[0]})
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
-                # TODO: 3. agreement with command sampled!
-                # need to extract command
+                # 3. agreement with command sampled (may need to extract command from rds msg)
+                agreement = compute_agreement(qolo_command_dict, qolo_lidarstamp_dict)
+                print("(linear_dis, heading_dis, disagreement) =", agreement)
 
                 # 4. path related-metrics
                 qolo_eval_dict.update({"start_command_ts": time_path_computed[0]})
