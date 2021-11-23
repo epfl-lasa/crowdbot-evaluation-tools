@@ -79,7 +79,8 @@ def smooth1d(
 
     if check_thres:
         # method1: zero
-        # data[data > thres] = 0
+        # data[data < thres[0]] = 0
+        # data[data > thres[1]] = 0
         # method2: assign valid value that not exceeds threshold to the noisy datapoints
         curr_nearest_valid = 0
         for idx in range(1, len(data)):

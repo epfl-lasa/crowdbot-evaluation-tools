@@ -9,139 +9,16 @@
 """
 
 import os
-import copy
 import argparse
 
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
 from crowdbot_data import AllFrames
-from eval_util import save_motion_img
-from process_util import compute_motion_derivative
+from eval_util import save_motion_img, save_path_img
+from metrics import compute_time_path, compute_fluency, compute_agreement
 
 
 # TODO: check data source from pose2d (odom) or tf_qolo
-
-
-#%% utility functions to evaluate qolo data
-def compute_time_path(qolo_twist, qolo_pose2d):
-    """calculate starting and ending timestamp and path"""
-
-    # 1. calculate starting timestamp based on nonzero twist command
-    # starting: larger than zero
-    start_idx = np.min(
-        [
-            np.min(np.nonzero(qolo_twist.get("x"))),
-            np.min(np.nonzero(qolo_twist.get("zrot"))),
-        ]
-    )
-    start_ts = qolo_twist.get("timestamp")[start_idx]
-    print("starting timestamp: {}".format(start_ts))
-
-    # 2. calculate ending timestamp based on closest point to goal
-    pose_ts = qolo_pose2d.get("timestamp")
-    pose_x = qolo_pose2d.get("x")
-    pose_y = qolo_pose2d.get("y")
-    theta = qolo_pose2d.get("theta")
-    ## borrow from evalMetricsPathAndTimeToGoal.py
-    angle_init = np.sum(theta[9:19]) / 10.0
-    goal = np.array([np.cos(angle_init), np.sin(angle_init)]) * 20.0
-
-    # determine when the closest point to the goal is reached
-    min_dist2goal = np.inf
-    end_idx = -1
-    for idx in range(len(pose_ts)):
-        dist2goal = np.sqrt((pose_x[idx] - goal[0]) ** 2 + (pose_y[idx] - goal[1]) ** 2)
-        if dist2goal < min_dist2goal:
-            min_dist2goal = dist2goal
-            end_idx = idx
-
-    path_length2goal = np.sum(
-        np.sqrt(np.diff(pose_x[:end_idx]) ** 2 + np.diff(pose_y[:end_idx]) ** 2)
-    )
-    end_ts = pose_ts[end_idx]
-    duration2goal = end_ts - start_ts
-    print("ending timestamp: {}".format(end_ts))
-    print("Duration: {}s".format(duration2goal))
-    ## borrow from evalMetricsPathAndTimeToGoal.py
-
-    return (
-        start_ts,
-        end_ts,
-        duration2goal,
-        path_length2goal,
-        end_idx,
-        goal,
-        min_dist2goal,
-    )
-
-
-# https://github.com/epfl-lasa/qolo-evaluation/blob/main/scripts/test_metrics.py
-# https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py
-def compute_fluency(qolo_command):
-    """compute real qolo velocity in reference to command"""
-
-    vel = qolo_command.get("x_vel")
-    omega = qolo_command.get("zrot_vel")
-    v_max, w_max = np.max(vel), np.max(omega)
-
-    fluency_v = []
-    fluency_w = []
-
-    for idx in range(1, len(vel)):
-        if vel[idx] or omega[idx]:
-            fluency_v.append(1 - np.abs(vel[idx] - vel[idx - 1]) / v_max)
-            fluency_w.append(1 - np.abs(omega[idx] - omega[idx - 1]) / w_max)
-
-    fluencyv = np.mean(np.array(fluency_v))
-    fluencyv_sd = np.std(np.array(fluency_v))
-    fluencyw = np.mean(np.array(fluency_w))
-    fluencyw_sd = np.std(np.array(fluency_w))
-
-    if fluencyv < fluencyw:
-        return (fluencyv, fluencyv_sd)
-    else:
-        return (fluencyw, fluencyw_sd)
-
-
-def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
-    pose_x = qolo_pose2d.get("x")
-    pose_y = qolo_pose2d.get("y")
-    duration2goal = time_path_computed[2]
-    path_length2goal = time_path_computed[3]
-    end_idx = time_path_computed[4]
-    goal = time_path_computed[5]
-    min_dist2goal = time_path_computed[6]
-
-    fig, ax = plt.subplots(figsize=(5, 3))
-    ax.plot(
-        pose_x[:end_idx],
-        pose_y[:end_idx],
-        "orangered",
-        linewidth=2,
-        label="path (l=%.1f m, t=%.1f s)" % (path_length2goal, duration2goal),
-    )
-    ax.plot(
-        pose_x[end_idx:],
-        pose_y[end_idx:],
-        "skyblue",
-        linewidth=2,
-        label="remaining path",
-    )
-    ax.plot([goal[0]], [goal[1]], "kx", label="goal")
-    ax.legend(fontsize="x-small")
-    ax.set_xlabel("x [m]")
-    ax.set_ylabel("y [m]")
-
-    # adjust plots with equal axis aspect ratios
-    ax.axis("equal")
-
-    ax.set_title("Path. Closest distance to the goal={0:.1f}m".format(min_dist2goal))
-    fig.tight_layout()
-    path_img_path = os.path.join(base_dir, seq_name + "_path.png")
-    plt.savefig(path_img_path, dpi=300)  # png, pdf
-
 
 #%% main function
 if __name__ == "__main__":
@@ -232,9 +109,13 @@ if __name__ == "__main__":
         # load qolo_state
         tfqolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
         qolo_state_filepath = os.path.join(tfqolo_dir, seq + "_qolo_state.npy")
+        qolo_lidarstamp_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_sampled.npy")
         if not os.path.exists(qolo_state_filepath):
             print("ERROR: Please extract twist_stamped by using tfqolo2npy.py")
         qolo_state_dict = np.load(qolo_state_filepath, allow_pickle=True).item()
+        qolo_lidarstamp_dict = np.load(
+            qolo_lidarstamp_filepath, allow_pickle=True
+        ).item()
         # print("qolo_state_dict.keys()", qolo_state_dict.keys())
 
         # 00. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
@@ -277,15 +158,7 @@ if __name__ == "__main__":
 
                 attrs = ("jerk", "agreement", "fluency")
 
-                # 0. qolo_eval_dict (include twist, acc)
-                # qolo_eval_dict = copy.deepcopy(qolo_command_dict)
-                # qolo_eval_dict.update({"x_acc": qolo_acc_sampled["x"]})
-                # qolo_eval_dict.update({"zrot_acc": qolo_acc_sampled["zrot"]})
-
                 # 1. jerk
-                # qolo_jerk_sampled = compute_motion_derivative(qolo_acc_sampled)
-                # qolo_eval_dict.update({"x_jerk": qolo_jerk_sampled["x"]})
-                # qolo_eval_dict.update({"zrot_jerk": qolo_jerk_sampled["zrot"]})
                 qolo_eval_dict = dict()
                 qolo_eval_dict.update(
                     {"avg_x_jerk": np.average(qolo_command_dict["x_jerk"])}
@@ -299,8 +172,9 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"avg_fluency": fluency[0]})
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
-                # TODO: 3. agreement with command sampled!
-                # need to extract command
+                # 3. agreement with command sampled (may need to extract command from rds msg)
+                agreement = compute_agreement(qolo_command_dict, qolo_lidarstamp_dict)
+                print("(linear_dis, heading_dis, disagreement) =", agreement)
 
                 # 4. path related-metrics
                 qolo_eval_dict.update({"start_command_ts": time_path_computed[0]})

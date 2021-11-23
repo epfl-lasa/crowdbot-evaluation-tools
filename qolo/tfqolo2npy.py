@@ -216,9 +216,9 @@ if __name__ == "__main__":
         )
 
     # destination: pose data in data/xxxx_processed/source_data/tfqolo
-    tf_qolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
-    if not os.path.exists(tf_qolo_dir):
-        os.makedirs(tf_qolo_dir)
+    tfqolo_dir = os.path.join(allf.source_data_dir, "tf_qolo")
+    if not os.path.exists(tfqolo_dir):
+        os.makedirs(tfqolo_dir)
 
     print(
         "Starting extracting pose_stamped files from {} rosbags!".format(len(bag_files))
@@ -227,17 +227,16 @@ if __name__ == "__main__":
     counter = 0
     for bf in bag_files:
         bag_path = os.path.join(rosbag_dir, bf)
-        bag_name = bf.split(".")[0]
+        seq = bf.split(".")[0]
         counter += 1
         print("({}/{}): {}".format(counter, len(bag_files), bag_path))
 
-        all_stamped_filepath = os.path.join(tf_qolo_dir, bag_name + "_tfqolo_raw.npy")
         # sample with lidar frame
-        lidar_stamped_filepath = os.path.join(
-            tf_qolo_dir, bag_name + "_tfqolo_sampled.npy"
-        )
+        all_stamped_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_raw.npy")
+        lidar_stamped_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_sampled.npy")
+
         # sample at high frequency (200Hz)
-        state_filepath = os.path.join(tf_qolo_dir, bag_name + "_qolo_state.npy")
+        state_filepath = os.path.join(tfqolo_dir, seq + "_qolo_state.npy")
 
         if (
             (not os.path.exists(lidar_stamped_filepath))
@@ -259,15 +258,6 @@ if __name__ == "__main__":
                     all_stamped_filepath, allow_pickle=True
                 ).item()
 
-            # _tfqolo_sampled.npy
-            lidar_stamped = np.load(
-                os.path.join(allf.lidar_dir, bag_name + "_stamped.npy"),
-                allow_pickle=True,
-            ).item()
-            lidar_interp_ts = lidar_stamped.get("timestamp")
-            lidar_pose_dict = interp_pose(pose_stamped_dict_, lidar_interp_ts)
-            np.save(lidar_stamped_filepath, lidar_pose_dict)
-
             # _qolo_state.npy
             init_ts = pose_stamped_dict_.get("timestamp")
             start_ts, end_ts = init_ts.min(), init_ts.max()
@@ -288,30 +278,56 @@ if __name__ == "__main__":
             # vel {x_vel, y_vel, z_vel, xrot_vel, yrot_vel, zrot_vel, ts}
             from scipy.spatial.transform import Rotation as R
 
-            state_pose_r = R.from_quat(state_dict["orientation"])
-            ori_zyx = state_pose_r.as_euler("zyx", degrees=True)
-            roll_g = ori_zyx[:, 2]  # X
-            pitch_g = ori_zyx[:, 1]  # Y
-            yaw_g = ori_zyx[:, 0]  # Z
+            quat_xyzw = state_dict["orientation"]
+            state_pose_r = R.from_quat(quat_xyzw)
 
+            # rotate to local frame
+            # TODO: check if needing reduce compared to first frame?
+            state_r_aligned = state_pose_r.reduce(
+                left=R.from_quat(state_dict["orientation"][0, :]).inv()
+            )
+            # rot_mat_list_aligned (frame, 3, 3) robot -> world
+            r2w_rot_mat_aligned_list = state_r_aligned.as_matrix()
+            # world -> robot
+            w2r_rot_mat_aligned_list = state_r_aligned.inv().as_matrix()
+
+            print("Computing linear velocity!")
             state_pose_g = {
                 "x": state_dict["position"][:, 0],
                 "y": state_dict["position"][:, 1],
                 "z": state_dict["position"][:, 2],
-                "roll": roll_g,
-                "pitch": pitch_g,
-                "yaw": yaw_g,
-                "timestamp": state_dict["timestamp"],
+                "timestamp": high_interp_ts,
             }
-            # vel
-            print("Computing vel!")
             state_vel_g = compute_motion_derivative(
                 state_pose_g, subset=["x", "y", "z"]
             )
+
+            xyz_vel_g = np.hstack(
+                (state_vel_g["x"], state_vel_g["y"], state_vel_g["z"])
+            )
+            xyz_vel_g = np.reshape(xyz_vel_g, (-1, 3, 1))
+            xyz_vel = np.matmul(w2r_rot_mat_aligned_list, xyz_vel_g)  # (frames, 3, 1)
+            xyz_vel = np.reshape(xyz_vel, (-1, 3))
+
+            print("Computing angular velocity velocity!")
+            import quaternion as Q
+            import quaternion.quaternion_time_series as qseries
+
+            quat_xyzw = quat_xyzw
+            quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
+            quat_wxyz_ = Q.as_quat_array(quat_wxyz)
+            ang_vel = qseries.angular_velocity(quat_wxyz_, high_interp_ts)
+
+            """
+            211119: no need to convert to euler angles!!!
+            ori_zyx = state_pose_r.as_euler("zyx", degrees=True)
+            roll_g = ori_zyx[:, 2]  # X
+            pitch_g = ori_zyx[:, 1]  # Y
+            yaw_g = ori_zyx[:, 0]  # Z
+            # 211116: apply filter to angles
             # ang_vel_list = compute_ang_vel(np.hstack((roll_g, pitch_g, yaw_g)))
             rpy = ori_zyx[:, [2, 1, 0]]
-            # 211116: apply filter to angles
-            if smooth:
+            if args.smooth:
                 smoothed_rpy = smooth(
                     rpy,
                     filter='savgol',
@@ -325,36 +341,18 @@ if __name__ == "__main__":
             state_vel_g.update({"yrot": ang_vel_g[:, 1]})
             state_vel_g.update({"zrot": ang_vel_g[:, 2]})
 
-            # rotate to local frame
-            state_r_aligned = state_pose_r.reduce(
-                left=R.from_quat(state_dict["orientation"][0, :]).inv()
-            )
-            # rot_mat_list_aligned (frame, 3, 3) robot -> world
-            r2w_rot_mat_aligned_list = state_r_aligned.as_matrix()
-            # world -> robot
-            w2r_rot_mat_aligned_list = state_r_aligned.inv().as_matrix()
-            # state_vel
-            xyz_vel_g = np.hstack(
-                (state_vel_g["x"], state_vel_g["y"], state_vel_g["z"])
-            )
-            xyz_vel_g = np.reshape(xyz_vel_g, (-1, 3, 1))
-            ang_vel_g = np.reshape(ang_vel_g, (-1, 3, 1))
-
-            # matrix multiplication in high-dim (19635, 3, 3) * (19635, 3, 1)
-            # ref: https://stackoverflow.com/questions/23576973/python-numpy-matrix-multiplication-in-high-dimension
-            # ref: https://numpy.org/doc/stable/reference/generated/numpy.matmul.html#numpy.matmul
-            xyz_vel = np.matmul(w2r_rot_mat_aligned_list, xyz_vel_g)  # (frames, 3, 1)
-            xyz_vel = np.reshape(xyz_vel, (-1, 3))
             # TODO: issues in the exported angular velocity!
+            ang_vel_g = np.reshape(ang_vel_g, (-1, 3, 1))
             ang_vel = np.matmul(w2r_rot_mat_aligned_list, ang_vel_g)  # (frames, 3, 1)
             ang_vel = np.reshape(ang_vel, (-1, 3))
+            """
 
             state_vel = {
-                "timestamp": state_dict["timestamp"],
+                "timestamp": high_interp_ts,
                 "x": xyz_vel[:, 0],
                 "zrot": ang_vel[:, 2],
             }
-            if smooth:
+            if args.smooth:
                 # 211116: unfiltered data
                 state_dict.update({"x_vel_uf": xyz_vel[:, 0]})
                 state_dict.update({"zrot_vel_uf": ang_vel[:, 2]})
@@ -383,7 +381,7 @@ if __name__ == "__main__":
             # acc
             print("Computing acc!")
             state_acc = compute_motion_derivative(state_vel)
-            if smooth:
+            if args.smooth:
                 # 211116: unfiltered data
                 state_dict.update({"x_acc_uf": state_acc["x"]})
                 state_dict.update({"zrot_acc_uf": state_acc["zrot"]})
@@ -413,7 +411,29 @@ if __name__ == "__main__":
             state_dict.update({"zrot_jerk": state_jerk["zrot"]})
             state_dict.update({"avg_x_jerk": np.average(state_jerk["x"])})
             state_dict.update({"avg_zrot_jerk": np.average(state_jerk["zrot"])})
-
             np.save(state_filepath, state_dict)
+
+            # _stamped.npy
+            lidar_stamped = np.load(
+                os.path.join(allf.lidar_dir, seq + "_stamped.npy"),
+                allow_pickle=True,
+            ).item()
+            lidar_ts = lidar_stamped.get("timestamp")
+            lidar_stamped_dict = interp_pose(pose_stamped_dict_, lidar_ts)
+
+            # interpolate velocity
+            if min(lidar_ts) < min(high_interp_ts):
+                lidar_ts[lidar_ts < min(high_interp_ts)] = min(high_interp_ts)
+            elif max(lidar_ts) > max(high_interp_ts):
+                lidar_ts[lidar_ts > max(high_interp_ts)] = max(high_interp_ts)
+            x_vel_sampled = interp_translation(
+                high_interp_ts, lidar_ts, state_dict["x_vel"]
+            )
+            zrot_vel_sampled = interp_translation(
+                high_interp_ts, lidar_ts, state_dict["zrot_vel"]
+            )
+            lidar_stamped_dict.update({"x_vel": x_vel_sampled})
+            lidar_stamped_dict.update({"zrot_vel": zrot_vel_sampled})
+            np.save(lidar_stamped_filepath, lidar_stamped_dict)
 
     print("Finish extracting all twist and compute state msg")

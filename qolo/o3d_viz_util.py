@@ -273,10 +273,10 @@ def filter_detection_tracking_res(in_boxes, dist=10.0, verbose=False):
         )
     return out_boxes
 
-
+# "/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/saved_view.pkl"
 def load_camera_info(
     camera_param,
-    fname="/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/saved_view.pkl",
+    fname=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'saved_view.pkl'),
 ):
     # ref: # https://github.com/pablospe/render_depthmap_example/blob/main/visualization.py
     with open(fname, "rb") as pickle_file:
