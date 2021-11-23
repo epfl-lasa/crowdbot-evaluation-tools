@@ -78,24 +78,8 @@ def extract_pose2d_from_rosbag(bag_file_path, args):
 
 #%% main file
 if __name__ == "__main__":
-    # base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    # parser.add_argument(
-    #     "-b",
-    #     "--base",
-    #     default=base_folder,
-    #     type=str,
-    #     help="base folder, i.e., the path of the current workspace",
-    # )
-    # parser.add_argument(
-    #     "-d",
-    #     "--data",
-    #     default="data",
-    #     type=str,
-    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    # )
     parser.add_argument(
         "-f",
         "--folder",

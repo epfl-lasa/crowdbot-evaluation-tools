@@ -50,8 +50,6 @@ tfqolo2npy:
 
 #%% main file
 if __name__ == "__main__":
-    base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-
     parser = argparse.ArgumentParser(description="convert all source data from rosbag")
 
     parser.add_argument(
