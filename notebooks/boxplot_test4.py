@@ -86,7 +86,7 @@ sns.set_context("paper", font_scale=1.1, rc={"lines.linewidth": 1.3})
 #  Building the Box Plot or Cat plot
 # ax1 = sns.boxplot(x='group', y='value', data=df)
 ax1=sns.catplot(x="metric", y="value", hue="group",#col="day",
-                data=df, kind="box", height=4, aspect=0.7,
+                data=df, kind="violin", height=4, aspect=0.7,
                  width=0.8,fliersize=2.5,linewidth=1.1, notch=False, orient="v")
 sns.despine(trim=True)
 ax1 = sns.swarmplot(x="metric", y="value", hue="group", data=df,
