@@ -38,11 +38,14 @@ def set_box_color(bp, color):
     plt.setp(bp['caps'], color=color)
     plt.setp(bp['medians'], color=color)
 
-data_results = pd.DataFrame({ 'group' : np.repeat('Anthro',length(anthrop0)), 'value': anthrop0 })
+a = pd.DataFrame({ 'group' : np.repeat('Anthro 1',np.size(anthrop0)), 'value': anthrop0 })
+b = pd.DataFrame({ 'group' : np.repeat('Anthro 2',np.size(anthrop1)), 'value': anthrop1 })
+c = pd.DataFrame({ 'group' : np.repeat('Animacy 1',np.size(animacy0)), 'value': animacy0 })
+d = pd.DataFrame({ 'group' : np.repeat('Animacy 2',np.size(animacy1)), 'value': animacy1 })
 
 # boxplot with SEABORN - SNS
 data_results = anthrop0
-df=data_results.append(anthrop1).append(animacy0).append(animacy1)
+df=a.append(b).append(c).append(d)
 ax1 = sns.boxplot(x='group', y='value', data=df)
 # add stripplot
 ax1 = sns.stripplot(x='group', y='value', data=df, color="orange", jitter=0.2, size=2.5)
@@ -55,28 +58,28 @@ plt.title("Trajectory Efficiency", loc="left")
 # set_box_color(bpl, '#D7191C') # colors are from http://colorbrewer2.org/
 # set_box_color(bpr, '#2C7BB6')
 
-# draw temporary red and blue lines and use them to create a legend
-ax1.plot([], c='#D7191C', label='Joystick')
-ax1.plot([], c='#2C7BB6', label='Torso')
-ax1.legend(prop={'size': 11})
+# # draw temporary red and blue lines and use them to create a legend
+# ax1.plot([], c='#D7191C', label='Joystick')
+# ax1.plot([], c='#2C7BB6', label='Torso')
+# ax1.legend(prop={'size': 11})
 
-# set up ticks
-ax1.set_xticks(range(0, len(ticks) * 2, 2))
-ax1.set_xticklabels(ticks, rotation=45, ha = 'right') # ha indicate center of rotation, could be 'right'，'center'，'left'
-# ax1.set_xticklabels([])
-ax1.set_xlim(-2, len (ticks)*2)
-ax1.set_ylim(0,4.1)
-ax1.set_ylabel('Score', fontsize=15, fontstyle='normal')
+# # set up ticks
+# ax1.set_xticks(range(0, len(ticks) * 2, 2))
+# ax1.set_xticklabels(ticks, rotation=45, ha = 'right') # ha indicate center of rotation, could be 'right'，'center'，'left'
+# # ax1.set_xticklabels([])
+# ax1.set_xlim(-2, len (ticks)*2)
+# ax1.set_ylim(0,4.1)
+# ax1.set_ylabel('Score', fontsize=15, fontstyle='normal')
 
-ax1.set_yticks([0,1,2,3,4])
-# ax1.set_yticklabels([r'$0$', r'$25$', r'$50$', r'$75$', r'$100$']))
-ax1.set_yticklabels([0,25,50,75,100])
-ax2.set_yticks(np.linspace(0, 4, 5))
-ax2.set_ylim(0,4.1)
-ax2.set_ylabel('Score', fontsize=15, fontstyle='normal')
+# ax1.set_yticks([0,1,2,3,4])
+# # ax1.set_yticklabels([r'$0$', r'$25$', r'$50$', r'$75$', r'$100$']))
+# ax1.set_yticklabels([0,25,50,75,100])
+# ax2.set_yticks(np.linspace(0, 4, 5))
+# ax2.set_ylim(0,4.1)
+# ax2.set_ylabel('Score', fontsize=15, fontstyle='normal')
 
-ax1.tick_params(labelsize=15)
-ax2.tick_params(labelsize=15)
+# ax1.tick_params(labelsize=15)
+# ax2.tick_params(labelsize=15)
 
 plt.tight_layout()
 plt.savefig('questionnaire2.pdf')
