@@ -19,6 +19,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(
+        "-b",
+        "--base",
+        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+        type=str,
+        help="base folder, i.e., the path of the current workspace",
+    )
+    parser.add_argument(
         "-d",
         "--data",
         default="data",
@@ -34,7 +41,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    cb_data = CrowdBotDatabase(args)
+    cb_data = CrowdBotDatabase(args.folder)
 
     for seq_idx in range(cb_data.nr_seqs()):
 

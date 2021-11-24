@@ -189,7 +189,7 @@ if __name__ == "__main__":
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
-    cb_data = CrowdBotDatabase(args=args)
+    cb_data = CrowdBotDatabase(args.folder)
 
     # source: rosbag data in data/rosbag/xxxx
     # base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
