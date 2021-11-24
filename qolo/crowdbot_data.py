@@ -39,7 +39,7 @@ class CrowdBotData(object):
 
 
 class CrowdBotDatabase(CrowdBotData):
-    def __init__(self, args, config=None):
+    def __init__(self, folder, config=None):
 
         if config is None:
             super(CrowdBotDatabase, self).__init__()
@@ -49,7 +49,7 @@ class CrowdBotDatabase(CrowdBotData):
         self.bagbase_dir = data_config['bagbase_dir']
         self.outbase_dir = data_config['outbase_dir']
 
-        data_processed = args.folder + "_processed"
+        data_processed = folder + "_processed"
         base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
         # data_processed_dir = os.path.join(base_folder, "data", data_processed)
         data_processed_dir = os.path.join(self.outbase_dir, data_processed)

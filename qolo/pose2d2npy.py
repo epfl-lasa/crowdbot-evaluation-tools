@@ -78,6 +78,8 @@ def extract_pose2d_from_rosbag(bag_file_path, args):
 
 #%% main file
 if __name__ == "__main__":
+    # base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
-    cb_data = CrowdBotDatabase(args=args)
+    cb_data = CrowdBotDatabase(args.folder)
 
     # source: rosbag data in data/rosbag/xxxx
     # rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)

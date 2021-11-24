@@ -204,7 +204,7 @@ if __name__ == "__main__":
     parser.set_defaults(replot=False)
     args = parser.parse_args()
 
-    cb_data = CrowdBotDatabase(args)
+    cb_data = CrowdBotDatabase(args.folder)
 
     print("Starting evaluating crowd from {} sequences!".format(cb_data.nr_seqs()))
 

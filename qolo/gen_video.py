@@ -59,7 +59,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    cb_data = CrowdBotDatabase(args)
+    cb_data = CrowdBotDatabase(args.folder)
 
     for seq_idx in range(cb_data.nr_seqs()):
 

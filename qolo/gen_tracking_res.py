@@ -42,6 +42,20 @@ def reorder_back(boxes):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
+    # parser.add_argument(
+    #     "-b",
+    #     "--base",
+    #     default="/home/crowdbot/Documents/yujie/crowdbot_tools",
+    #     type=str,
+    #     help="base folder, i.e., the path of the current workspace",
+    # )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default="data",
+    #     type=str,
+    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    # )
     parser.add_argument(
         "-f",
         "--folder",
@@ -53,7 +67,7 @@ if __name__ == "__main__":
 
     min_conf = 0.5
 
-    cb_data = CrowdBotDatabase(args)
+    cb_data = CrowdBotDatabase(args.folder)
 
     counter = 0
     seq_num = cb_data.nr_seqs()

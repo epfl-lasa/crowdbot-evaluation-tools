@@ -92,8 +92,24 @@ def interp_twist(twist_stamped_dict, target_dict):
 
 #%% main file
 if __name__ == "__main__":
+    # base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
+    # parser.add_argument(
+    #     "-b",
+    #     "--base",
+    #     default=base_folder,
+    #     type=str,
+    #     help="base folder, i.e., the path of the current workspace",
+    # )
+    # parser.add_argument(
+    #     "-d",
+    #     "--data",
+    #     default="data",
+    #     type=str,
+    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
+    # )
     parser.add_argument(
         "-f",
         "--folder",
@@ -113,7 +129,7 @@ if __name__ == "__main__":
     parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
-    cb_data = CrowdBotDatabase(args=args)
+    cb_data = CrowdBotDatabase(args.folder)
 
     # source: rosbag data in data/rosbag/xxxx
     # rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
