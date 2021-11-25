@@ -9,11 +9,57 @@
 """
 
 import os
+import numpy as np
 import os.path as path
+import matplotlib
+from matplotlib.patches import PathPatch
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 sns.set_theme()
+
+
+def set_box_color(bp, color):
+    """
+    Input:
+        bp: boxplot instance
+    """
+    plt.setp(bp['boxes'], color=color)
+    plt.setp(bp['whiskers'], color=color)
+    plt.setp(bp['caps'], color=color)
+    plt.setp(bp['medians'], color=color)
+
+
+def adjust_box_widths(g, fac):
+    """Adjust the withs of a seaborn-generated boxplot."""
+    ##iterating through Axes instances
+    for ax in g.axes.flatten():
+
+        ##iterating through axes artists:
+        for c in ax.get_children():
+
+            ##searching for PathPatches
+            if isinstance(c, PathPatch):
+                ##getting current width of box:
+                p = c.get_path()
+                verts = p.vertices
+                verts_sub = verts[:-1]
+                xmin = np.min(verts_sub[:, 0])
+                xmax = np.max(verts_sub[:, 0])
+                xmid = 0.5 * (xmin + xmax)
+                xhalf = 0.5 * (xmax - xmin)
+
+                ##setting new width of box
+                xmin_new = xmid - fac * xhalf
+                xmax_new = xmid + fac * xhalf
+                verts_sub[verts_sub[:, 0] == xmin, 0] = xmin_new
+                verts_sub[verts_sub[:, 0] == xmax, 0] = xmax_new
+
+                ##setting new width of median line
+                for l in ax.lines:
+                    if np.all(l.get_xdata() == [xmin, xmax]):
+                        l.set_xdata([xmin_new, xmax_new])
+
 
 # derived from https://stackoverflow.com/a/53380401/7961693
 def walk(top, topdown=True, onerror=None, followlinks=False, maxdepth=None):
@@ -45,14 +91,73 @@ def walk(top, topdown=True, onerror=None, followlinks=False, maxdepth=None):
         yield top, dirs, nondirs
 
 
-def boxplot(axes, df, metric, catogory, title, ylabel, ylim):
+def violinplot(axes, df, metric, catogory, title, ylabel, ylim):
 
     sns.violinplot(x=catogory, y=metric, data=df, ax=axes)
 
     axes.yaxis.grid(True)
 
-    axes.set_title('Crowd Density within 5 m of qolo')
-    axes.set_ylabel('Density [1/$m^2$]')
+    axes.set_title(title)
+    axes.set_ylabel(ylabel)
+    axes.set_ylim(bottom=ylim[0], top=ylim[1])
+
+    plt.show()
+
+
+def categorical_plot(
+    axes,
+    df,
+    metric,
+    catogory,
+    title,
+    ylabel,
+    ylim,
+    group=None,
+    lgd_labels=None,
+    loc='lower right',
+    kind='violin',
+):
+
+    # fmt: off
+    sns.swarmplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+                  size=8, alpha=0.75, palette="colorblind",
+                  edgecolor='black', dodge=True,
+                 )
+    if kind == 'violin':
+        sns.violinplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+                       linewidth=1.1, notch=False, orient="v",
+                       dodge=True, palette="pastel", inner=None,
+                      )
+    elif kind == 'box':
+        sns.boxplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+                    linewidth=1.1, notch=False, orient="v",
+                    dodge=True, palette="pastel",
+                   )
+
+    # sns.despine(trim=True)
+
+    # fmt: on
+    axes.yaxis.grid(True)
+
+    # deduplicate labels
+    # method1: https://stackoverflow.com/a/33440601/7961693
+    # hand, labl = ax.get_legend_handles_labels()
+    # plt.legend(np.unique(labl))
+
+    # method2: https://stackoverflow.com/a/33424628/7961693
+    lablout, handout = [], []
+    hand, labl = axes.get_legend_handles_labels()
+    for h, l in zip(hand, labl):
+        if l not in lablout:
+            lablout.append(l)
+            handout.append(h)
+    if lgd_labels:
+        plt.legend(handles=handout, labels=lgd_labels, loc=loc)
+    else:
+        plt.legend(handles=handout, labels=lablout, loc=loc)
+
+    axes.set_title(title)
+    axes.set_ylabel(ylabel)
     axes.set_ylim(bottom=ylim[0], top=ylim[1])
 
     plt.show()
