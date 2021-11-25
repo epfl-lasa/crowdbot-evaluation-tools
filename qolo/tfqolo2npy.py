@@ -104,8 +104,9 @@ def interp_pose(source_dict, interp_ts):
     # don't resize, just discard timestamps smaller or bigger than source
     if min(interp_ts) < min(source_ts):
         interp_ts[interp_ts < min(source_ts)] = min(source_ts)
-    elif max(interp_ts) > max(source_ts):
+    if max(interp_ts) > max(source_ts):
         interp_ts[interp_ts > max(source_ts)] = max(source_ts)
+    print(interp_ts.min(), interp_ts.max(), source_ts.min(), source_ts.max())
 
     interp_dict = {}
     interp_dict["timestamp"] = interp_ts

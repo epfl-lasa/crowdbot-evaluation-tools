@@ -183,18 +183,16 @@ def save_md_img(eval_dict, base_dir, seq_name):
         fontsize=10,
     )
 
-    # y=0.3 horizontal line
-    # 'xmin' in Axes.axhline denotes the maximum of the axis
-    # ax.axhline(y=0.3, xmin=0.0, xmax=duration, linestyle='--', color='navy')
-    ax.plot((0.0, duration), (0.3, 0.3), linestyle="--", color="navy")
-    plt.text(
-        x=duration / 2,
-        y=0.4,
-        s=r"$\mathrm{dist}_{\mathrm{limit}}=0.3$",
-        horizontalalignment="center",
-        verticalalignment="baseline",
-        fontsize=10,
-    )
+    # y=0.3 horizontal line (if consider the qolo capsule)
+    # ax.plot((0.0, duration), (0.3, 0.3), linestyle="--", color="navy")
+    # plt.text(
+    #     x=duration / 2,
+    #     y=0.4,
+    #     s=r"$\mathrm{dist}_{\mathrm{limit}}=0.3$",
+    #     horizontalalignment="center",
+    #     verticalalignment="baseline",
+    #     fontsize=10,
+    # )
 
     ax.set_title(
         "Min. Distance of Pedestrain from qolo ({0:.1f}s)".format(duration), fontsize=15

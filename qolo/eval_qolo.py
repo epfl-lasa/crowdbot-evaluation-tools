@@ -185,6 +185,8 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"duration2goal": time_path_computed[2]})
                 qolo_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
                 qolo_eval_dict.update({"goal_reached": time_path_computed[5]})
+                qolo_eval_dict.update({"rel_duration2goal": time_path_computed[8]})
+                qolo_eval_dict.update({"rel_path_length2goal": time_path_computed[9]})
 
                 np.save(qolo_eval_npy, qolo_eval_dict)
 
