@@ -1,6 +1,7 @@
 #!/bin/bash
 # derived from https://stackoverflow.com/a/14203146/7961693
-# sh data_export_pipeline.sh -e=py38cuda110 -t=0424_mds
+# sh data_export_eval_all.sh -e=py38cuda110 -t=test
+# sh data_export_eval_all.sh -e=py38cuda110 -t=0424_mds
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -51,11 +52,23 @@ echo "########## Export pointcloud and lidar timestamp ##########"
 python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE}
 
 echo "########## Export qolo status ##########"
+echo "##### tfqolo2npy.py #####"
 python3 ../qolo/tfqolo2npy.py --overwrite -f ${TYPE}
+echo "##### twist2npy.py #####"
 python3 ../qolo/twist2npy.py --overwrite -f ${TYPE}
+echo "##### pose2d2npy.py #####"
 python3 ../qolo/pose2d2npy.py --overwrite -f ${TYPE}
 
-echo "########## Evaluate the qolo performance given extracted data ##########"
+echo "########## Apply algorithms to extracted data ##########"
+echo "##### gen_detection_res.py #####"
+python3 ../qolo/gen_detection_res.py -f  ${TYPE}
+echo "##### gen_tracking_res.py #####"
+python3 ../qolo/gen_tracking_res.py -f ${TYPE}
+
+echo "########## Evaluate the performance ##########"
+echo "##### eval_qolo.py #####"
 python3 ../qolo/eval_qolo.py --overwrite -f ${TYPE}
+echo "##### eval_crowd.py #####"
+python3 ../qolo/eval_crowd.py --overwrite -f ${TYPE}
 
 echo "########## Finished!!! ##########"
