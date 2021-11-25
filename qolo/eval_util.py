@@ -89,6 +89,9 @@ def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffi
     )  # "_qolo_command"
     plt.savefig(qolo_img_path, dpi=300)  # png, pdf
 
+    # https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+    plt.close()
+
 
 def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     pose_x = qolo_pose2d.get("x")
@@ -96,8 +99,8 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     duration2goal = time_path_computed[2]
     path_length2goal = time_path_computed[3]
     end_idx = time_path_computed[4]
-    goal = time_path_computed[5]
     min_dist2goal = time_path_computed[6]
+    goal_loc = time_path_computed[7]
 
     fig, ax = plt.subplots(figsize=(5, 3))
     ax.plot(
@@ -114,7 +117,7 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
         linewidth=2,
         label="remaining path",
     )
-    ax.plot([goal[0]], [goal[1]], "kx", label="goal")
+    ax.plot([goal_loc[0]], [goal_loc[1]], "kx", label="goal")
     ax.legend(fontsize="x-small")
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
@@ -126,3 +129,6 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     fig.tight_layout()
     path_img_path = os.path.join(base_dir, seq_name + "_path.png")
     plt.savefig(path_img_path, dpi=300)  # png, pdf
+
+    # https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
+    plt.close()

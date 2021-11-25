@@ -118,7 +118,7 @@ if __name__ == "__main__":
         ).item()
         # print("qolo_state_dict.keys()", qolo_state_dict.keys())
 
-        # 00. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
+        # 1. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
         time_path_computed = compute_time_path(qolo_twist, qolo_pose2d)
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
                 attrs = ("jerk", "agreement", "fluency")
 
-                # 1. jerk
+                # 2. jerk
                 qolo_eval_dict = dict()
                 qolo_eval_dict.update(
                     {"avg_x_jerk": np.average(qolo_command_dict["x_jerk"])}
@@ -167,23 +167,24 @@ if __name__ == "__main__":
                     {"avg_zrot_jerk": np.average(qolo_command_dict["zrot_jerk"])}
                 )
 
-                # 2. fluency
+                # 3. fluency
                 fluency = compute_fluency(qolo_command_dict)
                 qolo_eval_dict.update({"avg_fluency": fluency[0]})
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
-                # 3. agreement with command sampled (may need to extract command from rds msg)
+                # 4. agreement with command sampled (may need to extract command from rds msg)
                 agreement = compute_agreement(qolo_command_dict, qolo_lidarstamp_dict)
                 print("(linear_dis, heading_dis, disagreement) =", agreement)
                 qolo_eval_dict.update({"linear_dis": agreement[0]})
                 qolo_eval_dict.update({"heading_dis": agreement[1]})
                 qolo_eval_dict.update({"disagreement": agreement[2]})
 
-                # 4. path related-metrics
+                # 4. add path related-metrics
                 qolo_eval_dict.update({"start_command_ts": time_path_computed[0]})
                 qolo_eval_dict.update({"end_command_ts": time_path_computed[1]})
                 qolo_eval_dict.update({"duration2goal": time_path_computed[2]})
                 qolo_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
+                qolo_eval_dict.update({"goal_reached": time_path_computed[5]})
 
                 np.save(qolo_eval_npy, qolo_eval_dict)
 
