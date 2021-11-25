@@ -3,7 +3,7 @@
 @File    :   eval_crowd.py
 @Time    :   2021/11/02
 @Author  :   Yujie He
-@Version :   1.0
+@Version :   1.1
 @Contact :   yujie.he@epfl.ch
 @State   :   Dev
 """
@@ -16,6 +16,7 @@ TODO: compare with detected pedestrain from the rosbag!
 import os
 import argparse
 
+import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -23,29 +24,66 @@ import matplotlib.pyplot as plt
 from crowdbot_data import CrowdBotDatabase
 from eval_qolo import compute_time_path
 
-#%% utility functions to evaluate crowd data
-def compute_metrics(trks):
+#%% utility functions to calculate the distance from detected pedestrian to qolo
+# borrow from https://github.com/epfl-lasa/qolo-evaluation/blob/main/src/crowd_evaluation/crowd_evaluation.py
+class Capsule:
+    def __init__(self, y_front, y_back, r):
+        self.y_front = y_front
+        self.y_back = y_back
+        self.r = r
 
-    # 1. all_det
-    all_det = np.shape(trks)[0]
+    def distanceLocal(self, x, y):
+        if y > self.y_front:
+            return math.sqrt(x * x + (y - self.y_front) * (y - self.y_front)) - self.r
+        elif y < self.y_back:
+            return math.sqrt(x * x + (y - self.y_back) * (y - self.y_back)) - self.r
+        else:
+            return math.fabs(x) - self.r
+
+    def distanceGlobal(self, x_obs, y_obs, x_rob, y_rob, phi_rob):
+        Rinv = [
+            [np.cos(phi_rob - np.pi / 2), np.sin(phi_rob - np.pi / 2)],
+            [-np.sin(phi_rob - np.pi / 2), np.cos(phi_rob - np.pi / 2)],
+        ]
+
+        p_rel_global = np.array([x_obs - x_rob, y_obs - y_rob])
+        p_rel_local = np.matmul(np.array(Rinv), p_rel_global)
+        return self.distanceLocal(p_rel_local[0], p_rel_local[1])
+
+
+#%% utility functions to evaluate crowd data
+def compute_crowd_metrics(bbox):
+    """compute crowd density and min_dist from qolo"""
+
+    # 0. all_det
+    all_det = np.shape(bbox)[0]
+
+    # 1. all_dist: all pedestrain from qolo
+    # all_dist = np.linalg.norm(bbox[:, [0, 1]], axis=1)
+    bbox_xy = bbox[:, [0, 1]]
+    all_dist = np.linalg.norm(bbox_xy, axis=1)
+    # consider qolo capsule
+    # all_dist_capsuled
+    capsule_qolo = Capsule(0.18, -0.5, 0.45)
+    all_dist_capsuled = np.ones([all_det]) * np.inf
+    for idx in range(all_det):
+        x_dist = bbox_xy[idx, 0]
+        y_dist = bbox_xy[idx, 1]
+        all_dist_capsuled[idx] = capsule_qolo.distanceLocal(x_dist, y_dist)
 
     # 2. within_det
-    # r_square_within = (trks[:,0]**2 + trks[:,1]**2) < args.dist**2
-    # within_det = np.shape(trks[r_square_within,:])[0]
-    all_dist = np.linalg.norm(trks[:, [0, 1]], axis=1)
     within_det5 = np.sum(np.less(all_dist, 5.0))
     within_det10 = np.sum(np.less(all_dist, 10.0))
 
-    # 3. min_dist
-    # b = np.random.rand(5,3)
-    # b01_norm = np.linalg.norm(b[:,[0,1]], axis=1)
-    min_dist = min(all_dist)
+    # 3. min_dist/proximity: all_dist_capsuled or all_dist
+    min_dist = min(all_dist_capsuled)
 
     # 4. crowd_density
     area_local5 = np.pi * 5.0 ** 2
     crowd_density5 = within_det5 / area_local5
     area_local10 = np.pi * 10.0 ** 2
     crowd_density10 = within_det10 / area_local10
+
     return (
         all_det,
         within_det5,
@@ -56,8 +94,9 @@ def compute_metrics(trks):
     )
 
 
-# save crowd_density plotting
 def save_cd_img(eval_dict, base_dir, seq_name):
+    """save crowd_density plotting"""
+
     # unpack md data from eval_dict
     ts = eval_dict.get("timestamp")
     cd5 = eval_dict.get("crowd_density5")
@@ -108,8 +147,9 @@ def save_cd_img(eval_dict, base_dir, seq_name):
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
 
 
-# save min. dist. plotting
 def save_md_img(eval_dict, base_dir, seq_name):
+    """save min_dist plotting"""
+
     # unpack md data from eval_dict
     ts = eval_dict.get("timestamp")
     md = eval_dict.get("min_dist")
@@ -281,14 +321,14 @@ if __name__ == "__main__":
 
                 crowd_eval_list_dict = {k: [] for k in attrs}
 
-                num_msgs_between_logs = 200
+                num_msgs_between_logs = 5
                 nr_frames = cb_data.nr_frames(seq_idx)
 
                 for fr_idx in range(nr_frames):
 
                     _, _, _, trks = cb_data[seq_idx, fr_idx]
 
-                    metrics = compute_metrics(trks)
+                    metrics = compute_crowd_metrics(trks)
 
                     if fr_idx % num_msgs_between_logs == 0 or fr_idx >= nr_frames - 1:
                         print(
@@ -311,12 +351,10 @@ if __name__ == "__main__":
                     for idx, (name, dtype) in enumerate(zip(attrs, dtypes))
                 }
 
-                # other attributes
-                crowd_eval_dict.update({"timestamp": ts})
-                crowd_eval_dict.update({"start_command_ts": time_path_computed[0]})
-                crowd_eval_dict.update({"end_command_ts": time_path_computed[1]})
-                crowd_eval_dict.update({"duration2goal": time_path_computed[2]})
-                crowd_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
+                # normalized proximity
+                min_dist_list = metrics[5]
+                normalized_proximity = np.std(min_dist_list) / np.mean(min_dist_list)
+                crowd_eval_dict.update({"normalized_proximity": normalized_proximity})
 
                 # avg_min_dict = np.average(crowd_eval_dict['min_dict'])
                 for attr in attrs:
@@ -324,6 +362,14 @@ if __name__ == "__main__":
                     crowd_eval_dict.update(
                         {avg_attr: np.average(crowd_eval_dict[attr])}
                     )
+
+                # other attributes from time_path_computed
+                crowd_eval_dict.update({"timestamp": ts})
+                crowd_eval_dict.update({"start_command_ts": time_path_computed[0]})
+                crowd_eval_dict.update({"end_command_ts": time_path_computed[1]})
+                crowd_eval_dict.update({"duration2goal": time_path_computed[2]})
+                crowd_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
+                crowd_eval_dict.update({"goal_reached": time_path_computed[5]})
 
                 np.save(crowd_eval_npy, crowd_eval_dict)
 
