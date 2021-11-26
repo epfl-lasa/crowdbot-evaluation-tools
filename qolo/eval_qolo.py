@@ -194,16 +194,17 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"avg_zrot_jerk": np.average(zrot_jerk)})
 
                 # 3. fluency
-                fluency = compute_fluency(qolo_command_dict)
+                fluency = compute_fluency(qolo_command_dict, start_cmd_ts, end_cmd_ts)
                 qolo_eval_dict.update({"avg_fluency": fluency[0]})
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
                 # 4. agreement with command sampled (may need to extract command from rds msg)
-                agreement = compute_agreement(qolo_command_dict, qolo_lidarstamp_dict)
-                print("(linear_dis, heading_dis, disagreement) =", agreement)
-                qolo_eval_dict.update({"linear_dis": agreement[0]})
-                qolo_eval_dict.update({"heading_dis": agreement[1]})
-                qolo_eval_dict.update({"disagreement": agreement[2]})
+                # TODO: need extract command!!!
+                # agreement = compute_agreement(qolo_command_dict, qolo_lidarstamp_dict)
+                # print("(linear_dis, heading_dis, disagreement) =", agreement)
+                # qolo_eval_dict.update({"linear_dis": agreement[0]})
+                # qolo_eval_dict.update({"heading_dis": agreement[1]})
+                # qolo_eval_dict.update({"disagreement": agreement[2]})
 
                 # 4. add path related-metrics
                 qolo_eval_dict.update({"start_command_ts": start_cmd_ts})

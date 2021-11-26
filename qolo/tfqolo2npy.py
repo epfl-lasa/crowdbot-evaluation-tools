@@ -406,7 +406,7 @@ if __name__ == "__main__":
                     window=41,
                     polyorder=5,
                     check_thres=True,
-                    thres=[-10, 20],  # limit value
+                    thres=[-1.5, 1.5],  # limit value
                 )
                 smoothed_zrot_acc = smooth1d(
                     state_acc['zrot'],
@@ -414,7 +414,7 @@ if __name__ == "__main__":
                     window=41,
                     polyorder=5,
                     check_thres=True,
-                    thres=[-20, 20],  # limit value
+                    thres=[-4.5, 4.5],  # limit value
                 )
 
                 # update filtered acceleration

@@ -14,7 +14,7 @@ import numpy as np
 
 
 def compute_time_path(qolo_twist, qolo_pose2d):
-    """calculate starting and ending timestamp and path"""
+    """Compute starting and ending timestamp and path"""
 
     # 1. calculate starting timestamp based on nonzero twist command
     # starting: larger than zero
@@ -86,7 +86,8 @@ def compute_time_path(qolo_twist, qolo_pose2d):
     pose_final = pose_x[end_pose_idx]
     l_goal = np.linalg.norm(pose_init - pose_final)
 
-    rel_duration2goal = l_goal / vc_max
+    theory_duration2goal = l_goal / vc_max
+    rel_duration2goal = theory_duration2goal / duration2goal
     rel_path_length2goal = l_goal / path_length2goal
 
     return (
@@ -104,6 +105,8 @@ def compute_time_path(qolo_twist, qolo_pose2d):
 
 
 def compute_relative_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
+    """Compute relative jerk, which is the time integral of x_jerk and zrot_jerk
+    along the operation duration. Can consider normalizing by the duration"""
 
     start_idx, end_idx = 0, len(cmd_ts) - 1
     # find start and ending points
@@ -132,11 +135,25 @@ def compute_relative_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
 
 
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L187
-def compute_fluency(qolo_command):
-    """compute consistency of the velocity command"""
+def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
+    """Compute consistency of the velocity command"""
 
     vel = qolo_command.get("x_vel")
     omega = qolo_command.get("zrot_vel")
+
+    # find start and ending timestamp
+    cmd_ts = qolo_command.get("timestamp")
+    start_idx, end_idx = 0, len(cmd_ts) - 1
+    if cmd_ts.min() < start_cmd_ts:
+        start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
+    if cmd_ts.max() < end_cmd_ts:
+        end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
+    # print(start_idx, end_idx)
+
+    # only consider data within the operation duration
+    vel = vel[start_idx:end_idx]
+    omega = omega[start_idx:end_idx]
+
     v_max, w_max = np.max(vel), np.max(omega)
 
     fluency_v = []
@@ -158,33 +175,43 @@ def compute_fluency(qolo_command):
         return (fluencyw, fluencyw_sd)
 
 
+# TODO: fix different timestamp in qolo_state and qolo_command
+# 2021-04-10-12-13-54 with 3464 frames
+# 2021-04-10-12-17-19 with 4759 frames
+# 2021-04-10-12-24-53 with 489 frames
+#   ValueError: operands could not be broadcast together with shapes (479,) (489,)
+# 2021-04-10-12-26-08 with 3167 frames
+#   ValueError: operands could not be broadcast together with shapes (3157,) (3167,)
+
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L222
-def compute_agreement(qolo_command, qolo_state):
+# qolo_command & qolo_human_desired (from to GUI) but not `qolo_state`
+def compute_agreement(qolo_command, qolo_state, start_cmd_ts, end_cmd_ts):
     """compute real qolo velocity in reference to command"""
+
+    # unpack data
     vel_c = qolo_command.get("x_vel")
     omega_c = qolo_command.get("zrot_vel")
-    vc_max, wc_max = np.max(vel_c), np.max(omega_c)
-    vec_size = vel_c.shape[0]
-
     vel_r = qolo_state.get("x_vel")
     omega_r = qolo_state.get("zrot_vel")
 
-    # TODO: fix lidar timestamp in
-    # 2021-04-10-12-13-54 with 3464 frames
-    # 2021-04-10-12-17-19 with 4759 frames
-    # (12/13): 2021-04-10-12-24-53 with 489 frames
-    #   ValueError: operands could not be broadcast together with shapes (479,) (489,)
-    # 2021-04-10-12-26-08 with 3167 frames
-    #   ValueError: operands could not be broadcast together with shapes (3157,) (3167,)
+    # find start and ending timestamp
+    cmd_ts = qolo_command.get("timestamp")
+    start_idx, end_idx = 0, len(cmd_ts) - 1
+    if cmd_ts.min() < start_cmd_ts:
+        start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
+    if cmd_ts.max() < end_cmd_ts:
+        end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
+    # print(start_idx, end_idx)
 
-    # print(type(vel_c), type(omega_c))
-    # print(vel_c.shape, omega_c.shape)
-    # print(vel_r.shape, omega_r.shape)
-    # (3464,) (3464,)
-    # (3454,) (3454,)
+    # only consider data within the operation duration
+    vel_c = vel_c[start_idx:end_idx]
+    omega_c = omega_c[start_idx:end_idx]
+    vel_r = vel_r[start_idx:end_idx]
+    omega_r = omega_r[start_idx:end_idx]
 
-    # TODO: divide by zero encountered in true_divide
-    # 2021-04-10-10-58-23 with 579 frames
+    vc_max, wc_max = np.max(vel_c), np.max(omega_c)
+    vec_size = vel_c.shape[0]
+
     angle_U = np.arctan2(vel_c / vc_max, omega_c / wc_max)
     angle_R = np.arctan2(vel_r / vc_max, omega_r / wc_max)
     angle_diff = angle_R - angle_U
@@ -206,11 +233,12 @@ def compute_agreement(qolo_command, qolo_state):
     omega_diff = np.array(omega_diff)
     agreement_vec = np.array(agreement_vec)
     # TODO: check directional_agreement unused?
-    directional_agreement = [np.mean(agreement_vec), np.std(agreement_vec)]
+    # directional_agreement = [np.mean(agreement_vec), np.std(agreement_vec)]
+    avg_agreement, std_agreement = agreement_vec.mean(), agreement_vec.std()
 
     linear_dis = [np.mean(vel_diff), np.std(vel_diff)]
     heading_dis = [np.mean(omega_diff), np.std(omega_diff)]
 
     disagreement = [np.mean(np.array(command_vec)), np.std(np.array(command_vec))]
 
-    return (linear_dis, heading_dis, disagreement)  # Contribution
+    return (linear_dis, heading_dis, avg_agreement, std_agreement)  # Contribution
