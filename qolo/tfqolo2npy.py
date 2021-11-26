@@ -67,7 +67,7 @@ def deduplicate_tf(qolo_tf):
     tf_qolo_pos = qolo_tf.get("position")
     tf_qolo_ori = qolo_tf.get("orientation")
     print(
-        "Input {} frames, about {:.1f} Hz".format(
+        "Raw input {} frames, about {:.1f} Hz".format(
             len(ts), len(ts) / (max(ts) - min(ts))
         )
     )
@@ -84,7 +84,7 @@ def deduplicate_tf(qolo_tf):
     tf_qolo_pos_new = tf_qolo_pos[tf_qolo_unique_idx, :]
     tf_qolo_ori_ori = tf_qolo_ori[tf_qolo_unique_idx, :]
     print(
-        "Output {} frames, about {:.1f} Hz".format(
+        "Reduplicated Output {} frames, about {:.1f} Hz".format(
             len(ts_new), len(ts_new) / (max(ts_new) - min(ts_new))
         )
     )
@@ -101,18 +101,27 @@ def interp_pose(source_dict, interp_ts):
     source_pos = source_dict.get("position")
     source_ori = source_dict.get("orientation")
 
-    # don't resize, just discard timestamps smaller or bigger than source
+    # method1: saturate the timestamp outside the range
+    # if min(interp_ts) < min(source_ts):
+    #     interp_ts[interp_ts < min(source_ts)] = min(source_ts)
+    # if max(interp_ts) > max(source_ts):
+    #     interp_ts[interp_ts > max(source_ts)] = max(source_ts)
+
+    # method2: discard timestamps smaller or bigger than source
+    start_idx, end_idx = 0, -1
     if min(interp_ts) < min(source_ts):
-        interp_ts[interp_ts < min(source_ts)] = min(source_ts)
+        start_idx = np.argmax(interp_ts[interp_ts - source_ts.min() < 0]) + 1
     if max(interp_ts) > max(source_ts):
-        interp_ts[interp_ts > max(source_ts)] = max(source_ts)
-    print(interp_ts.min(), interp_ts.max(), source_ts.min(), source_ts.max())
+        end_idx = np.argmax(interp_ts[interp_ts - source_ts.max() <= 0]) + 1
+    interp_ts = interp_ts[start_idx:end_idx]
+
+    # print(interp_ts.min(), interp_ts.max(), source_ts.min(), source_ts.max())
 
     interp_dict = {}
     interp_dict["timestamp"] = interp_ts
     interp_dict["orientation"] = interp_rotation(source_ts, interp_ts, source_ori)
     interp_dict["position"] = interp_translation(source_ts, interp_ts, source_pos)
-    return interp_dict
+    return interp_dict, interp_ts
 
 
 #%% Utility function for computing angular velocity by differentiating
@@ -231,6 +240,7 @@ if __name__ == "__main__":
             or (args.overwrite)
         ):
             if (not os.path.exists(all_stamped_filepath)) or (args.overwrite):
+                # TODO: extract_pose_from_rosbag is quite time-consuming !
                 pose_stamped_dict = extract_pose_from_rosbag(bag_path)
                 pose_stamped_dict_ = deduplicate_tf(pose_stamped_dict)
                 np.save(all_stamped_filepath, pose_stamped_dict_)
@@ -253,7 +263,7 @@ if __name__ == "__main__":
                 start=start_ts, step=interp_dt, stop=end_ts, dtype=np.float64
             )
             # position & orientation
-            state_dict = interp_pose(pose_stamped_dict_, high_interp_ts)
+            state_dict, high_interp_ts = interp_pose(pose_stamped_dict_, high_interp_ts)
             print(
                 "Interpolated output {} frames, about {:.1f} Hz".format(
                     len(high_interp_ts),
@@ -279,10 +289,50 @@ if __name__ == "__main__":
             w2r_rot_mat_aligned_list = state_r_aligned.inv().as_matrix()
 
             print("Computing linear velocity!")
+            position_g = state_dict["position"]
+
+            """
+            # create low-pass filter
+            # ref:
+            #   https://ipython-books.github.io/102-applying-a-linear-filter-to-a-digital-signal/
+            import scipy.signal as sg
+
+            # method1: Butterworth digital and analog filter design.
+            #   https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html
+            #   https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt
+            # 4-th order, cut-off around 50Hz, original data 200Hz
+            # sos = sg.butter(4, 100, fs=200, output='sos')
+            # Digital filter critical frequencies must be 0 < Wn < fs/2 (fs=200 -> fs/2=100.0)
+            sos = sg.butter(N=3, Wn=90, fs=200, output='sos')
+            # apply to global position
+            position_g = sg.sosfilt(sos, position_g)
+            # create low-pass filter
+
+
+            # method2: triangular window of a given length and type. (useless)
+            #   https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html
+            triang_w = sg.get_window('triang', 21)  # 11 21 31 41 51
+            for dim in range(np.shape(position_g)[1]):
+                position_g[:, dim] = sg.convolve(
+                    position_g[:, dim], triang_w / triang_w.sum(), mode='same'
+                )
+            """
+
+            # smooth with Savitzky-Golay filter
+            print("Using Savitzky-Golay filter to smooth position!")
+            if args.smooth:
+                smoothed_position_g = smooth(
+                    position_g,
+                    filter='savgol',
+                    window=41,
+                    polyorder=3,
+                )
+                position_g = smoothed_position_g
+
             state_pose_g = {
-                "x": state_dict["position"][:, 0],
-                "y": state_dict["position"][:, 1],
-                "z": state_dict["position"][:, 2],
+                "x": position_g[:, 0],
+                "y": position_g[:, 1],
+                "z": position_g[:, 2],
                 "timestamp": high_interp_ts,
             }
             state_vel_g = compute_motion_derivative(
@@ -303,6 +353,10 @@ if __name__ == "__main__":
             quat_xyzw = quat_xyzw
             quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
             quat_wxyz_ = Q.as_quat_array(quat_wxyz)
+            # ValueError: `x` must be strictly increasing sequence.
+            # dx = np.diff(x)
+            #     if np.any(dx <= 0):
+            #     raise ValueError("`x` must be strictly increasing sequence.")
             ang_vel = qseries.angular_velocity(quat_wxyz_, high_interp_ts)
 
             """
@@ -318,7 +372,7 @@ if __name__ == "__main__":
                 smoothed_rpy = smooth(
                     rpy,
                     filter='savgol',
-                    window=31,
+                    window=41,
                     polyorder=3,
                 )
                 ang_vel_g = compute_ang_vel(smoothed_rpy)
@@ -340,25 +394,31 @@ if __name__ == "__main__":
                 "zrot": ang_vel[:, 2],
             }
             if args.smooth:
+                print("Using Savitzky-Golay filter to smooth vel!")
                 # 211116: unfiltered data
-                state_dict.update({"x_vel_uf": xyz_vel[:, 0]})
-                state_dict.update({"zrot_vel_uf": ang_vel[:, 2]})
+                # state_dict.update({"x_vel_uf": xyz_vel[:, 0]})
+                # state_dict.update({"zrot_vel_uf": ang_vel[:, 2]})
                 # 211116: apply filter to computed vel
                 smoothed_x_vel = smooth1d(
                     xyz_vel[:, 0],
                     filter='savgol',
-                    window=31,
+                    window=41,
                     polyorder=5,
                     check_thres=True,
                 )
                 smoothed_zrot_vel = smooth1d(
                     ang_vel[:, 2],
                     filter='savgol',
-                    window=31,
+                    window=41,
                     polyorder=5,
                     check_thres=True,
                     thres=[-4.124, 4.124],
                 )
+
+                # update filtered velocity
+                xyz_vel[:, 0] = smoothed_x_vel
+                ang_vel[:, 2] = smoothed_zrot_vel
+
                 state_dict.update({"x_vel": smoothed_x_vel})
                 state_dict.update({"zrot_vel": smoothed_zrot_vel})
             else:
@@ -369,22 +429,32 @@ if __name__ == "__main__":
             print("Computing acc!")
             state_acc = compute_motion_derivative(state_vel)
             if args.smooth:
+                print("Using Savitzky-Golay filter to smooth acc!")
                 # 211116: unfiltered data
-                state_dict.update({"x_acc_uf": state_acc["x"]})
-                state_dict.update({"zrot_acc_uf": state_acc["zrot"]})
+                # state_dict.update({"x_acc_uf": state_acc["x"]})
+                # state_dict.update({"zrot_acc_uf": state_acc["zrot"]})
                 # 211116: apply filter to computed acc
                 smoothed_x_acc = smooth1d(
                     state_acc['x'],
                     filter='savgol',
-                    window=31,
+                    window=41,
                     polyorder=5,
+                    check_thres=True,
+                    thres=[-10, 20],  # limit value
                 )
                 smoothed_zrot_acc = smooth1d(
                     state_acc['zrot'],
                     filter='savgol',
-                    window=31,
+                    window=41,
                     polyorder=5,
+                    check_thres=True,
+                    thres=[-20, 20],  # limit value
                 )
+
+                # update filtered acceleration
+                state_acc['x'] = smoothed_x_acc
+                state_acc['zrot'] = smoothed_zrot_acc
+
                 state_dict.update({"x_acc": smoothed_x_acc})
                 state_dict.update({"zrot_acc": smoothed_zrot_acc})
             else:
@@ -394,6 +464,29 @@ if __name__ == "__main__":
             # jerk
             print("Computing jerk!")
             state_jerk = compute_motion_derivative(state_acc)
+            if args.smooth:
+                print("Using Savitzky-Golay filter to smooth jerk!")
+                smoothed_x_jerk = smooth1d(
+                    state_jerk['x'],
+                    filter='savgol',
+                    window=41,
+                    polyorder=5,
+                    check_thres=True,
+                    thres=[-20, 40],  # limit value
+                )
+                smoothed_zrot_jerk = smooth1d(
+                    state_jerk['zrot'],
+                    filter='savgol',
+                    window=41,
+                    polyorder=5,
+                    check_thres=True,
+                    thres=[-40, 40],  # limit value
+                )
+
+                # update filtered acceleration
+                state_jerk['x'] = smoothed_x_jerk
+                state_jerk['zrot'] = smoothed_zrot_jerk
+
             state_dict.update({"x_jerk": state_jerk["x"]})
             state_dict.update({"zrot_jerk": state_jerk["zrot"]})
             state_dict.update({"avg_x_jerk": np.average(state_jerk["x"])})
@@ -406,12 +499,12 @@ if __name__ == "__main__":
                 allow_pickle=True,
             ).item()
             lidar_ts = lidar_stamped.get("timestamp")
-            lidar_stamped_dict = interp_pose(pose_stamped_dict_, lidar_ts)
+            lidar_stamped_dict, lidar_ts = interp_pose(pose_stamped_dict_, lidar_ts)
 
             # interpolate velocity
             if min(lidar_ts) < min(high_interp_ts):
                 lidar_ts[lidar_ts < min(high_interp_ts)] = min(high_interp_ts)
-            elif max(lidar_ts) > max(high_interp_ts):
+            if max(lidar_ts) > max(high_interp_ts):
                 lidar_ts[lidar_ts > max(high_interp_ts)] = max(high_interp_ts)
             x_vel_sampled = interp_translation(
                 high_interp_ts, lidar_ts, state_dict["x_vel"]
