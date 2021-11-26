@@ -118,6 +118,8 @@ def categorical_plot(
     kind='violin',
 ):
 
+    sns.set_theme(style="whitegrid")
+
     # fmt: off
     sns.swarmplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
                   size=8, alpha=0.75, palette="colorblind",
@@ -139,22 +141,23 @@ def categorical_plot(
     # fmt: on
     axes.yaxis.grid(True)
 
-    # deduplicate labels
-    # method1: https://stackoverflow.com/a/33440601/7961693
-    # hand, labl = ax.get_legend_handles_labels()
-    # plt.legend(np.unique(labl))
+    if group:
+        # deduplicate labels
+        # method1: https://stackoverflow.com/a/33440601/7961693
+        # hand, labl = ax.get_legend_handles_labels()
+        # plt.legend(np.unique(labl))
 
-    # method2: https://stackoverflow.com/a/33424628/7961693
-    lablout, handout = [], []
-    hand, labl = axes.get_legend_handles_labels()
-    for h, l in zip(hand, labl):
-        if l not in lablout:
-            lablout.append(l)
-            handout.append(h)
-    if lgd_labels:
-        plt.legend(handles=handout, labels=lgd_labels, loc=loc)
-    else:
-        plt.legend(handles=handout, labels=lablout, loc=loc)
+        # method2: https://stackoverflow.com/a/33424628/7961693
+        lablout, handout = [], []
+        hand, labl = axes.get_legend_handles_labels()
+        for h, l in zip(hand, labl):
+            if l not in lablout:
+                lablout.append(l)
+                handout.append(h)
+        if lgd_labels:
+            plt.legend(handles=handout, labels=lgd_labels, loc=loc)
+        else:
+            plt.legend(handles=handout, labels=lablout, loc=loc)
 
     axes.set_title(title)
     axes.set_ylabel(ylabel)
