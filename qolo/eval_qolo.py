@@ -1,12 +1,27 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   eval_qolo.py
-@Time    :   2021/11/09
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   eval_qolo.py
+@Date created  :   2021/11/09
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides the evaluation pipeline includeing the computation of
+path efficiency and share control-related metrics (relative time to goal,
+relative time to goal, relative jerk, agreement, fluency and corresponding
+visualization.
+The emulation results is exported with suffix as "_qolo_eval.npy".
+"""
+# =============================================================================
+"""
+TODO:
+1. check data source from pose2d (odom) or tf_qolo
+"""
+# =============================================================================
 
 import os
 import argparse
@@ -21,9 +36,6 @@ from metrics import (
     compute_agreement,
     compute_relative_jerk,
 )
-
-
-# TODO: check data source from pose2d (odom) or tf_qolo
 
 #%% main function
 if __name__ == "__main__":
@@ -199,6 +211,7 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"duration2goal": time_path_computed[2]})
                 qolo_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
                 qolo_eval_dict.update({"goal_reached": time_path_computed[5]})
+                qolo_eval_dict.update({"min_dist2goal": time_path_computed[6]})
                 qolo_eval_dict.update({"rel_duration2goal": time_path_computed[8]})
                 qolo_eval_dict.update({"rel_path_length2goal": time_path_computed[9]})
 

@@ -1,12 +1,25 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   gen_tracking_res.py
-@Time    :   2021/10/19
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   gen_tracking_res.py
+@Date created  :   2021/10/19
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides ...
+"""
+# =============================================================================
+"""
+TODO:
+1. add --overwrite flag
+2. save tracking results in different way instead of txt files
+3. extract trajectories
+"""
+# =============================================================================
 
 import os
 import sys
@@ -42,20 +55,6 @@ def reorder_back(boxes):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    # parser.add_argument(
-    #     "-b",
-    #     "--base",
-    #     default="/home/crowdbot/Documents/yujie/crowdbot_tools",
-    #     type=str,
-    #     help="base folder, i.e., the path of the current workspace",
-    # )
-    # parser.add_argument(
-    #     "-d",
-    #     "--data",
-    #     default="data",
-    #     type=str,
-    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    # )
     parser.add_argument(
         "-f",
         "--folder",

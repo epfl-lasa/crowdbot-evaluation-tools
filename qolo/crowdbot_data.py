@@ -1,12 +1,20 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   crowdbot_data.py
-@Time    :   2021/10/26
-@Author  :   Yujie He
-@Version :   1.1
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   crowdbot_data.py
+@Date created  :   2021/10/26
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides `CrowdBotData` and `CrowdBotDatabase` class for each
+submodule to assess different subfolders and get information of containing
+rosbags for each folder.
+"""
+# =============================================================================
 
 import os
 import yaml

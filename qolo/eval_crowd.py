@@ -1,17 +1,27 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   eval_crowd.py
-@Time    :   2021/11/02
-@Author  :   Yujie He
-@Version :   1.1
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   eval_crowd.py
+@Date created  :   2021/11/02
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
-
+# =============================================================================
 """
-evaluate the min. dist. from qolo and crowd density within 10m of qolo and save corresponding images
-TODO: compare with detected pedestrain from the rosbag!
+The module provides the evaluation pipeline includeing the computation of
+crowd-related metrics (min_dist, crowd density within 5/10m, nomalized
+proximity and corresponding visualization.
+The emulation results is exported with suffix as "_crowd_eval.npy".
 """
+# =============================================================================
+"""
+TODO:
+1. compare with detected pedestrain from the rosbag!
+2. speed up `compute_crowd_metrics`
+"""
+# =============================================================================
 
 import os
 import argparse
@@ -368,6 +378,7 @@ if __name__ == "__main__":
                 crowd_eval_dict.update({"duration2goal": time_path_computed[2]})
                 crowd_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
                 crowd_eval_dict.update({"goal_reached": time_path_computed[5]})
+                qolo_eval_dict.update({"min_dist2goal": time_path_computed[6]})
 
                 np.save(crowd_eval_npy, crowd_eval_dict)
 
