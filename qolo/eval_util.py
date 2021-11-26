@@ -81,7 +81,7 @@ def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffi
                 if i == 0 and j == 0:
                     ax[i, j].set_ylim(bottom=-1.5, top=1.5)
                 elif i == 0 and j == 1:
-                    ax[i, j].set_ylim(bottom=-5, top=5)
+                    ax[i, j].set_ylim(bottom=-2, top=2)
 
     fig.tight_layout()
     qolo_img_path = os.path.join(
@@ -93,6 +93,7 @@ def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffi
     plt.close()
 
 
+# TODO: add start arrow!
 def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     pose_x = qolo_pose2d.get("x")
     pose_y = qolo_pose2d.get("y")

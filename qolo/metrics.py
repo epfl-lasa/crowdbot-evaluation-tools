@@ -103,6 +103,34 @@ def compute_time_path(qolo_twist, qolo_pose2d):
     )
 
 
+def compute_relative_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
+
+    start_idx, end_idx = 0, len(cmd_ts) - 1
+    # find start and ending points
+    if cmd_ts.min() < start_cmd_ts:
+        start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
+    if cmd_ts.max() < end_cmd_ts:
+        end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
+    # print(start_idx, end_idx)
+
+    # compute the entering jerk
+    jerk_sum = (x_jerk[start_idx] + zrot_jerk[start_idx]) * (
+        cmd_ts[start_idx + 1] - start_cmd_ts
+    )
+    for idx in range(1, end_idx - start_idx):
+        jerk_sum += (x_jerk[start_idx + idx] + zrot_jerk[start_idx + idx]) * (
+            cmd_ts[start_idx + idx + 1] - cmd_ts[start_idx + idx]
+        )
+    # compute the existing jerk
+    jerk_sum += (x_jerk[end_idx] + zrot_jerk[end_idx]) * (end_cmd_ts - cmd_ts[end_idx])
+
+    # normalized by time
+    duration = end_cmd_ts - start_cmd_ts
+    relative_jerk = jerk_sum / duration
+
+    return relative_jerk
+
+
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L187
 def compute_fluency(qolo_command):
     """compute consistency of the velocity command"""
@@ -136,12 +164,27 @@ def compute_agreement(qolo_command, qolo_state):
     vel_c = qolo_command.get("x_vel")
     omega_c = qolo_command.get("zrot_vel")
     vc_max, wc_max = np.max(vel_c), np.max(omega_c)
-    # max_v, max_w
     vec_size = vel_c.shape[0]
 
     vel_r = qolo_state.get("x_vel")
     omega_r = qolo_state.get("zrot_vel")
 
+    # TODO: fix lidar timestamp in
+    # 2021-04-10-12-13-54 with 3464 frames
+    # 2021-04-10-12-17-19 with 4759 frames
+    # (12/13): 2021-04-10-12-24-53 with 489 frames
+    #   ValueError: operands could not be broadcast together with shapes (479,) (489,)
+    # 2021-04-10-12-26-08 with 3167 frames
+    #   ValueError: operands could not be broadcast together with shapes (3157,) (3167,)
+
+    # print(type(vel_c), type(omega_c))
+    # print(vel_c.shape, omega_c.shape)
+    # print(vel_r.shape, omega_r.shape)
+    # (3464,) (3464,)
+    # (3454,) (3454,)
+
+    # TODO: divide by zero encountered in true_divide
+    # 2021-04-10-10-58-23 with 579 frames
     angle_U = np.arctan2(vel_c / vc_max, omega_c / wc_max)
     angle_R = np.arctan2(vel_r / vc_max, omega_r / wc_max)
     angle_diff = angle_R - angle_U

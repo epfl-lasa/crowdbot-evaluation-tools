@@ -15,7 +15,12 @@ import numpy as np
 
 from crowdbot_data import CrowdBotDatabase
 from eval_util import save_motion_img, save_path_img
-from metrics import compute_time_path, compute_fluency, compute_agreement
+from metrics import (
+    compute_time_path,
+    compute_fluency,
+    compute_agreement,
+    compute_relative_jerk,
+)
 
 
 # TODO: check data source from pose2d (odom) or tf_qolo
@@ -156,16 +161,25 @@ if __name__ == "__main__":
                 lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
                 ts = lidar_stamped_dict.item().get("timestamp")
 
+                start_cmd_ts = time_path_computed[0]
+                end_cmd_ts = time_path_computed[1]
+
                 attrs = ("jerk", "agreement", "fluency")
 
                 # 2. jerk
                 qolo_eval_dict = dict()
-                qolo_eval_dict.update(
-                    {"avg_x_jerk": np.average(qolo_command_dict["x_jerk"])}
+                cmd_ts = qolo_command_dict["timestamp"]
+                x_jerk = qolo_command_dict["x_jerk"]
+                zrot_jerk = qolo_command_dict["zrot_jerk"]
+
+                # relative jerk
+                rel_jerk = compute_relative_jerk(
+                    x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts
                 )
-                qolo_eval_dict.update(
-                    {"avg_zrot_jerk": np.average(qolo_command_dict["zrot_jerk"])}
-                )
+
+                qolo_eval_dict.update({"rel_jerk": rel_jerk})
+                qolo_eval_dict.update({"avg_x_jerk": np.average(x_jerk)})
+                qolo_eval_dict.update({"avg_zrot_jerk": np.average(zrot_jerk)})
 
                 # 3. fluency
                 fluency = compute_fluency(qolo_command_dict)
@@ -180,8 +194,8 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"disagreement": agreement[2]})
 
                 # 4. add path related-metrics
-                qolo_eval_dict.update({"start_command_ts": time_path_computed[0]})
-                qolo_eval_dict.update({"end_command_ts": time_path_computed[1]})
+                qolo_eval_dict.update({"start_command_ts": start_cmd_ts})
+                qolo_eval_dict.update({"end_command_ts": end_cmd_ts})
                 qolo_eval_dict.update({"duration2goal": time_path_computed[2]})
                 qolo_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
                 qolo_eval_dict.update({"goal_reached": time_path_computed[5]})
