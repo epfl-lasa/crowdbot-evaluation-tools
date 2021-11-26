@@ -102,18 +102,18 @@ def interp_pose(source_dict, interp_ts):
     source_ori = source_dict.get("orientation")
 
     # method1: saturate the timestamp outside the range
-    # if min(interp_ts) < min(source_ts):
-    #     interp_ts[interp_ts < min(source_ts)] = min(source_ts)
-    # if max(interp_ts) > max(source_ts):
-    #     interp_ts[interp_ts > max(source_ts)] = max(source_ts)
+    if min(interp_ts) < min(source_ts):
+        interp_ts[interp_ts < min(source_ts)] = min(source_ts)
+    if max(interp_ts) > max(source_ts):
+        interp_ts[interp_ts > max(source_ts)] = max(source_ts)
 
     # method2: discard timestamps smaller or bigger than source
-    start_idx, end_idx = 0, -1
-    if min(interp_ts) < min(source_ts):
-        start_idx = np.argmax(interp_ts[interp_ts - source_ts.min() < 0]) + 1
-    if max(interp_ts) > max(source_ts):
-        end_idx = np.argmax(interp_ts[interp_ts - source_ts.max() <= 0]) + 1
-    interp_ts = interp_ts[start_idx:end_idx]
+    # start_idx, end_idx = 0, -1
+    # if min(interp_ts) < min(source_ts):
+    #     start_idx = np.argmax(interp_ts[interp_ts - source_ts.min() < 0]) + 1
+    # if max(interp_ts) > max(source_ts):
+    #     end_idx = np.argmax(interp_ts[interp_ts - source_ts.max() <= 0]) + 1
+    # interp_ts = interp_ts[start_idx:end_idx]
 
     # print(interp_ts.min(), interp_ts.max(), source_ts.min(), source_ts.max())
 
@@ -122,51 +122,6 @@ def interp_pose(source_dict, interp_ts):
     interp_dict["orientation"] = interp_rotation(source_ts, interp_ts, source_ori)
     interp_dict["position"] = interp_translation(source_ts, interp_ts, source_pos)
     return interp_dict, interp_ts
-
-
-#%% Utility function for computing angular velocity by differentiating
-def find_round_angle(angle, degrees=False):
-    """Compute complementary angle that add up to 2pi/360 degrees"""
-    # TODO: consider using numpy.unwrap()
-    if degrees:
-        res = 360 - angle
-    else:
-        res = 2 * np.pi - angle
-    return res
-
-
-def to_euler_zyx(rot_quat, degrees=False):
-    """Convert quaternions to euler angles"""
-    scipy_rot = R.from_quat(rot_quat)
-    rot_zyx = scipy_rot.as_euler("zyx", degrees)
-    return rot_zyx
-
-
-def compute_ang_vel(rpy_list, hz=200.0):
-    """Compute estimated angular velocity from list of orientations"""
-    dt = 1 / hz
-    rpy_list_ = np.vstack((rpy_list, rpy_list[-1, :]))
-    ang_vel = np.zeros_like(rpy_list)
-
-    for i in range(np.shape(rpy_list_)[1]):
-
-        rpy_dt = np.diff(rpy_list_[:, i], axis=0)
-        latter = np.concatenate(([0.0], rpy_dt))
-        former = np.concatenate((rpy_dt, [0.0]))
-        rpy_d2t = (former[:-1] + latter[:-1]) / 2
-        ang_vel_poss1 = rpy_d2t / (2 * dt)
-
-        forward_sign = np.sign(rpy_d2t)
-        backward_sign = -forward_sign
-        round_rpy_d2t = find_round_angle(abs(rpy_d2t))
-        ang_vel_poss2 = np.multiply(backward_sign, round_rpy_d2t) / (2 * dt)
-
-        for j in range(len(ang_vel_poss2)):
-            if abs(ang_vel_poss1[j]) > abs(ang_vel_poss2[j]):
-                ang_vel[j, i] = ang_vel_poss2[j]
-            else:
-                ang_vel[j, i] = ang_vel_poss1[j]
-    return ang_vel
 
 
 #%% main file
@@ -350,43 +305,54 @@ if __name__ == "__main__":
             import quaternion as Q
             import quaternion.quaternion_time_series as qseries
 
-            quat_xyzw = quat_xyzw
-            quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
-            quat_wxyz_ = Q.as_quat_array(quat_wxyz)
-            # ValueError: `x` must be strictly increasing sequence.
-            # dx = np.diff(x)
-            #     if np.any(dx <= 0):
-            #     raise ValueError("`x` must be strictly increasing sequence.")
-            ang_vel = qseries.angular_velocity(quat_wxyz_, high_interp_ts)
+            ## ensure the use of CubicSpline inside `angular_velocity`
+            # calculate difference
+            high_interp_ts_delta = np.diff(high_interp_ts)
 
-            """
-            211119: no need to convert to euler angles!!!
-            ori_zyx = state_pose_r.as_euler("zyx", degrees=True)
-            roll_g = ori_zyx[:, 2]  # X
-            pitch_g = ori_zyx[:, 1]  # Y
-            yaw_g = ori_zyx[:, 0]  # Z
-            # 211116: apply filter to angles
-            # ang_vel_list = compute_ang_vel(np.hstack((roll_g, pitch_g, yaw_g)))
-            rpy = ori_zyx[:, [2, 1, 0]]
-            if args.smooth:
-                smoothed_rpy = smooth(
-                    rpy,
-                    filter='savgol',
-                    window=41,
-                    polyorder=3,
-                )
-                ang_vel_g = compute_ang_vel(smoothed_rpy)
+            # find the index with zero variation
+            result = np.where(high_interp_ts_delta == 0)[0]
+
+            if len(result) > 0:
+                print("non-increasing elements number:", len(result))
+                nonzero_idx = np.nonzero(high_interp_ts_delta != 0)
+                start_zidx = np.min(nonzero_idx)
+                end_zidx = np.max(nonzero_idx) + 1
+                # print(start_zidx, end_zidx, len(np.arange(start_zidx, end_zidx)))
+
+                # extract the non-increasing point
+                new_high_interp_ts = high_interp_ts[start_zidx : end_zidx + 1]
+                new_quat_xyzw = quat_xyzw[start_zidx : end_zidx + 1, :]
+
+                # print(new_high_interp_ts.shape, new_quat_xyzw.shape)
+
+                quat_wxyz = new_quat_xyzw[:, [3, 0, 1, 2]]
+                quat_wxyz_ = Q.as_quat_array(quat_wxyz)
+                # ValueError: `x` must be strictly increasing sequence.
+                # dx = np.diff(x)
+                #     if np.any(dx <= 0):
+                #     raise ValueError("`x` must be strictly increasing sequence.")
+                ang_vel = qseries.angular_velocity(quat_wxyz_, new_high_interp_ts)
+                # print(ang_vel.shape)
+
+                if start_zidx > 0:
+                    before = np.zeros((3, start_zidx), dtype=ang_vel.dtype)
+                    ang_vel = np.concatenate((before, ang_vel), axis=0)
+                    # print(ang_vel.shape)
+                after = len(result) - start_zidx
+                if after > 0:
+                    ang_vel = np.pad(ang_vel, ((0, after), (0, 0)), 'edge')
+                # print(ang_vel.shape)
             else:
-                ang_vel_g = compute_ang_vel(rpy)
-            state_vel_g.update({"xrot": ang_vel_g[:, 0]})
-            state_vel_g.update({"yrot": ang_vel_g[:, 1]})
-            state_vel_g.update({"zrot": ang_vel_g[:, 2]})
+                # Fixed ValueError: `x` must be strictly increasing sequence.
+                # dx = np.diff(x)
+                #     if np.any(dx <= 0):
+                #     raise ValueError("`x` must be strictly increasing sequence.")
+                quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
+                quat_wxyz_ = Q.as_quat_array(quat_wxyz)
+                ang_vel = qseries.angular_velocity(quat_wxyz_, high_interp_ts)
 
-            # TODO: issues in the exported angular velocity!
-            ang_vel_g = np.reshape(ang_vel_g, (-1, 3, 1))
-            ang_vel = np.matmul(w2r_rot_mat_aligned_list, ang_vel_g)  # (frames, 3, 1)
-            ang_vel = np.reshape(ang_vel, (-1, 3))
-            """
+            assert ang_vel.shape[0] == quat_xyzw.shape[0]
+            ## ensure the use of CubicSpline inside `angular_velocity``
 
             state_vel = {
                 "timestamp": high_interp_ts,

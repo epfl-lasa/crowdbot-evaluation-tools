@@ -80,18 +80,18 @@ def interp_twist(twist_stamped_dict, target_dict):
     interp_ts = np.asarray(interp_ts, dtype=np.float64)
 
     # method1: saturate the timestamp outside the range
-    # if min(interp_ts) < min(source_ts):
-    #     interp_ts[interp_ts < min(source_ts)] = min(source_ts)
-    # if max(interp_ts) > max(source_ts):
-    #     interp_ts[interp_ts > max(source_ts)] = max(source_ts)
+    if min(interp_ts) < min(source_ts):
+        interp_ts[interp_ts < min(source_ts)] = min(source_ts)
+    if max(interp_ts) > max(source_ts):
+        interp_ts[interp_ts > max(source_ts)] = max(source_ts)
 
     # method2: discard timestamps smaller or bigger than source
-    start_idx, end_idx = 0, -1
-    if min(interp_ts) < min(source_ts):
-        start_idx = np.argmax(interp_ts[interp_ts - source_ts.min() < 0]) + 1
-    if max(interp_ts) > max(source_ts):
-        end_idx = np.argmax(interp_ts[interp_ts - source_ts.max() <= 0]) + 1
-    interp_ts = interp_ts[start_idx:end_idx]
+    # start_idx, end_idx = 0, -1
+    # if min(interp_ts) < min(source_ts):
+    #     start_idx = np.argmax(interp_ts[interp_ts - source_ts.min() < 0]) + 1
+    # if max(interp_ts) > max(source_ts):
+    #     end_idx = np.argmax(interp_ts[interp_ts - source_ts.max() <= 0]) + 1
+    # interp_ts = interp_ts[start_idx:end_idx]
 
     interp_dict = {}
     interp_dict["timestamp"] = interp_ts
