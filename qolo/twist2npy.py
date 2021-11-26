@@ -40,6 +40,7 @@ def extract_twist_from_rosbag(bag_file_path, args):
             )
         )
 
+        # TODO: time-comsuming in this step
         for topic, msg, t in bag.read_messages():
             if topic == args.twist_topic:
                 x_vel = msg.twist.linear.x
@@ -77,17 +78,26 @@ def interp_twist(twist_stamped_dict, target_dict):
     source_zrot = twist_stamped_dict.get("zrot")
     interp_ts = target_dict.get("timestamp")
     interp_ts = np.asarray(interp_ts, dtype=np.float64)
-    # don't resize, just discard the timestamps smaller than source
+
+    # method1: saturate the timestamp outside the range
+    # if min(interp_ts) < min(source_ts):
+    #     interp_ts[interp_ts < min(source_ts)] = min(source_ts)
+    # if max(interp_ts) > max(source_ts):
+    #     interp_ts[interp_ts > max(source_ts)] = max(source_ts)
+
+    # method2: discard timestamps smaller or bigger than source
+    start_idx, end_idx = 0, -1
     if min(interp_ts) < min(source_ts):
-        interp_ts[interp_ts < min(source_ts)] = min(source_ts)
-    elif max(interp_ts) > max(source_ts):
-        interp_ts[interp_ts > max(source_ts)] = max(source_ts)
+        start_idx = np.argmax(interp_ts[interp_ts - source_ts.min() < 0]) + 1
+    if max(interp_ts) > max(source_ts):
+        end_idx = np.argmax(interp_ts[interp_ts - source_ts.max() <= 0]) + 1
+    interp_ts = interp_ts[start_idx:end_idx]
 
     interp_dict = {}
     interp_dict["timestamp"] = interp_ts
     interp_dict["x"] = interp_translation(source_ts, interp_ts, source_x)
     interp_dict["zrot"] = interp_translation(source_ts, interp_ts, source_zrot)
-    return interp_dict
+    return interp_dict, interp_ts
 
 
 #%% main file
@@ -178,7 +188,9 @@ if __name__ == "__main__":
                 os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
                 allow_pickle=True,
             ).item()
-            twist_sampled_dict = interp_twist(twist_stamped_dict, lidar_stamped)
+            twist_sampled_dict, lidar_stamped = interp_twist(
+                twist_stamped_dict, lidar_stamped
+            )
             qolo_command_dict = {
                 "timestamp": twist_sampled_dict["timestamp"],
                 "x_vel": twist_sampled_dict['x'],
@@ -218,13 +230,6 @@ if __name__ == "__main__":
             )
 
             np.save(command_sampled_filepath, qolo_command_dict)
-
-            print(
-                "# Sample from {} frames to {} frames.".format(
-                    len(twist_stamped_dict["timestamp"]),
-                    len(lidar_stamped["timestamp"]),
-                )
-            )
 
         """
         acc_dir = os.path.join(cb_data.source_data_dir, "acc")

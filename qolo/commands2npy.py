@@ -18,6 +18,7 @@ import numpy as np
 
 import rosbag
 
+from twist2npy import interp_twist
 from crowdbot_data import CrowdBotDatabase, bag_file_filter
 from process_util import interp_translation, ts_to_sec
 
@@ -75,26 +76,6 @@ def extract_cmd_from_rosbag(bag_file_path, args):
     cmd_stamped_dict = {"timestamp": t_np, "x": x_np, "zrot": z_np}
     print("Current twist extracted!")
     return cmd_stamped_dict
-
-
-def interp_twist(cmd_stamped_dict, target_dict):
-    """Calculate interpolations for all states"""
-    source_ts = cmd_stamped_dict.get("timestamp")
-    source_x = cmd_stamped_dict.get("x")
-    source_zrot = cmd_stamped_dict.get("zrot")
-    interp_ts = target_dict.get("timestamp")
-    interp_ts = np.asarray(interp_ts, dtype=np.float64)
-    # don't resize, just discard the timestamps smaller than source
-    if min(interp_ts) < min(source_ts):
-        interp_ts[interp_ts < min(source_ts)] = min(source_ts)
-    elif max(interp_ts) > max(source_ts):
-        interp_ts[interp_ts > max(source_ts)] = max(source_ts)
-
-    interp_dict = {}
-    interp_dict["timestamp"] = interp_ts
-    interp_dict["x"] = interp_translation(source_ts, interp_ts, source_x)
-    interp_dict["zrot"] = interp_translation(source_ts, interp_ts, source_zrot)
-    return interp_dict
 
 
 #%% main file
