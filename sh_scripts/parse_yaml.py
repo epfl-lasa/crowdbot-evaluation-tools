@@ -58,6 +58,7 @@ class ParseYaml(object):
             self._walk_dict({key: value})
 
     def parse_yaml(self, yaml_file):
+        # yujie:need add `, Loader=yaml.FullLoader` in Python 3
         data = yaml.load(yaml_file, Loader=yaml.FullLoader)
         yaml_file.close()
         return data
@@ -83,6 +84,7 @@ class ParseYaml(object):
 
 # Make sure you don't use any characters that would screw with linux
 def _valid_char(x):
+    # yujie: change string.ascii_letters from string.letters
     alphanum = ''.join([str(i) for i in range(0, 10)]) + string.ascii_letters + '_'
     if x not in alphanum:
         raise ValueError("Invalid separator character.")
@@ -122,6 +124,7 @@ def Main():
 
     if args.get is not None:
         val = yml.get(args.get, args.default)
+        # yujie: change print style in Python3
         print(val)
     else:
         yml.to_stdout()

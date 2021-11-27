@@ -9,6 +9,7 @@
 - [`notebook/`](./notebook/): example notebooks for demo
   - **[intro_to_dataset.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/intro_to_dataset.ipynb)**
   - **[comprehensive_eval.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/comprehensive_eval.ipynb)**
+- [`sh_scripts/`](./sh_scripts/): shell scripts to execute pipelines for extracting source data, applying algorithms, and evaluating with different metrics
 - [`crowdbot_tools_archive/`](./crowdbot_tools_archive/): archive of https://github.com/danjia21/crowdbot_tools
 - `dev_log.md`: update development once updated!
 

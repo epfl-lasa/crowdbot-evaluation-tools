@@ -52,6 +52,6 @@ echo "########## Evaluate the performance ##########"
 echo "##### eval_qolo.py #####"
 python3 ../qolo/eval_qolo.py --overwrite -f ${TYPE}
 echo "##### eval_crowd.py #####"
-# python3 ../qolo/eval_crowd.py --overwrite -f ${TYPE}
+python3 ../qolo/eval_crowd.py --overwrite -f ${TYPE}
 
 echo "########## Finished!!! ##########"

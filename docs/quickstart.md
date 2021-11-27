@@ -9,10 +9,10 @@
     python -m pip install -U pip
     sudo apt-get install ros-$ROS_DISTRO-ros-numpy
     sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
-    
+
     ## install using requirements (recommended)
     pip3 install -r requirements_eval.txt
-    
+
     ## install using scripts (optional)
     python -m pip install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
     python -m pip install --user rospkg pycryptodomex python-gnupg
@@ -64,6 +64,13 @@
       - `--overwrite` flag is used to overwrite existing data
       - `--compressed` flag is used to save pointcloud as compressed pcd files (.pcd). If not, save with npy-like format
       - `-f` flag is used to specify data folder
+
+    **Tips**: For following steps, you can easily execute a single shell script as:
+
+    ```shell
+    cd sh_scripts
+    sh data_export_eval_source_data.sh -e=py38cuda110 -t=shared_test
+    ```
 
     - export qolo status
 
