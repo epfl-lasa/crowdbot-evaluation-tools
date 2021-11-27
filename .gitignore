@@ -10,6 +10,7 @@ tmp
 *.png
 *.mp4
 !example/*.png
+!notebooks/img/*.png
 
 # intermediate files
 .DS_Store
