@@ -29,8 +29,8 @@ import argparse
 import numpy as np
 
 from crowdbot_data import CrowdBotDatabase
-from eval_util import save_motion_img, save_path_img
-from metrics import (
+from eval_res_plot import save_motion_img, save_path_img
+from metric_qplo_perf import (
     compute_time_path,
     compute_fluency,
     compute_agreement,

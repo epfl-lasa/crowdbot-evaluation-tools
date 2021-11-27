@@ -1,17 +1,143 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   eval_util.py
-@Time    :   2021/11/16
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   eval_res_plot.py
+@Date created  :   2021/11/16
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides plotting functions to visualize evaluation results
+"""
+# =============================================================================
+"""
+TODO:
+1. cannot show correctly when `MAX=nan, MIN=-nan` occurs
+2. add start arror for starting point
+"""
+# =============================================================================
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
+def save_cd_img(eval_dict, base_dir, seq_name):
+    """save crowd_density plotting"""
+
+    # unpack md data from eval_dict
+    ts = eval_dict.get("timestamp")
+    cd5 = eval_dict.get("crowd_density5")
+    cd10 = eval_dict.get("crowd_density10")
+    start_ts = eval_dict.get("start_command_ts")
+    duration2goal = eval_dict.get("duration2goal")
+
+    duration = np.max(ts) - np.min(ts)
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    # crowd_density chart
+    (l1,) = ax.plot(ts - np.min(ts), cd5, linewidth=1, color="coral", label="x = 5")
+    (l2,) = ax.plot(ts - np.min(ts), cd10, linewidth=1, color="navy", label="x = 10")
+
+    # start_ts vertical line
+    new_start_ts = np.max([start_ts - np.min(ts), 0.0])
+    ax.axvline(x=new_start_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_start_ts + 1,
+        y=0.40,
+        s="$t_s$={0:.1f}s".format(new_start_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+    new_end_ts = new_start_ts + duration2goal
+    ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_end_ts + 1,
+        y=0.40,
+        s="$t_e$={0:.1f}s".format(new_end_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+
+    ax.legend(handles=[l1, l2], ncol=2, loc="upper right", fontsize="x-small")
+    ax.set_title(
+        "Crowd Density within x [m] of qolo ({0:.1f}s)".format(duration), fontsize=15
+    )
+    _ = ax.set_xlabel("t [s]")
+    _ = ax.set_ylabel("Density [1/$m^2$]")
+
+    ax.set_xlim(left=0.0)
+    ax.set_ylim(bottom=0.0, top=0.5)
+
+    fig.tight_layout()
+    cd_img_path = os.path.join(base_dir, seq_name + "_crowd_density.png")
+    plt.savefig(cd_img_path, dpi=300)  # png, pdf
+
+
+def save_md_img(eval_dict, base_dir, seq_name):
+    """save min_dist plotting"""
+
+    # unpack md data from eval_dict
+    ts = eval_dict.get("timestamp")
+    md = eval_dict.get("min_dist")
+    start_ts = eval_dict.get("start_command_ts")
+    duration2goal = eval_dict.get("duration2goal")
+
+    duration = np.max(ts) - np.min(ts)
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    # min_dist chart
+    ax.plot(ts - np.min(ts), md, linewidth=1, color="coral")
+
+    # start_ts vertical line
+    new_start_ts = np.max([start_ts - np.min(ts), 0.0])
+    ax.axvline(x=new_start_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_start_ts + 1,
+        y=4.2,
+        s="$t_s$={0:.1f}s".format(new_start_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+    new_end_ts = new_start_ts + duration2goal
+    ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_end_ts + 1,
+        y=4.2,
+        s="$t_e$={0:.1f}s".format(new_end_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+
+    # y=0.3 horizontal line (if consider the qolo capsule)
+    # ax.plot((0.0, duration), (0.3, 0.3), linestyle="--", color="navy")
+    # plt.text(
+    #     x=duration / 2,
+    #     y=0.4,
+    #     s=r"$\mathrm{dist}_{\mathrm{limit}}=0.3$",
+    #     horizontalalignment="center",
+    #     verticalalignment="baseline",
+    #     fontsize=10,
+    # )
+
+    ax.set_title(
+        "Min. Distance of Pedestrain from qolo ({0:.1f}s)".format(duration), fontsize=15
+    )
+    _ = ax.set_xlabel("t [s]")
+    _ = ax.set_ylabel("Distance [m]")
+
+    ax.set_xlim(left=0.0)
+    ax.set_ylim(bottom=0.0, top=5.0)
+
+    fig.tight_layout()
+    md_img_path = os.path.join(base_dir, seq_name + "_min_dist.png")
+    plt.savefig(md_img_path, dpi=300)  # png, pdf
+
 
 
 def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffix):
@@ -93,7 +219,6 @@ def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffi
     plt.close()
 
 
-# TODO: add start arrow!
 def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     pose_x = qolo_pose2d.get("x")
     pose_y = qolo_pose2d.get("y")

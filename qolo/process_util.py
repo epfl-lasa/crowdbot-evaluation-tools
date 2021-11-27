@@ -1,12 +1,20 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   process_util.py
-@Time    :   2021/11/09
-@Author  :   Yujie He
-@Version :   1.1
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   process_util.py
+@Date created  :   2021/11/09
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides functions to convert timestamp into second, interpolate
+data, and compute derivatives.
+"""
+# =============================================================================
+
 
 import numpy as np
 
@@ -15,14 +23,13 @@ from scipy import interpolate
 from scipy.spatial.transform import Slerp
 from scipy.spatial.transform import Rotation as R
 
-# https://docs.scipy.org/doc/scipy/reference/spatial.transform.html
-# https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html
-# https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html
-
-
 def ts_to_sec(ts):
     """convert ros timestamp into second"""
     return ts.secs + ts.nsecs / float(1e9)
+
+# https://docs.scipy.org/doc/scipy/reference/spatial.transform.html
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html
 
 
 def interp_rotation(source_ts, interp_ts, source_ori):

@@ -1,12 +1,25 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   twist2npy.py
-@Time    :   2021/11/05
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   twist2npy.py
+@Date created  :   2021/11/05
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides workflow to extract twist msg from rosbag and compute
+acceleration, jerk by taking derivatives.
+"""
+# =============================================================================
+"""
+TODO:
+1. bottleneck -> time-comsuming when using rosbag to extract data
+2. fixed NaN exists in acc and jerk
+"""
+# =============================================================================
 
 import os
 import sys
@@ -37,7 +50,6 @@ def extract_twist_from_rosbag(bag_file_path, args):
             )
         )
 
-        # TODO: time-comsuming in this step
         for topic, msg, t in bag.read_messages():
             if topic == args.twist_topic:
                 x_vel = msg.twist.linear.x
@@ -178,7 +190,6 @@ if __name__ == "__main__":
 
             # acc_sampled
             acc_sampled_dict = compute_motion_derivative(twist_sampled_dict)
-            # TODO: NaN exists
             print(
                 "NaN index in x_acc: {}\nNaN index in zrot_acc: {}".format(
                     np.squeeze(np.argwhere(np.isnan(acc_sampled_dict["x"]))),
@@ -192,7 +203,6 @@ if __name__ == "__main__":
 
             # jerk_sampled
             jerk_sampled_dict = compute_motion_derivative(acc_sampled_dict)
-            # TODO: NaN exists
             print(
                 "NaN index in x_jerk: {}\nNaN index in zrot_acc: {}".format(
                     np.squeeze(np.argwhere(np.isnan(jerk_sampled_dict["x"]))),

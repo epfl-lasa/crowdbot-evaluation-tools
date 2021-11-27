@@ -1,12 +1,26 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   tfqolo2npy.py
-@Time    :   2021/10/26
-@Author  :   Yujie He
-@Version :   1.2
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   tfqolo2npy.py
+@Date created  :   2021/10/26
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides workflow to extract robot pose (`tf_qolo` reference to
+`tf_qolo_world`) from rosbag, filter data with Savitzky-Golay method, and
+compute velocity acceleration, jerk by taking derivatives.
+"""
+# =============================================================================
+"""
+TODO:
+1. bottleneck -> time-comsuming when using rosbag to extract data
+2. better filter to position, quaternions, velocities, etc.
+"""
+# =============================================================================
 
 import os
 import sys
@@ -195,7 +209,6 @@ if __name__ == "__main__":
             or (args.overwrite)
         ):
             if (not os.path.exists(all_stamped_filepath)) or (args.overwrite):
-                # TODO: extract_pose_from_rosbag is quite time-consuming !
                 pose_stamped_dict = extract_pose_from_rosbag(bag_path)
                 pose_stamped_dict_ = deduplicate_tf(pose_stamped_dict)
                 np.save(all_stamped_filepath, pose_stamped_dict_)

@@ -1,15 +1,24 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   pose2d2npy.py
-@Time    :   2021/11/06
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   pose2d2npy.py
+@Date created  :   2021/11/06
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
-
-# TODO: should specify which part of pose/odom data is saved instead of saving two many zeros
-# TODO: interpolate to a reasonable timestamp (e.g., lidar frame)
+# =============================================================================
+"""
+The module provides workflow to extract Pose2D msg from rosbag.
+"""
+# =============================================================================
+"""
+TODO:
+1. should specify which part of pose/odom data is saved instead of saving two many zeros
+2. interpolate to a reasonable timestamp (e.g., lidar frame)
+"""
+# =============================================================================
 
 import os
 import sys

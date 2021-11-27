@@ -1,14 +1,24 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   metrics.py
-@Time    :   2021/11/23 11:13:35
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   metric_qplo_perf.py
+@Date created  :   2021/11/23
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
-
-# TODO: use qolo_twist and qolo_pose2d sample at the same timestamps
+# =============================================================================
+"""
+The module provides functions to compute metrics about the path efficiency and
+shared control performance of qolo.
+"""
+# =============================================================================
+"""
+TODO:
+1. use qolo_twist and qolo_pose2d sample at the same timestamps
+"""
+# =============================================================================
 
 import numpy as np
 

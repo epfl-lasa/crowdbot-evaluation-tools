@@ -1,12 +1,24 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   o3d_viz_util.py
-@Time    :   2021/10/26
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   o3d_viz_util.py
+@Date created  :   2021/10/26
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides ...
+"""
+# =============================================================================
+"""
+TODO:
+1. plot detection result like tracking results! (implement as `pass` now)
+2. visualize past trajectories with line-like style (draw 3D balls every N frames currently)
+"""
+# =============================================================================
 
 import os, copy
 from pickle import load, dump
@@ -335,7 +347,6 @@ def plot_robot_frame_o3d(
     if len(boxes):
         if filtering:
             boxes = filter_detection_tracking_res(boxes, filter_dist, verbose)
-        # TODO: plot detections
         if boxes.shape[1] == 7:
             pass
         # or tracks
@@ -475,7 +486,6 @@ def plot_world_frame_o3d(
     if len(boxes):
         if filtering:
             boxes = filter_detection_tracking_res(boxes, filter_dist, verbose)
-        # TODO: plot detections
         if boxes.shape[1] == 7:
             pass
         # or tracks
@@ -510,7 +520,6 @@ def plot_world_frame_o3d(
         else:
             vis.add_geometry(item)
 
-    ## TODO: visualize past trajectories (try to program in another way!)
     if pose:
         # for i, trans in enumerate(trans_list):
         mesh = o3d.geometry.TriangleMesh.create_sphere(radius=0.15)
