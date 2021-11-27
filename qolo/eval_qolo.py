@@ -121,7 +121,6 @@ if __name__ == "__main__":
             print("ERROR: Please extract twist_stamped by using twist2npy.py")
         qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
         qolo_command_dict = np.load(command_sampled_filepath, allow_pickle=True).item()
-        # print("qolo_command_dict.keys()", qolo_command_dict.keys())
 
         # load qolo_state
         tfqolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
@@ -133,7 +132,13 @@ if __name__ == "__main__":
         qolo_lidarstamp_dict = np.load(
             qolo_lidarstamp_filepath, allow_pickle=True
         ).item()
-        # print("qolo_state_dict.keys()", qolo_state_dict.keys())
+
+        # load commands
+        cmd_dir = os.path.join(cb_data.source_data_dir, "commands")
+        cmd_raw_filepath = os.path.join(cmd_dir, seq + "_commands_raw.npy")
+        if not os.path.exists(cmd_raw_filepath):
+            print("ERROR: Please extract twist_stamped by using commands2npy.py")
+        cmd_raw_dict = np.load(cmd_raw_filepath, allow_pickle=True).item()
 
         # 1. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
         time_path_computed = compute_time_path(qolo_twist, qolo_pose2d)
@@ -188,23 +193,24 @@ if __name__ == "__main__":
                 rel_jerk = compute_relative_jerk(
                     x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts
                 )
-
                 qolo_eval_dict.update({"rel_jerk": rel_jerk})
-                qolo_eval_dict.update({"avg_x_jerk": np.average(x_jerk)})
-                qolo_eval_dict.update({"avg_zrot_jerk": np.average(zrot_jerk)})
+                qolo_eval_dict.update({"avg_linear_jerk": np.average(x_jerk)})
+                qolo_eval_dict.update({"avg_angular_jerk": np.average(zrot_jerk)})
 
                 # 3. fluency
-                fluency = compute_fluency(qolo_command_dict, start_cmd_ts, end_cmd_ts)
+                fluency = compute_fluency(cmd_raw_dict, start_cmd_ts, end_cmd_ts)
                 qolo_eval_dict.update({"avg_fluency": fluency[0]})
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
-                # 4. agreement with command sampled (may need to extract command from rds msg)
-                # TODO: need extract command!!!
-                # agreement = compute_agreement(qolo_command_dict, qolo_lidarstamp_dict)
-                # print("(linear_dis, heading_dis, disagreement) =", agreement)
-                # qolo_eval_dict.update({"linear_dis": agreement[0]})
-                # qolo_eval_dict.update({"heading_dis": agreement[1]})
-                # qolo_eval_dict.update({"disagreement": agreement[2]})
+                # 4. agreement with command (sampled)
+                agreement_contri = compute_agreement(
+                    cmd_raw_dict, start_cmd_ts, end_cmd_ts
+                )
+                qolo_eval_dict.update({"contribution": agreement_contri[0]})
+                qolo_eval_dict.update({"avg_agreement": agreement_contri[1]})
+                qolo_eval_dict.update({"std_agreement": agreement_contri[2]})
+                qolo_eval_dict.update({"avg_linear_diff": agreement_contri[5]})
+                qolo_eval_dict.update({"avg_angular_diff": agreement_contri[7]})
 
                 # 4. add path related-metrics
                 qolo_eval_dict.update({"start_command_ts": start_cmd_ts})

@@ -3,7 +3,7 @@
 ## Basic uses
 
 ```shell
-sh data_eval_all.sh -e=py38cuda110 -t=shared_test
+sh eval_all.sh -e=py38cuda110 -t=shared_test
 ```
 
 ### Parameters

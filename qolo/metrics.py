@@ -138,8 +138,12 @@ def compute_relative_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
 def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
     """Compute consistency of the velocity command"""
 
-    vel = qolo_command.get("x_vel")
-    omega = qolo_command.get("zrot_vel")
+    # from qolo_command_dict
+    # vel = qolo_command.get("x_vel")
+    # omega = qolo_command.get("zrot_vel")
+    # from cmd_raw_dict
+    vel = qolo_command.get("nominal_linear")
+    omega = qolo_command.get("nominal_angular")
 
     # find start and ending timestamp
     cmd_ts = qolo_command.get("timestamp")
@@ -174,25 +178,16 @@ def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
     else:
         return (fluencyw, fluencyw_sd)
 
-
-# TODO: fix different timestamp in qolo_state and qolo_command
-# 2021-04-10-12-13-54 with 3464 frames
-# 2021-04-10-12-17-19 with 4759 frames
-# 2021-04-10-12-24-53 with 489 frames
-#   ValueError: operands could not be broadcast together with shapes (479,) (489,)
-# 2021-04-10-12-26-08 with 3167 frames
-#   ValueError: operands could not be broadcast together with shapes (3157,) (3167,)
-
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L222
 # qolo_command & qolo_human_desired (from to GUI) but not `qolo_state`
-def compute_agreement(qolo_command, qolo_state, start_cmd_ts, end_cmd_ts):
+def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts):
     """compute real qolo velocity in reference to command"""
 
     # unpack data
-    vel_c = qolo_command.get("x_vel")
-    omega_c = qolo_command.get("zrot_vel")
-    vel_r = qolo_state.get("x_vel")
-    omega_r = qolo_state.get("zrot_vel")
+    vel_user = qolo_command.get("nominal_linear")
+    omega_user = qolo_command.get("nominal_angular")
+    vel_rds = qolo_command.get("corrected_linear")
+    omega_rds = qolo_command.get("corrected_linear")
 
     # find start and ending timestamp
     cmd_ts = qolo_command.get("timestamp")
@@ -204,41 +199,71 @@ def compute_agreement(qolo_command, qolo_state, start_cmd_ts, end_cmd_ts):
     # print(start_idx, end_idx)
 
     # only consider data within the operation duration
-    vel_c = vel_c[start_idx:end_idx]
-    omega_c = omega_c[start_idx:end_idx]
-    vel_r = vel_r[start_idx:end_idx]
-    omega_r = omega_r[start_idx:end_idx]
+    vel_user = vel_user[start_idx:end_idx]
+    omega_user = omega_user[start_idx:end_idx]
+    vel_rds = vel_rds[start_idx:end_idx]
+    omega_rds = omega_rds[start_idx:end_idx]
 
-    vc_max, wc_max = np.max(vel_c), np.max(omega_c)
-    vec_size = vel_c.shape[0]
+    # normalized by max speed -> contribution
+    vel_user_max, omega_user_max = np.max(vel_user), np.max(omega_user)
+    norm_vel_u = vel_user / vel_user_max
+    norm_omega_u = omega_user / omega_user_max
+    norm_vel_r = vel_rds / vel_user_max
+    norm_omega_r = omega_rds / omega_user_max
 
-    angle_U = np.arctan2(vel_c / vc_max, omega_c / wc_max)
-    angle_R = np.arctan2(vel_r / vc_max, omega_r / wc_max)
-    angle_diff = angle_R - angle_U
+    angle_user = np.arctan2(norm_vel_u, norm_omega_u)
+    angle_rds = np.arctan2(norm_vel_r, norm_omega_r)
+    # angle_user = np.arctan2(vel_user, omega_user)
+    # angle_rds = np.arctan2(vel_rds, omega_rds)
+    angle_diff = np.abs(angle_rds - angle_user)
 
-    ccount = 0
     omega_diff = []
     vel_diff = []
     agreement_vec = []
-    for idx in range(2, vec_size):
-        if vel_c[idx] or omega_c[idx]:
-            vel_diff.append(np.abs(vel_r[idx] - vel_c[idx]) / vc_max)
-            omega_diff.append(np.abs(omega_r[idx] - omega_c[idx]) / wc_max)
+    for idx in range(vel_user.shape[0]):
+        if vel_user[idx] or omega_user[idx]:
+            vel_diff.append(np.abs(vel_rds[idx] - vel_user[idx]) / vel_user_max)
+            omega_diff.append(np.abs(omega_rds[idx] - omega_user[idx]) / omega_user_max)
             agreement_vec.append(1 - (abs(angle_diff[idx]) / np.pi))
-            ccount += 1  # TODO: check unused?
-    command_diff = np.column_stack((np.array(vel_diff), np.array(omega_diff)))
-    command_vec = np.linalg.norm(command_diff, axis=1)
 
     vel_diff = np.array(vel_diff)
     omega_diff = np.array(omega_diff)
+
     agreement_vec = np.array(agreement_vec)
-    # TODO: check directional_agreement unused?
-    # directional_agreement = [np.mean(agreement_vec), np.std(agreement_vec)]
-    avg_agreement, std_agreement = agreement_vec.mean(), agreement_vec.std()
 
-    linear_dis = [np.mean(vel_diff), np.std(vel_diff)]
-    heading_dis = [np.mean(omega_diff), np.std(omega_diff)]
+    cmd_diff_vw = np.column_stack((vel_diff, omega_diff))
+    cmd_diff = np.linalg.norm(cmd_diff_vw, axis=1)
 
-    disagreement = [np.mean(np.array(command_vec)), np.std(np.array(command_vec))]
+    # agreement_data = agreement_vec.mean(), agreement_vec.std()
+    # cmd_diff_data = [np.mean(command_vec), np.std(command_vec)]
+    # linear_data = [vel_diff.mean(), vel_diff.std()]
+    # heading_data = [omega_diff.mean(), omega_diff.std()]
 
-    return (linear_dis, heading_dis, avg_agreement, std_agreement)  # Contribution
+    # contribution
+    contribution_vec = []
+    u_human = np.vstack((norm_vel_u, norm_omega_u)).T  # human
+    u_rds = np.vstack((norm_vel_r, norm_omega_r)).T  # rds output
+    u_diff = u_human - u_rds
+    u_human_norm = np.linalg.norm(u_human, axis=1)
+    u_diff_norm = np.linalg.norm(u_diff, axis=1)
+    for idx in range(vel_user.shape[0]):
+        if u_human[idx, 0] or u_human[idx, 1]:
+            if u_human[idx, 0] == 0:
+                contribution_vec.append(u_diff[idx, 1] / u_human[idx, 1])
+            elif u_human[idx, 1] == 0:
+                contribution_vec.append(u_diff[idx, 0] / u_human[idx, 0])
+            else:
+                contribution_vec.append(u_diff_norm[idx] / u_human_norm[idx])
+    contribution = np.mean(contribution_vec)
+
+    return (
+        contribution,
+        np.mean(agreement_vec),
+        np.std(agreement_vec),
+        np.mean(cmd_diff),
+        np.std(cmd_diff),
+        np.mean(vel_diff),
+        np.std(vel_diff),
+        np.mean(omega_diff),
+        np.std(omega_diff),
+    )

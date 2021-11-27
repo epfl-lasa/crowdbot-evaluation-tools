@@ -74,7 +74,6 @@ def interp_twist(twist_stamped_dict, target_dict):
     source_x = twist_stamped_dict.get("x")
     source_zrot = twist_stamped_dict.get("zrot")
     interp_ts = target_dict.get("timestamp")
-    interp_ts = np.asarray(interp_ts, dtype=np.float64)
 
     # method1: saturate the timestamp outside the range
     if min(interp_ts) < min(source_ts):

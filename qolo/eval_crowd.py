@@ -354,6 +354,8 @@ if __name__ == "__main__":
                     for idx, val in enumerate(metrics):
                         crowd_eval_list_dict[attrs[idx]].append(val)
 
+                # TODO: only evaluate the metrics during operation
+
                 crowd_eval_dict = {
                     name: np.asarray(crowd_eval_list_dict[attrs[idx]], dtype=dtype)
                     for idx, (name, dtype) in enumerate(zip(attrs, dtypes))
@@ -371,6 +373,14 @@ if __name__ == "__main__":
                         {avg_attr: np.average(crowd_eval_dict[attr])}
                     )
 
+                # max and std of crowd density within 5m
+                crowd_eval_dict.update(
+                    {'max_crowd_density5': np.max(crowd_eval_dict['crowd_density5'])}
+                )
+                crowd_eval_dict.update(
+                    {'std_crowd_density5': np.std(crowd_eval_dict['crowd_density5'])}
+                )
+
                 # other attributes from time_path_computed
                 crowd_eval_dict.update({"timestamp": ts})
                 crowd_eval_dict.update({"start_command_ts": time_path_computed[0]})
@@ -378,7 +388,7 @@ if __name__ == "__main__":
                 crowd_eval_dict.update({"duration2goal": time_path_computed[2]})
                 crowd_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
                 crowd_eval_dict.update({"goal_reached": time_path_computed[5]})
-                qolo_eval_dict.update({"min_dist2goal": time_path_computed[6]})
+                crowd_eval_dict.update({"min_dist2goal": time_path_computed[6]})
 
                 np.save(crowd_eval_npy, crowd_eval_dict)
 
