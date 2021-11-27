@@ -16,8 +16,6 @@ from matplotlib.patches import PathPatch
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-sns.set_theme()
-
 
 def set_box_color(bp, color):
     """
@@ -110,6 +108,7 @@ def categorical_plot(
     metric,
     catogory,
     title,
+    xlabel,
     ylabel,
     ylim,
     group=None,
@@ -121,8 +120,9 @@ def categorical_plot(
     sns.set_theme(style="whitegrid")
 
     # fmt: off
-    sns.swarmplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
-                  size=8, alpha=0.75, palette="colorblind",
+    # use stripplot instead of swarmplot to handle many datapoints
+    sns.stripplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+                  size=5, alpha=0.9, palette="colorblind",
                   edgecolor='black', dodge=True,
                  )
     if kind == 'violin':
@@ -132,7 +132,7 @@ def categorical_plot(
                       )
     elif kind == 'box':
         sns.boxplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
-                    linewidth=1.1, notch=False, orient="v",
+                    linewidth=2, notch=False, orient="v",
                     dodge=True, palette="pastel",
                    )
 
@@ -155,12 +155,11 @@ def categorical_plot(
                 lablout.append(l)
                 handout.append(h)
         if lgd_labels:
-            plt.legend(handles=handout, labels=lgd_labels, loc=loc)
+            axes.legend(handles=handout, labels=lgd_labels, loc=loc)
         else:
-            plt.legend(handles=handout, labels=lablout, loc=loc)
+            axes.legend(handles=handout, labels=lablout, loc=loc)
 
     axes.set_title(title)
+    axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_ylim(bottom=ylim[0], top=ylim[1])
-
-    plt.show()
