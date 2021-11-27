@@ -8,9 +8,6 @@
 @State   :   Dev
 """
 
-# TODO: should specify which part of Twist data is saved instead of saving two many zeros
-# TODO: consider transforming velocity to global frame (ref: bagToNpy.py)!
-
 import os
 import sys
 import argparse
@@ -102,28 +99,12 @@ def interp_twist(twist_stamped_dict, target_dict):
 
 #%% main file
 if __name__ == "__main__":
-    # base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
-    # parser.add_argument(
-    #     "-b",
-    #     "--base",
-    #     default=base_folder,
-    #     type=str,
-    #     help="base folder, i.e., the path of the current workspace",
-    # )
-    # parser.add_argument(
-    #     "-d",
-    #     "--data",
-    #     default="data",
-    #     type=str,
-    #     help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    # )
     parser.add_argument(
         "-f",
         "--folder",
-        default="nocam_rosbags",
+        default="shared_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -142,7 +123,6 @@ if __name__ == "__main__":
     cb_data = CrowdBotDatabase(args.folder)
 
     # source: rosbag data in data/rosbag/xxxx
-    # rosbag_dir = os.path.join(args.base, args.data, "rosbag", args.folder)
     rosbag_dir = os.path.join(cb_data.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
