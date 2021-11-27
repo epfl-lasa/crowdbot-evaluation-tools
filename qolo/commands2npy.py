@@ -148,8 +148,7 @@ def interp_linear_dict(linear_state_dict, target_dict, subset=None):
             interp = interp_translation(source_ts, interp_ts, linear_state_dict[val])
             interp_dict.update({val: interp})
 
-    interp_dict["timestamp"] = interp_ts
-    return interp_dict, interp_ts
+    return interp_dict
 
 
 #%% main file
