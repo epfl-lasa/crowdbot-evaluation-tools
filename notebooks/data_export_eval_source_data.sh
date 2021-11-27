@@ -1,7 +1,6 @@
 #!/bin/bash
 # derived from https://stackoverflow.com/a/14203146/7961693
-# sh data_export_eval_all.sh -e=py38cuda110 -t=test
-# sh data_export_eval_all.sh -e=py38cuda110 -t=0424_mds
+# sh data_export_eval_source_data.sh -e=py38cuda110 -t=0410_rds
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -49,7 +48,7 @@ conda activate ${ENVIRONMENT}
 echo "Number of rosbag in currnet control type:" $(ls -1 "${ROSBAG_DATABASE}/${TYPE}"/*".bag" | wc -l)
 
 echo "########## Export pointcloud and lidar timestamp ##########"
-python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE}
+# python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE}
 
 echo "########## Export qolo status ##########"
 echo "##### tfqolo2npy.py #####"
@@ -61,9 +60,9 @@ python3 ../qolo/pose2d2npy.py --overwrite -f ${TYPE}
 
 echo "########## Apply algorithms to extracted data ##########"
 echo "##### gen_detection_res.py #####"
-python3 ../qolo/gen_detection_res.py -f  ${TYPE}
+# python3 ../qolo/gen_detection_res.py -f  ${TYPE}
 echo "##### gen_tracking_res.py #####"
-python3 ../qolo/gen_tracking_res.py -f ${TYPE}
+# python3 ../qolo/gen_tracking_res.py -f ${TYPE}
 
 echo "########## Evaluate the performance ##########"
 echo "##### eval_qolo.py #####"

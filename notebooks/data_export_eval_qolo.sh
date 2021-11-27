@@ -1,6 +1,8 @@
 #!/bin/bash
 # derived from https://stackoverflow.com/a/14203146/7961693
 # sh data_export_eval_qolo.sh -e=py38cuda110 -t=0424_mds
+# sh data_export_eval_qolo.sh -e=py38cuda110 -t=single_oa
+# sh data_export_eval_qolo.sh -e=py38cuda110 -t=ssingle_collision
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -18,8 +20,8 @@ unset __conda_setup
 # <<< conda initialize <<<
 
 # database path
-readonly ROSBAG_DATABASE=/hdd/data_qolo/crowd_qolo_recordings/
-readonly OUTPUT_DATABASE=/hdd/data_qolo/crowdbot_data_analysis/
+readonly ROSBAG_DATABASE=$(python3 parse_yaml.py ../data/data.yaml --get bagbase_dir)
+readonly OUTPUT_DATABASE=$(python3 parse_yaml.py ../data/data.yaml --get outbase_dir)
 
 for i in "$@"; do
   case $i in
