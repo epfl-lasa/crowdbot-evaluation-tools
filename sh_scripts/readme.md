@@ -2,7 +2,7 @@
 
 ## Basic uses
 
-```
+```shell
 sh data_eval_all.sh -e=py38cuda110 -t=shared_test
 ```
 
@@ -21,4 +21,3 @@ sh data_eval_all.sh -e=py38cuda110 -t=shared_test
 | `data_export_eval_all.sh`         | ✔️             | ✔️                  | ✔️         | ✔️         | ✔️          |
 
 PS: for `data_eval_all.sh` and `data_eval_all.sh`, lidar and corresponding time stamps is required. These two scripts aim to **update extracted source data and evaluation results**.
-

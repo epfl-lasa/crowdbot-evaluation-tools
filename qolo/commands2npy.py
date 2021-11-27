@@ -118,6 +118,40 @@ def extract_cmd_from_rosbag(bag_file_path, args):
     return cmd_raw_dict
 
 
+def interp_linear_dict(linear_state_dict, target_dict, subset=None):
+    """Calculate interpolations for all states"""
+
+    source_ts = linear_state_dict.get("timestamp")
+    interp_ts = target_dict.get("timestamp")
+    interp_dict = {"timestamp": interp_ts}
+
+    # method1: saturate the timestamp outside the range
+    if min(interp_ts) < min(source_ts):
+        interp_ts[interp_ts < min(source_ts)] = min(source_ts)
+    if max(interp_ts) > max(source_ts):
+        interp_ts[interp_ts > max(source_ts)] = max(source_ts)
+
+    # method2: discard timestamps smaller or bigger than source
+    # start_idx, end_idx = 0, -1
+    # if min(interp_ts) < min(source_ts):
+    #     start_idx = np.argmax(interp_ts[interp_ts - source_ts.min() < 0]) + 1
+    # if max(interp_ts) > max(source_ts):
+    #     end_idx = np.argmax(interp_ts[interp_ts - source_ts.max() <= 0]) + 1
+    # interp_ts = interp_ts[start_idx:end_idx]
+
+    if subset == None:
+        subset = linear_state_dict.keys()
+    for val in subset:
+        if val == "timestamp":
+            pass
+        else:
+            interp = interp_translation(source_ts, interp_ts, linear_state_dict[val])
+            interp_dict.update({val: interp})
+
+    interp_dict["timestamp"] = interp_ts
+    return interp_dict, interp_ts
+
+
 #%% main file
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
@@ -184,20 +218,18 @@ if __name__ == "__main__":
                 print("If you want to overwrite, use flag --overwrite")
                 cmd_raw_dict = np.load(cmd_raw_filepath, allow_pickle=True).item()
 
-            """
             # sample with lidar frame
             lidar_stamped = np.load(
                 os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
                 allow_pickle=True,
             ).item()
-            twist_sampled_dict = interp_twist(cmd_raw_dict, lidar_stamped)
-            np.save(cmd_sampled_filepath, twist_sampled_dict)
+            cmd_sampled_dict = interp_linear_dict(cmd_raw_dict, lidar_stamped)
+            np.save(cmd_sampled_filepath, cmd_sampled_dict)
 
             source_len = len(cmd_raw_dict["timestamp"])
             target_len = len(lidar_stamped["timestamp"])
             print(
                 "# Sample from {} frames to {} frames.".format(source_len, target_len)
             )
-            """
 
     print("Finish extracting all commands!")
