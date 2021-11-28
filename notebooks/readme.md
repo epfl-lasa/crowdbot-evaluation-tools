@@ -41,10 +41,13 @@
 
   <img src="./img/0424_crowd.png" alt="robot_path"   width="800" >
 
+- **Comparison** analysis between 0424 and 0410
+
+  <img src="./img/comp_crowd.png" alt="robot_path"   width="800" >
+
 - **Single** 0424_shared_control/2021-04-24-13-07-54 sequence
 
   | crowd_density                                                | min_dist                                                     |
   | ------------------------------------------------------------ | ------------------------------------------------------------ |
   | <img src="./img/2021-04-24-13-07-54_crowd_density.png" alt="crowd_density"   width="400" > | <img src="./img/2021-04-24-13-07-54_min_dist.png" alt="min_dist"   width="400" > |
 
-### 
