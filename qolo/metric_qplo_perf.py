@@ -168,7 +168,9 @@ def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
     vel = vel[start_idx:end_idx]
     omega = omega[start_idx:end_idx]
 
-    v_max, w_max = np.max(vel), np.max(omega)
+    v_max, w_max = np.max(np.abs(vel)), np.max(np.abs(omega))
+
+    # print(v_max, w_max)
 
     fluency_v = []
     fluency_w = []
@@ -187,6 +189,7 @@ def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
         return (fluencyv, fluencyv_sd)
     else:
         return (fluencyw, fluencyw_sd)
+
 
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L222
 # qolo_command & qolo_human_desired (from to GUI) but not `qolo_state`
@@ -215,7 +218,9 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts):
     omega_rds = omega_rds[start_idx:end_idx]
 
     # normalized by max speed -> contribution
-    vel_user_max, omega_user_max = np.max(vel_user), np.max(omega_user)
+    vel_user_max, omega_user_max = np.max(np.abs(vel_user)), np.max(np.abs(omega_user))
+    # print(vel_user_max, omega_user_max)
+    # print("start_t/end_t:", start_cmd_ts - cmd_ts.min(), end_cmd_ts - cmd_ts.min())
     norm_vel_u = vel_user / vel_user_max
     norm_omega_u = omega_user / omega_user_max
     norm_vel_r = vel_rds / vel_user_max
@@ -277,3 +282,36 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts):
         np.mean(omega_diff),
         np.std(omega_diff),
     )
+
+
+"""
+single_oa/2021-11-26-12-50-09.bag
+
+consider using abs -> fixed
+
+line 171: v_max, w_max = np.max(np.abs(vel)), np.max(np.abs(omega))
+line 221: vel_user_max, omega_user_max = np.max(np.abs(vel_user)), np.max(np.abs(omega_user))
+
+```
+$ python3 ../qolo/eval_qolo.py --overwrite -f single_oa
+(12/14): 2021-11-26-12-50-09 with 338 frames
+/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/metric_qplo_perf.py:181: RuntimeWarning: invalid value encountered in double_scalars
+  fluency_w.append(1 - np.abs(omega[idx] - omega[idx - 1]) / w_max)
+/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/metric_qplo_perf.py:181: RuntimeWarning: divide by zero encountered in double_scalars
+  fluency_w.append(1 - np.abs(omega[idx] - omega[idx - 1]) / w_max)
+0.7999879717826843 0.0
+start_t/end_t: 3.408465623855591 17.172191619873047
+/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/metric_qplo_perf.py:225: RuntimeWarning: divide by zero encountered in true_divide
+  norm_omega_u = omega_user / omega_user_max
+/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/metric_qplo_perf.py:225: RuntimeWarning: invalid value encountered in true_divide
+  norm_omega_u = omega_user / omega_user_max
+/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/metric_qplo_perf.py:227: RuntimeWarning: divide by zero encountered in true_divide
+  norm_omega_r = omega_rds / omega_user_max
+/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/metric_qplo_perf.py:241: RuntimeWarning: divide by zero encountered in double_scalars
+  omega_diff.append(np.abs(omega_rds[idx] - omega_user[idx]) / omega_user_max)
+/home/crowdbot/Documents/yujie/crowdbot_tools/qolo/metric_qplo_perf.py:271: RuntimeWarning: invalid value encountered in double_scalars
+  contribution_vec.append(u_diff_norm[idx] / u_human_norm[idx])
+/home/crowdbot/.local/lib/python3.8/site-packages/numpy/core/_methods.py:230: RuntimeWarning: invalid value encountered in subtract
+  x = asanyarray(arr - arrmean)
+```
+"""

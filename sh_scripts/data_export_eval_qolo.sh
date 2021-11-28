@@ -53,7 +53,7 @@ echo "########## Export pointcloud and lidar timestamp ##########"
 python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE}
 
 echo "########## Export qolo status ##########"
-python3 qolo/commands2npy.py --overwrite -f ${TYPE}
+python3 ../qolo/commands2npy.py --overwrite -f ${TYPE}
 python3 ../qolo/tfqolo2npy.py --overwrite -f ${TYPE}
 python3 ../qolo/twist2npy.py --overwrite -f ${TYPE}
 python3 ../qolo/pose2d2npy.py --overwrite -f ${TYPE}

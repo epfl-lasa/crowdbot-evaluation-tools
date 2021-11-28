@@ -53,7 +53,7 @@ python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE}
 
 echo "########## Export qolo status ##########"
 echo "##### commands2npy.py #####"
-python3 qolo/commands2npy.py --overwrite -f ${TYPE}
+python3 ../qolo/commands2npy.py --overwrite -f ${TYPE}
 echo "##### tfqolo2npy.py #####"
 python3 ../qolo/tfqolo2npy.py --overwrite -f ${TYPE}
 echo "##### twist2npy.py #####"
