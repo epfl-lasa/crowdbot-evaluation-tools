@@ -1,18 +1,24 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   viz_util.py
-@Time    :   2021/10/20
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   viz_util.py
+@Date created  :   2021/10/20
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides functions to process detection or tracking results and plot
+function with mayavi.
+
+(Deprecated due to inconvenient environment configuration of mayavi!!!)
+"""
+# =============================================================================
 
 
 import numpy as np
-import open3d as o3d
-
-from transformation_utils import boxes_to_corners
 
 # # for running on headerless server
 # from pyvirtualdisplay import Display
@@ -22,6 +28,83 @@ from transformation_utils import boxes_to_corners
 from mayavi import mlab
 
 import cv2
+
+def boxes_get_R(boxes):
+    """Get rotation matrix R along z axis that transforms a point from box coordinate
+    to world coordinate.
+
+    Args:
+        boxes (array[B, 7]): (x, y, z, l, w, h, theta) of each box
+
+    Returns:
+        Rs (array[B, 3, 3])
+    """
+    # NOTE plus pi specifically for JRDB, don't know the reason
+    theta = boxes[:, 6] + np.pi
+    cs, ss = np.cos(theta), np.sin(theta)
+    zeros, ones = np.zeros(len(cs)), np.ones(len(cs))
+    Rs = np.array(
+        [[cs, ss, zeros], [-ss, cs, zeros], [zeros, zeros, ones]], dtype=np.float32
+    )  # (3, 3, B)
+
+    return Rs.transpose((2, 0, 1))
+
+def boxes_to_corners(boxes, resize_factor=1.0, connect_inds=False):
+    """Return xyz coordinates of the eight vertices of the bounding box
+
+    First four points are fl (front left), fr, br, bl on top plane. Last four
+    points are same order, but for the bottom plane.
+
+          0 -------- 1        __
+         /|         /|        //|
+        3 -------- 2 .       //
+        | |        | |      front
+        . 4 -------- 5
+        |/         |/
+        7 -------- 6
+
+    To draw a box, do something like
+
+    corners, connect_inds = boxes_to_corners(boxes)
+    for corner in corners:
+        for inds in connect_inds:
+            mlat.plot3d(corner[0, inds], corner[1, inds], corner[2, inds],
+                        tube_radius=None, line_width=5)
+
+    Args:
+        boxes (array[B, 7]): (x, y, z, l, w, h, theta) of each box
+        resize_factor (float): resize box lwh dimension
+        connect_inds(bool): true will also return a list of indices for drawing
+            the box as line segments
+
+    Returns:
+        corners_xyz (array[B, 3, 8])
+        connect_inds (tuple[list[int]])
+    """
+    # in box frame
+    c_xyz = np.array(
+        [
+            [1, 1, -1, -1, 1, 1, -1, -1],
+            [-1, 1, 1, -1, -1, 1, 1, -1],
+            [1, 1, 1, 1, -1, -1, -1, -1],
+        ],
+        dtype=np.float32,
+    )  # (3, 8)
+    c_xyz = 0.5 * c_xyz[np.newaxis, :, :] * boxes[:, 3:6, np.newaxis]  # (B, 3, 8)
+    c_xyz = c_xyz * resize_factor
+
+    # to world frame
+    R = boxes_get_R(boxes)  # (B, 3, 3)
+    c_xyz = R @ c_xyz + boxes[:, :3, np.newaxis]  # (B, 3, 8)
+
+    if not connect_inds:
+        return c_xyz
+    else:
+        l1 = [0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 1]
+        l2 = [0, 5, 1]
+        l3 = [2, 6]
+        l4 = [3, 7]
+        return c_xyz, (l1, l2, l3, l4)
 
 
 def id2color(id_):

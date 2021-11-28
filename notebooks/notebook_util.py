@@ -1,12 +1,19 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   notebook_util.py
-@Time    :   2021/11/24
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   notebook_util.py
+@Date created  :   2021/11/24
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides categorical plot and customized folder traverse functions
+for better notebook use.
+"""
+# =============================================================================
 
 import os
 import numpy as np

@@ -1,12 +1,25 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   gen_video.py
-@Time    :   2021/10/28
-@Author  :   Yujie He
-@Version :   1.1
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   gen_video.py
+@Date created  :   2021/11/28
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides the workflow to generate videos and gifs from image folder
+with ffmpeg.
+"""
+# =============================================================================
+"""
+TODO:
+1. consider using ffmpeg-py or imageio
+(example: https://github.com/facebookresearch/habitat-lab/blob/main/habitat/utils/visualizations/utils.py#L100)
+"""
+# =============================================================================
 
 
 import os
@@ -17,7 +30,6 @@ from crowdbot_data import CrowdBotDatabase
 def img_dir2video_ffmpeg(img_dir, video_path):
     """Generate video using ffmpeg via os.system()"""
 
-    # TODO: consider using ffmpeg-py
     # cmd: ffmpeg -y -r 15 -pattern_type glob -i 'tmp/*.png' -c:v libx264 -vf fps=30 -pix_fmt yuv420p 'tmp/frames.mp4'
     header_cmd = "ffmpeg -y -r 15 -pattern_type glob -i "
     in_images = "'{}/*.png'".format(img_dir)

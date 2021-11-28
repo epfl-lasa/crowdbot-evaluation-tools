@@ -1,12 +1,24 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   gen_viz_img_o3d.py
-@Time    :   2021/10/26
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   gen_viz_img_o3d.py
+@Date created  :   2021/10/26
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides workflow based on open3d to render resulted image with
+extracted pointcloud, robot pose, and pedestrian detection & tracking results.
+"""
+# =============================================================================
+"""
+TODO:
+1. test support with pcd!!!
+"""
+# =============================================================================
 
 
 import os

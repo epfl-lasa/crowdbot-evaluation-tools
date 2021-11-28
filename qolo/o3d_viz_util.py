@@ -10,7 +10,8 @@
 """
 # =============================================================================
 """
-The module provides ...
+The module provides functions to process detection or tracking results and plot
+function with open3d.
 """
 # =============================================================================
 """

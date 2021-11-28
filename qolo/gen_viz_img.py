@@ -1,12 +1,21 @@
+#!/usr/bin/env python3
 # -*-coding:utf-8 -*-
+# =============================================================================
 """
-@File    :   gen_viz_img.py
-@Time    :   2021/10/20
-@Author  :   Yujie He
-@Version :   1.0
-@Contact :   yujie.he@epfl.ch
-@State   :   Dev
+@Author        :   Yujie He
+@File          :   gen_viz_img.py
+@Date created  :   2021/10/20
+@Maintainer    :   Yujie He
+@Email         :   yujie.he@epfl.ch
 """
+# =============================================================================
+"""
+The module provides workflow based on mayavi to render resulted image with
+extracted pointcloud, robot pose, and pedestrian detection & tracking results.
+
+(Deprecated due to inconvenient environment configuration of mayavi!!!)
+"""
+# =============================================================================
 
 import os
 import argparse
