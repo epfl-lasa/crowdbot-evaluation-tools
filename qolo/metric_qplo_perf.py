@@ -88,7 +88,7 @@ def compute_time_path(qolo_twist, qolo_pose2d):
     end_vel_idx = (np.abs(twist_ts_all - pose_ts[end_idx])).argmin()
     # print("Debug:", start_vel_idx, end_vel_idx, len(twist_ts_all))
     # only consider Vel_command_max when travelling towards goal
-    vc_max = np.max(vel_command_all[start_vel_idx : end_vel_idx + 1])
+    vc_max = np.max(np.abs(vel_command_all[start_vel_idx : end_vel_idx + 1]))
 
     start_pose_idx = (np.abs(pose_ts - start_ts)).argmin()
     end_pose_idx = end_idx
@@ -98,7 +98,7 @@ def compute_time_path(qolo_twist, qolo_pose2d):
 
     theory_duration2goal = l_goal / vc_max
     rel_duration2goal = theory_duration2goal / duration2goal
-    rel_path_length2goal = l_goal / path_length2goal
+    rel_path_length2goal = path_length2goal / l_goal
 
     return (
         start_ts,

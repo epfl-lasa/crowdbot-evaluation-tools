@@ -127,8 +127,8 @@ def categorical_plot(
     sns.set_theme(style="whitegrid")
 
     # fmt: off
-    # use stripplot instead of swarmplot to handle many datapoints
-    sns.stripplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+    # use stripplot (less points) instead of swarmplot to handle many datapoints
+    sns.swarmplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
                   size=5, alpha=0.9, palette="colorblind",
                   edgecolor='black', dodge=True,
                  )
