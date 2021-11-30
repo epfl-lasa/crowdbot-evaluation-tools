@@ -3,7 +3,7 @@
 # =============================================================================
 """
 @Author        :   Yujie He
-@File          :   gen_viz_img.py
+@File          :   gen_viz_img_old.py
 @Date created  :   2021/10/20
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
@@ -23,7 +23,7 @@ import numpy as np
 from mayavi import mlab
 import cv2
 from crowdbot_data import CrowdBotDatabase
-from viz_util import plot_frame
+from viz_util_old import plot_frame
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")

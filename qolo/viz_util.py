@@ -4,110 +4,25 @@
 """
 @Author        :   Yujie He
 @File          :   viz_util.py
-@Date created  :   2021/10/20
+@Date created  :   2021/11/30
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
 """
 # =============================================================================
 """
-The module provides functions to process detection or tracking results and plot
-function with mayavi.
-
-(Deprecated due to inconvenient environment configuration of mayavi!!!)
+The module provides ...
 """
 # =============================================================================
 
 
+import cv2
 import numpy as np
 
-# # for running on headerless server
-# from pyvirtualdisplay import Display
-# display = Display(visible=False, size=(1280, 1024))
-# display.start()
+print('using new viz_util')
 
-from mayavi import mlab
-
-import cv2
-
-def boxes_get_R(boxes):
-    """Get rotation matrix R along z axis that transforms a point from box coordinate
-    to world coordinate.
-
-    Args:
-        boxes (array[B, 7]): (x, y, z, l, w, h, theta) of each box
-
-    Returns:
-        Rs (array[B, 3, 3])
-    """
-    # NOTE plus pi specifically for JRDB, don't know the reason
-    theta = boxes[:, 6] + np.pi
-    cs, ss = np.cos(theta), np.sin(theta)
-    zeros, ones = np.zeros(len(cs)), np.ones(len(cs))
-    Rs = np.array(
-        [[cs, ss, zeros], [-ss, cs, zeros], [zeros, zeros, ones]], dtype=np.float32
-    )  # (3, 3, B)
-
-    return Rs.transpose((2, 0, 1))
-
-def boxes_to_corners(boxes, resize_factor=1.0, connect_inds=False):
-    """Return xyz coordinates of the eight vertices of the bounding box
-
-    First four points are fl (front left), fr, br, bl on top plane. Last four
-    points are same order, but for the bottom plane.
-
-          0 -------- 1        __
-         /|         /|        //|
-        3 -------- 2 .       //
-        | |        | |      front
-        . 4 -------- 5
-        |/         |/
-        7 -------- 6
-
-    To draw a box, do something like
-
-    corners, connect_inds = boxes_to_corners(boxes)
-    for corner in corners:
-        for inds in connect_inds:
-            mlat.plot3d(corner[0, inds], corner[1, inds], corner[2, inds],
-                        tube_radius=None, line_width=5)
-
-    Args:
-        boxes (array[B, 7]): (x, y, z, l, w, h, theta) of each box
-        resize_factor (float): resize box lwh dimension
-        connect_inds(bool): true will also return a list of indices for drawing
-            the box as line segments
-
-    Returns:
-        corners_xyz (array[B, 3, 8])
-        connect_inds (tuple[list[int]])
-    """
-    # in box frame
-    c_xyz = np.array(
-        [
-            [1, 1, -1, -1, 1, 1, -1, -1],
-            [-1, 1, 1, -1, -1, 1, 1, -1],
-            [1, 1, 1, 1, -1, -1, -1, -1],
-        ],
-        dtype=np.float32,
-    )  # (3, 8)
-    c_xyz = 0.5 * c_xyz[np.newaxis, :, :] * boxes[:, 3:6, np.newaxis]  # (B, 3, 8)
-    c_xyz = c_xyz * resize_factor
-
-    # to world frame
-    R = boxes_get_R(boxes)  # (B, 3, 3)
-    c_xyz = R @ c_xyz + boxes[:, :3, np.newaxis]  # (B, 3, 8)
-
-    if not connect_inds:
-        return c_xyz
-    else:
-        l1 = [0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 1]
-        l2 = [0, 5, 1]
-        l3 = [2, 6]
-        l4 = [3, 7]
-        return c_xyz, (l1, l2, l3, l4)
-
-
+#%% Utility functions for colorization, bbox projection
 def id2color(id_):
+    """convert id to color series"""
     c_hsv = np.empty((1, 1, 3), dtype=np.float32)
     c_hsv[0, :, 0] = float((id_ * 33) % 360)
     c_hsv[0, :, 1] = 1
@@ -116,76 +31,151 @@ def id2color(id_):
     return tuple(*c_bgr)
 
 
-def plot_frame(lidar, boxes, out_path=None):
-    # some nice colors
-    gs_blue = (66.0 / 256, 133.0 / 256, 244.0 / 256)
-    gs_red = (234.0 / 256, 68.0 / 256, 52.0 / 256)
-    gs_yellow = (251.0 / 256, 188.0 / 256, 4.0 / 256)
-    gs_green = (52.0 / 256, 168.0 / 256, 83.0 / 256)
-    gs_orange = (255.0 / 256, 109.0 / 256, 1.0 / 256)
-    gs_blue_light = (70.0 / 256, 189.0 / 256, 196.0 / 256)
+# convert box to bbox point set
+bbox_lines = [
+    [0, 1],
+    [0, 3],
+    [0, 4],
+    [1, 2],
+    [1, 5],
+    [2, 3],
+    [2, 6],
+    [3, 7],
+    [4, 5],
+    [4, 7],
+    [5, 6],
+    [6, 7],
+    [0, 5],
+    [1, 4],
+]
 
-    if out_path is not None:
-        # before you create a figure and it will use an offscreen window for the rendering
-        mlab.options.offscreen = True
 
-    fig = mlab.figure(
-        figure=None,
-        bgcolor=(1, 1, 1),
-        fgcolor=(0, 0, 0),
-        engine=None,
-        size=(1600, 1000),
+def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
+    """
+    :param boxes3d: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords, +x points to right (2 to 1),
+                    +y points front  (from 1 to 0), +z points upwards (from 2 to 6),
+    :param bottom_center: whether z is on the bottom center of object
+    :return: corners3d: (N, 8, 3)
+        7 -------- 4
+       /|         /|
+      6 -------- 5 .
+      | |        | |
+      . 3 -------- 0
+      |/         |/
+      2 -------- 1
+    """
+    boxes_num = boxes3d.shape[0]
+    dx, dy, dz = boxes3d[:, 3], boxes3d[:, 4], boxes3d[:, 5]
+    x_corners = np.array(
+        [
+            dx / 2.0,
+            dx / 2.0,
+            -dx / 2.0,
+            -dx / 2.0,
+            dx / 2.0,
+            dx / 2.0,
+            -dx / 2.0,
+            -dx / 2.0,
+        ],
+        dtype=np.float32,
+    ).T
+    y_corners = np.array(
+        [
+            dy / 2.0,
+            -dy / 2.0,
+            -dy / 2.0,
+            dy / 2.0,
+            dy / 2.0,
+            -dy / 2.0,
+            -dy / 2.0,
+            dy / 2.0,
+        ],
+        dtype=np.float32,
+    ).T
+    z_corners = np.array(
+        [
+            dz / 2.0,
+            dz / 2.0,
+            dz / 2.0,
+            dz / 2.0,
+            -dz / 2.0,
+            -dz / 2.0,
+            -dz / 2.0,
+            -dz / 2.0,
+        ],
+        dtype=np.float32,
+    ).T
+
+    ry = boxes3d[:, 6]
+    zeros, ones = np.zeros(ry.size, dtype=np.float32), np.ones(
+        ry.size, dtype=np.float32
+    )
+    # counter-clockwisely rotate the frame around z by an angle ry
+    # note the transform is done by Vector x Matrix instead of Matrix x Vector,
+    # which means the Matrix need to be transposed when interpreted as a linear transform
+    rot_list = np.array(
+        [
+            [np.cos(ry), np.sin(ry), zeros],
+            [-np.sin(ry), np.cos(ry), zeros],
+            [zeros, zeros, ones],
+        ]
+    )  # (3, 3, N)
+    R_list = np.transpose(rot_list, (2, 0, 1))  # (N, 3, 3)
+
+    temp_corners = np.concatenate(
+        (
+            x_corners.reshape(-1, 8, 1),
+            y_corners.reshape(-1, 8, 1),
+            z_corners.reshape(-1, 8, 1),
+        ),
+        axis=2,
+    )  # (N, 8, 3)
+
+    rotated_corners = np.matmul(temp_corners, R_list)  # (N, 8, 3)
+    x_corners, y_corners, z_corners = (
+        rotated_corners[:, :, 0],
+        rotated_corners[:, :, 1],
+        rotated_corners[:, :, 2],
     )
 
-    # visualize all lidar points -> include scale variations!!!
-    mlab.points3d(
-        lidar[0],
-        lidar[1],
-        lidar[2],
-        scale_factor=0.05,
-        color=gs_blue,
-        figure=fig,
+    x_loc, y_loc, z_loc = boxes3d[:, 0], boxes3d[:, 1], boxes3d[:, 2]
+
+    x = x_loc.reshape(-1, 1) + x_corners.reshape(-1, 8)
+    y = y_loc.reshape(-1, 1) + y_corners.reshape(-1, 8)
+    z = z_loc.reshape(-1, 1) + z_corners.reshape(-1, 8)
+
+    corners = np.concatenate(
+        (x.reshape(-1, 8, 1), y.reshape(-1, 8, 1), z.reshape(-1, 8, 1)), axis=2
     )
 
-    # plot detections
-    if boxes.shape[1] == 7:
-        corners_xyz, connect_inds = boxes_to_corners(boxes, connect_inds=True)
-        for corner_xyz in corners_xyz:
-            for inds in connect_inds:
-                mlab.plot3d(
-                    corner_xyz[0, inds],
-                    corner_xyz[1, inds],
-                    corner_xyz[2, inds],
-                    tube_radius=None,
-                    line_width=3,
-                    color=gs_yellow,
-                    figure=fig,
-                )
-    # or tracks
-    elif boxes.shape[1] == 8:
-        ids = boxes[:, -1]
-        boxes = boxes[:, :-1]
-        corners_xyz, connect_inds = boxes_to_corners(boxes, connect_inds=True)
-        for id_, corner_xyz in zip(ids, corners_xyz):
-            c = id2color(id_)
-            for inds in connect_inds:
-                mlab.plot3d(
-                    corner_xyz[0, inds],
-                    corner_xyz[1, inds],
-                    corner_xyz[2, inds],
-                    tube_radius=None,
-                    line_width=3,
-                    color=c,
-                    figure=fig,
-                )
+    return corners.astype(np.float32)
 
-    mlab.view(focalpoint=(0, 0, 0))
-    mlab.move(50, 0, 5.0)
-    # mlab.pitch(-10)
 
-    if out_path is not None:
-        mlab.savefig(out_path)
-    else:
-        mlab.show()
+def filter_pointcloud_distance(in_cloud, dist=10.0, verbose=False):
+    """filter detected pointcloud/pedestrain within the desired distance"""
+    r_square_within = (in_cloud[:, 0] ** 2 + in_cloud[:, 1] ** 2) < dist ** 2
+    out_cloud = in_cloud[r_square_within, :]
+    if verbose:
+        print(
+            "Filtered/Overall pts: {}/{}".format(
+                np.shape(in_cloud)[0], np.shape(out_cloud)[0]
+            )
+        )
+    return out_cloud
 
-    return fig
+
+def filter_detection_tracking_res(in_boxes, dist=10.0, verbose=False):
+    """
+    Filter detected pointcloud/pedestrain within the desired distance
+    Input:
+        in_boxes: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords
+    """
+    r_square_within = (in_boxes[:, 0] ** 2 + in_boxes[:, 1] ** 2) < dist ** 2
+    out_boxes = in_boxes[r_square_within, :]
+    if verbose:
+        print(
+            "Filtered/Overall boxes: {}/{}".format(
+                np.shape(in_boxes)[0], np.shape(out_boxes)[0]
+            )
+        )
+    return out_boxes
