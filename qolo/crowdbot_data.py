@@ -47,7 +47,7 @@ class CrowdBotData(object):
 
 
 class CrowdBotDatabase(CrowdBotData):
-    def __init__(self, folder, config=None):
+    def __init__(self, classdir, config=None):
 
         if config is None:
             super(CrowdBotDatabase, self).__init__()
@@ -57,9 +57,7 @@ class CrowdBotDatabase(CrowdBotData):
         self.bagbase_dir = data_config['bagbase_dir']
         self.outbase_dir = data_config['outbase_dir']
 
-        data_processed = folder + "_processed"
-        base_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-        # data_processed_dir = os.path.join(base_folder, "data", data_processed)
+        data_processed = classdir + "_processed"
         data_processed_dir = os.path.join(self.outbase_dir, data_processed)
 
         # lidars/
@@ -75,8 +73,10 @@ class CrowdBotDatabase(CrowdBotData):
         self.metrics_dir = os.path.join(data_processed_dir, "metrics")
 
         # media/[viz_imgs/videos]
-        self.imgs_dir = os.path.join(data_processed_dir, "media", "viz_imgs")
-        self.video_dir = os.path.join(data_processed_dir, "media", "videos")
+        self.media_dir = os.path.join(data_processed_dir, "media")
+        # self.imgs_dir = os.path.join(self.media_dir, "viz_imgs")
+        self.img3d_dir = os.path.join(self.media_dir, "img_o3d")
+        self.video_dir = os.path.join(self.media_dir, "media", "videos")
 
         # filter sequence dir from self.lidar_dir (*_stamped.npy in the same folder)
         self.seqs = [

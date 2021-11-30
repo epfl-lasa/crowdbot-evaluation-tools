@@ -63,7 +63,7 @@ if __name__ == "__main__":
         )
 
         # seq dest: data/xxxx_processed/viz_imgs/seq
-        img_seq_dir = os.path.join(cb_data.imgs_dir, seq)
+        img_seq_dir = os.path.join(cb_data.img3d_dir, seq)
 
         if not os.path.exists(img_seq_dir):
             print("Images will be saved in {}".format(img_seq_dir))

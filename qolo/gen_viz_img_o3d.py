@@ -28,7 +28,9 @@ from crowdbot_data import CrowdBotDatabase
 from o3d_viz_util import plot_robot_frame_o3d, plot_world_frame_o3d
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="convert data from rosbag")
+    parser = argparse.ArgumentParser(
+        description="generate visualization image rendered with Open3D"
+    )
 
     parser.add_argument(
         "-b",
@@ -51,9 +53,26 @@ if __name__ == "__main__":
         type=str,
         help="different subfolder in rosbag/ dir",
     )
+    parser.add_argument(
+        "-s",
+        "--step",
+        default=4,
+        type=int,
+        help="visualization step",
+    )
+    parser.add_argument(
+        "--consider_pose",
+        dest="consider_pose",
+        action="store_true",
+        help="Consider pose transformation when plotting",
+    )
+    parser.set_defaults(consider_pose=True)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
+
+    step_viz = args.step
+    consider_pose = args.consider_pose
 
     for seq_idx in range(cb_data.nr_seqs()):
 
@@ -65,14 +84,13 @@ if __name__ == "__main__":
         )
 
         # seq dest: data/xxxx_processed/viz_imgs/seq
-        img_seq_dir = os.path.join(cb_data.imgs_dir, seq)
+        img_seq_dir = os.path.join(cb_data.img3d_dir, seq)
 
         if not os.path.exists(img_seq_dir):
             print("Images will be saved in {}".format(img_seq_dir))
             os.makedirs(img_seq_dir, exist_ok=True)
 
             # pose_stamped based visualization
-            consider_pose = True
             if consider_pose:
                 tf_qolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
                 lidar_stamped_path = os.path.join(
@@ -83,7 +101,6 @@ if __name__ == "__main__":
                 ).item()
 
             # generate image every step_viz frames
-            step_viz = 4
             for fr_idx in range(0, cb_data.nr_frames(seq_idx), step_viz):
                 # input a series of poses
                 if consider_pose:
