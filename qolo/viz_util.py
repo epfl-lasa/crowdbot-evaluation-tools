@@ -10,15 +10,14 @@
 """
 # =============================================================================
 """
-The module provides ...
+The module provides function for detection or tracking results preprocessing
+for plotting, bbox projection and colorization.
 """
 # =============================================================================
 
 
 import cv2
 import numpy as np
-
-print('using new viz_util')
 
 #%% Utility functions for colorization, bbox projection
 def id2color(id_):
