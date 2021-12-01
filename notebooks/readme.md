@@ -5,7 +5,19 @@
 - **[intro_to_dataset.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/intro_to_dataset.ipynb)**
 - **[comprehensive_eval.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/comprehensive_eval.ipynb)**
 
+## How to launch
+
+```shell
+cd path/to/notebooks
+conda activate py38cuda110
+jupyter notebook
+```
+
 ## Example results
+
+### Multi-frame aggergation
+
+![](./img/multi_frame_aggregate.png)
 
 ### Path efficiency-related metrics
 

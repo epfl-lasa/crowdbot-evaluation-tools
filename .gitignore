@@ -1,6 +1,7 @@
 # folders
 ## Person_MinkUNet model can be downloaded from from https://github.com/VisualComputingInstitute/Person_MinkUNet/releases/tag/v1.0
 qolo/test
+archive
 library
 model
 tmp
