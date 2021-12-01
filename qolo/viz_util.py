@@ -49,7 +49,7 @@ bbox_lines = [
 ]
 
 
-def boxes3d_to_corners3d_lidar(boxes3d, bottom_center=False):
+def boxes3d_to_corners3d(boxes3d, bottom_center=False):
     """
     :param boxes3d: (N, 7) [x, y, z, dx, dy, dz, heading] in LiDAR coords, +x points to right (2 to 1),
                     +y points front  (from 1 to 0), +z points upwards (from 2 to 6),
