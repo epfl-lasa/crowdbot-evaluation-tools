@@ -193,14 +193,17 @@ def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
 
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L222
 # qolo_command & qolo_human_desired (from to GUI) but not `qolo_state`
-def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts):
+def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
     """compute real qolo velocity in reference to command"""
 
     # unpack data
     vel_user = qolo_command.get("nominal_linear")
     omega_user = qolo_command.get("nominal_angular")
-    vel_rds = qolo_command.get("corrected_linear")
-    omega_rds = qolo_command.get("corrected_linear")
+    vel_robo = qolo_command.get("corrected_linear")
+    omega_robo = qolo_command.get("corrected_linear")
+    # print(vel_user, omega_user)
+    # print(vel_robo, omega_robo)
+    # print(vel_robo.min(), omega_robo.min())
 
     # find start and ending timestamp
     cmd_ts = qolo_command.get("timestamp")
@@ -214,17 +217,23 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts):
     # only consider data within the operation duration
     vel_user = vel_user[start_idx:end_idx]
     omega_user = omega_user[start_idx:end_idx]
-    vel_rds = vel_rds[start_idx:end_idx]
-    omega_rds = omega_rds[start_idx:end_idx]
+    vel_robo = vel_robo[start_idx:end_idx]
+    omega_robo = omega_robo[start_idx:end_idx]
 
     # normalized by max speed -> contribution
-    vel_user_max, omega_user_max = np.max(np.abs(vel_user)), np.max(np.abs(omega_user))
+    # vel_user_max, omega_user_max = np.max(np.abs(vel_user)), np.max(np.abs(omega_user))
     # print(vel_user_max, omega_user_max)
     # print("start_t/end_t:", start_cmd_ts - cmd_ts.min(), end_cmd_ts - cmd_ts.min())
+    if 'shared_control' in control_type:
+        vel_user_max, omega_user_max = 1.2, 4.124
+    elif 'rds' in control_type:
+        vel_user_max, omega_user_max = 0.9, 4.124 / 4
+    elif 'mds' in control_type:
+        vel_user_max, omega_user_max = 0.9, 4.124 / 4
     norm_vel_u = vel_user / vel_user_max
     norm_omega_u = omega_user / omega_user_max
-    norm_vel_r = vel_rds / vel_user_max
-    norm_omega_r = omega_rds / omega_user_max
+    norm_vel_r = vel_robo / vel_user_max
+    norm_omega_r = omega_robo / omega_user_max
 
     angle_user = np.arctan2(norm_vel_u, norm_omega_u)
     angle_rds = np.arctan2(norm_vel_r, norm_omega_r)
@@ -237,8 +246,8 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts):
     agreement_vec = []
     for idx in range(vel_user.shape[0]):
         if vel_user[idx] or omega_user[idx]:
-            vel_diff.append(np.abs(vel_rds[idx] - vel_user[idx]) / vel_user_max)
-            omega_diff.append(np.abs(omega_rds[idx] - omega_user[idx]) / omega_user_max)
+            vel_diff.append(np.abs(vel_robo[idx] - vel_user[idx]) / vel_user_max)
+            omega_diff.append(np.abs(vel_robo[idx] - omega_user[idx]) / omega_user_max)
             agreement_vec.append(1 - (abs(angle_diff[idx]) / np.pi))
 
     vel_diff = np.array(vel_diff)
@@ -257,18 +266,48 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts):
     # contribution
     contribution_vec = []
     u_human = np.vstack((norm_vel_u, norm_omega_u)).T  # human
-    u_rds = np.vstack((norm_vel_r, norm_omega_r)).T  # rds output
-    u_diff = u_human - u_rds
+    u_robot = np.vstack((norm_vel_r, norm_omega_r)).T  # rds output
+    if control_type in ['mds']:
+        u_diff = u_robot
+    else:
+        u_diff = u_human - u_robot
+    # print(u_human - u_robot)
     u_human_norm = np.linalg.norm(u_human, axis=1)
     u_diff_norm = np.linalg.norm(u_diff, axis=1)
     for idx in range(vel_user.shape[0]):
+
         if u_human[idx, 0] or u_human[idx, 1]:
-            if u_human[idx, 0] == 0:
-                contribution_vec.append(u_diff[idx, 1] / u_human[idx, 1])
-            elif u_human[idx, 1] == 0:
-                contribution_vec.append(u_diff[idx, 0] / u_human[idx, 0])
+            if control_type in ['mds']:
+                if u_human[idx, 0] == 0:
+                    contribution_vec.append(u_diff[idx, 1])
+                elif u_human[idx, 1] == 0:
+                    contribution_vec.append(u_diff[idx, 0])
+                else:
+                    contribution_vec.append(u_diff_norm[idx] / np.sqrt(2))
+                # print(contribution_vec[-1])
+                # if contribution_vec[-1] > 1.01:
+                # print("Larger than 1")
+                # print(u_robot[idx, :])
+                #     print(contribution_vec[-1])
             else:
-                contribution_vec.append(u_diff_norm[idx] / u_human_norm[idx])
+                if (u_diff[idx, 0] < -u_diff[idx, 1]) or (
+                    -u_diff[idx, 0] > u_diff[idx, 1]
+                ):
+                    print(idx)
+                    print("human cmd", u_human[idx, :])
+                    print("robot cmd", u_robot[idx, :])
+
+                if (u_human[idx, 0] == 0) and (u_human[idx, 1] == 0):
+                    if np.nonzero(u_human[idx, :]):
+                        contribution_vec.append(u_diff_norm[idx])
+                    else:
+                        continue
+                elif u_human[idx, 0] == 0:
+                    contribution_vec.append(u_diff[idx, 1] / u_human[idx, 1])
+                elif u_human[idx, 1] == 0:
+                    contribution_vec.append(u_diff[idx, 0] / u_human[idx, 0])
+                else:
+                    contribution_vec.append(u_diff_norm[idx] / u_human_norm[idx])
     contribution = np.mean(contribution_vec)
 
     return (

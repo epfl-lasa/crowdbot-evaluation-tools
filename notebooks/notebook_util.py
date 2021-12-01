@@ -21,6 +21,8 @@ import os.path as path
 import matplotlib
 from matplotlib.patches import PathPatch
 import matplotlib.pyplot as plt
+
+plt.ioff()
 import seaborn as sns
 
 
@@ -129,7 +131,7 @@ def categorical_plot(
     # fmt: off
     # use stripplot (less points) instead of swarmplot to handle many datapoints
     sns.swarmplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
-                  size=5, alpha=0.9, palette="colorblind",
+                  size=9, alpha=0.8, palette="colorblind",
                   edgecolor='black', dodge=True,
                  )
     if kind == 'violin':

@@ -58,7 +58,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="nocam_rosbags",
+        default="0421_mds",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -203,8 +203,9 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
                 # 4. agreement with command (sampled)
+                control_type = args.folder[5:]
                 agreement_contri = compute_agreement(
-                    cmd_raw_dict, start_cmd_ts, end_cmd_ts
+                    cmd_raw_dict, start_cmd_ts, end_cmd_ts, control_type
                 )
                 qolo_eval_dict.update({"contribution": agreement_contri[0]})
                 qolo_eval_dict.update({"avg_agreement": agreement_contri[1]})
