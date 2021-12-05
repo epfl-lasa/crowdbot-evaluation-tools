@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="nocam_rosbags",
+        default="shared_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )

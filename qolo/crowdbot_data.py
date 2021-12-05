@@ -64,8 +64,9 @@ class CrowdBotDatabase(CrowdBotData):
         self.lidar_dir = os.path.join(data_processed_dir, "lidars")
 
         # alg_res/
-        self.dets_dir = os.path.join(data_processed_dir, "alg_res", "detections")
-        self.trks_dir = os.path.join(data_processed_dir, "alg_res", "tracks")
+        self.alg_res_dir = os.path.join(data_processed_dir, "alg_res")
+        self.dets_dir = os.path.join(self.alg_res_dir, "detections")
+        self.trks_dir = os.path.join(self.alg_res_dir, "tracks")
 
         # source_data/[tf_qolo/pose/twist/acc]
         self.source_data_dir = os.path.join(data_processed_dir, "source_data")
