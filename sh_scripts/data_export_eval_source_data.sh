@@ -18,8 +18,8 @@ unset __conda_setup
 # <<< conda initialize <<<
 
 # database path
-readonly ROSBAG_DATABASE=$(python3 parse_yaml.py ../data/data.yaml --get bagbase_dir)
-readonly OUTPUT_DATABASE=$(python3 parse_yaml.py ../data/data.yaml --get outbase_dir)
+readonly ROSBAG_DATABASE=$(python3 parse_yaml.py ../data/data_path.yaml --get bagbase_dir)
+readonly OUTPUT_DATABASE=$(python3 parse_yaml.py ../data/data_path.yaml --get outbase_dir)
 
 for i in "$@"; do
   case $i in
