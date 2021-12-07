@@ -56,13 +56,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
 
     parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
-    parser.add_argument(
         "-f",
         "--folder",
         default="nocam_rosbags",
