@@ -55,13 +55,13 @@ def extract_pose2d_from_rosbag(bag_file_path, args):
                 x = msg.pose.pose.position.x
                 y = msg.pose.pose.position.y
                 quat = msg.pose.pose.orientation
-                theta = tf.transformations.euler_from_quaternion(
+                (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(
                     [quat.x, quat.y, quat.z, quat.w]
                 )
                 ts = ts_to_sec(msg.header.stamp)
                 x_list.append(x)
                 y_list.append(y)
-                theta_list.append(theta)
+                theta_list.append(yaw)
                 t_list.append(ts)
 
                 if (
