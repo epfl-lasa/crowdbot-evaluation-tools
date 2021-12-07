@@ -44,11 +44,14 @@ def extract_twist_from_rosbag(bag_file_path, args):
     with rosbag.Bag(bag_file_path, "r") as bag:
         # Look for the topics that are available and save the total number of messages for each topic
         total_num_twist_msgs = bag.get_message_count(topic_filters=args.twist_topic)
-        print(
-            "Found twist topic: {} with {} messages".format(
-                args.twist_topic, total_num_twist_msgs
+        if total_num_twist_msgs > 0:
+            print(
+                "Found twist topic: {} with {} messages".format(
+                    args.twist_topic, total_num_twist_msgs
+                )
             )
-        )
+        else:
+            print("There is no messages inside {} topic".format(args.twist_topic))
 
         for topic, msg, t in bag.read_messages():
             if topic == args.twist_topic:
