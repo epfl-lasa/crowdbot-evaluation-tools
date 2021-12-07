@@ -68,6 +68,9 @@ if __name__ == "__main__":
         help="Whether to re-plot existing images (default: false)",
     )
     parser.set_defaults(replot=False)
+    parser.add_argument(
+        "--goal_len", default=30.0, type=float, help="The length to travel in the test"
+    )
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -103,7 +106,7 @@ if __name__ == "__main__":
         qolo_pose2d = np.load(qolo_pose2d_path, allow_pickle=True).item()
 
         # compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
-        time_path_computed = compute_time_path(qolo_twist, qolo_pose2d)
+        time_path_computed = compute_time_path(qolo_twist, qolo_pose2d, args.goal_len)
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
         crowd_eval_npy = os.path.join(eval_res_dir, seq + "_crowd_eval.npy")
@@ -180,7 +183,9 @@ if __name__ == "__main__":
                 }
 
                 # normalized proximity
-                crowd_eval_dict.update({"normalized_proximity": compute_norm_prox(metrics[5])})
+                crowd_eval_dict.update(
+                    {"normalized_proximity": compute_norm_prox(metrics[5])}
+                )
 
                 # avg_min_dict = np.average(crowd_eval_dict['min_dict'])
                 for attr in attrs:
