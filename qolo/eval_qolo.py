@@ -83,6 +83,9 @@ if __name__ == "__main__":
         help="Whether to re-plot existing images (default: false)",
     )
     parser.set_defaults(replot=False)
+    parser.add_argument(
+        "--goal_dist", default=20.0, type=float, help="The length to travel in the test"
+    )
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -141,7 +144,7 @@ if __name__ == "__main__":
         cmd_raw_dict = np.load(cmd_raw_filepath, allow_pickle=True).item()
 
         # 1. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
-        time_path_computed = compute_time_path(qolo_twist, qolo_pose2d)
+        time_path_computed = compute_time_path(qolo_twist, qolo_pose2d, args.goal_dist)
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
         qolo_eval_npy = os.path.join(eval_res_dir, seq + "_qolo_eval.npy")

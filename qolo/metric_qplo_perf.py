@@ -23,8 +23,10 @@ TODO:
 import numpy as np
 
 
-def compute_time_path(qolo_twist, qolo_pose2d):
+def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
     """Compute starting and ending timestamp and path"""
+
+    print("The length to travel in the test: {} m".format(goal_dist))
 
     # 1. calculate starting timestamp based on nonzero twist command
     # starting: larger than zero
@@ -44,7 +46,7 @@ def compute_time_path(qolo_twist, qolo_pose2d):
     theta = qolo_pose2d.get("theta")
 
     angle_init = np.sum(theta[9:19]) / 10.0
-    goal_loc = np.array([np.cos(angle_init), np.sin(angle_init)]) * 20.0
+    goal_loc = np.array([np.cos(angle_init), np.sin(angle_init)]) * goal_dist
 
     # 3. determine when the closest point to the goal
     goal_reached = False
