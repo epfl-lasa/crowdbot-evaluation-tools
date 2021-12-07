@@ -17,6 +17,7 @@ shared control performance of qolo.
 """
 TODO:
 1. use qolo_twist and qolo_pose2d sample at the same timestamps
+2. use more reasonable method to define initial theta
 """
 # =============================================================================
 

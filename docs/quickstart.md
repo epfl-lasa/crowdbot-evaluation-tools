@@ -99,6 +99,7 @@
 5. evaluate the qolo and crowd data from algorithm result and extracted data
 
     ```shell
+    python3 qolo/eval_qolo_path.py --overwrite -f shared_test
     python3 qolo/eval_crowd.py --overwrite -f shared_test
     python3 qolo/eval_qolo.py --overwrite -f shared_test
     ```

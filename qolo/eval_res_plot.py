@@ -16,7 +16,6 @@ The module provides plotting functions to visualize evaluation results
 """
 TODO:
 1. cannot show correctly when `MAX=nan, MIN=-nan` occurs
-2. add start arror for starting point
 """
 # =============================================================================
 
@@ -24,6 +23,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+
 
 def save_cd_img(eval_dict, base_dir, seq_name):
     """save crowd_density plotting"""
@@ -139,7 +139,6 @@ def save_md_img(eval_dict, base_dir, seq_name):
     plt.savefig(md_img_path, dpi=300)  # png, pdf
 
 
-
 def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffix):
     ts = qolo_command_dict["timestamp"]
     start_ts = qolo_eval_dict.get("start_command_ts")
@@ -219,14 +218,16 @@ def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffi
     plt.close()
 
 
-def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
+def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     pose_x = qolo_pose2d.get("x")
     pose_y = qolo_pose2d.get("y")
-    duration2goal = time_path_computed[2]
-    path_length2goal = time_path_computed[3]
-    end_idx = time_path_computed[4]
-    min_dist2goal = time_path_computed[6]
-    goal_loc = time_path_computed[7]
+    pose_theta = qolo_pose2d.get("theta")
+
+    duration2goal = path_eval_dict['duration2goal']
+    path_length2goal = path_eval_dict['path_length2goal']
+    end_idx = path_eval_dict['end_idx']
+    min_dist2goal = path_eval_dict['min_dist2goal']
+    goal_loc = path_eval_dict['goal_loc']
 
     fig, ax = plt.subplots(figsize=(5, 3))
     ax.plot(
@@ -247,6 +248,21 @@ def save_path_img(qolo_pose2d, time_path_computed, base_dir, seq_name):
     ax.legend(fontsize="x-small")
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
+
+    # start arrow
+    arrow_len = 3.0
+    init_yaw = np.sum(pose_theta[9:19]) / 10.0  # pose_theta[0]
+    xy = (pose_x[0], pose_y[0])
+    dxy = (np.cos(init_yaw) * arrow_len, np.sin(init_yaw) * arrow_len)
+    xytext = tuple(map(sum, zip(xy, dxy)))
+
+    ax.annotate(
+        "",
+        xy=xy,
+        xytext=xytext,
+        arrowprops=dict(arrowstyle="<-", lw=1.0),
+        color='purple',
+    )
 
     # adjust plots with equal axis aspect ratios
     ax.axis("equal")
