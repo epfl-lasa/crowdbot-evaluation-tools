@@ -32,13 +32,13 @@ import matplotlib.pyplot as plt
 
 from crowdbot_data import CrowdBotDatabase
 from eval_res_plot import save_cd_img, save_md_img
-from metric_qplo_perf import compute_time_path
+from metric_qolo_perf import compute_time_path
 from metric_crowd import compute_crowd_metrics, compute_norm_prox
 
 
 #%% main function
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="convert data from rosbag")
+    parser = argparse.ArgumentParser(description="Evaluate crowd characteristics")
 
     parser.add_argument(
         "-f",
@@ -207,7 +207,7 @@ if __name__ == "__main__":
                 crowd_eval_dict.update({"start_command_ts": time_path_computed[0]})
                 crowd_eval_dict.update({"end_command_ts": time_path_computed[1]})
                 crowd_eval_dict.update({"duration2goal": time_path_computed[2]})
-                crowd_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
+                crowd_eval_dict.update({"path_length2goal": time_path_computed[3]})
                 crowd_eval_dict.update({"goal_reached": time_path_computed[5]})
                 crowd_eval_dict.update({"min_dist2goal": time_path_computed[6]})
 

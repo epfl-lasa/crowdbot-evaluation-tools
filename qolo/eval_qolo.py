@@ -29,8 +29,8 @@ import argparse
 import numpy as np
 
 from crowdbot_data import CrowdBotDatabase
-from eval_res_plot import save_motion_img, save_path_img
-from metric_qplo_perf import (
+from eval_res_plot import save_motion_img
+from metric_qolo_perf import (
     compute_time_path,
     compute_fluency,
     compute_agreement,
@@ -39,7 +39,7 @@ from metric_qplo_perf import (
 
 #%% main function
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="convert data from rosbag")
+    parser = argparse.ArgumentParser(description="Evaluate control performance")
 
     parser.add_argument(
         "-b",
@@ -153,10 +153,7 @@ if __name__ == "__main__":
         if args.replot:
             qolo_eval_npy = np.load(qolo_eval_npy, allow_pickle=True).item()
 
-            # figure1: path
-            save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
-
-            # figure2: viz twist, acc, jerk from qolo_command and qolo_state
+            # viz twist, acc, jerk from qolo_command and qolo_state
             save_motion_img(
                 qolo_command_dict,
                 qolo_eval_dict,
@@ -220,7 +217,7 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"start_command_ts": start_cmd_ts})
                 qolo_eval_dict.update({"end_command_ts": end_cmd_ts})
                 qolo_eval_dict.update({"duration2goal": time_path_computed[2]})
-                qolo_eval_dict.update({"path_lenth2goal": time_path_computed[3]})
+                qolo_eval_dict.update({"path_length2goal": time_path_computed[3]})
                 qolo_eval_dict.update({"goal_reached": time_path_computed[5]})
                 qolo_eval_dict.update({"min_dist2goal": time_path_computed[6]})
                 qolo_eval_dict.update({"rel_duration2goal": time_path_computed[8]})
@@ -229,10 +226,7 @@ if __name__ == "__main__":
                 np.save(qolo_eval_npy, qolo_eval_dict)
 
                 if args.save_img:
-                    # figure1: path
-                    save_path_img(qolo_pose2d, time_path_computed, eval_res_dir, seq)
-
-                    # figure2: viz twist, acc, jerk
+                    # viz twist, acc, jerk from qolo_command and qolo_state
                     save_motion_img(
                         qolo_command_dict,
                         qolo_eval_dict,
