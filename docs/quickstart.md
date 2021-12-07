@@ -23,7 +23,7 @@
 
 ## Simplified starting commands
 
-1. Set direcroty in `data/data.yaml`
+1. Set direcroty in `data/data_path.yaml`
 
     ```yaml
     bagbase_dir: /hdd/data_qolo/crowd_qolo_recordings/

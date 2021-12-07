@@ -23,7 +23,7 @@ from pathlib import Path
 
 
 class CrowdBotData(object):
-    DEFAULT_CONFIG_PATH = os.path.join(Path(__file__).parents[1], 'data/data.yaml')
+    DEFAULT_CONFIG_PATH = os.path.join(Path(__file__).parents[1], 'data/data_path.yaml')
 
     def __init__(self, config=DEFAULT_CONFIG_PATH):
         self.config = config

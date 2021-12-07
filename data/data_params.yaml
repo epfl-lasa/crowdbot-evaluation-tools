@@ -1,0 +1,45 @@
+1203:
+  shared_control:
+    goal_dist: 30.0
+    vel_user_max: 1.2
+    omega_user_max: 1.0
+  manual:
+    goal_dist: 30.0
+    vel_user_max: 0.7
+    omega_user_max: 0.7
+0424:
+  shared_control:
+    goal_dist: 20.0
+    vel_user_max: 1.2
+    omega_user_max: 4.124
+  rds:
+    goal_dist: 20.0
+    vel_user_max: 0.9
+    omega_user_max: 1.031
+  mds:
+    goal_dist: 20.0
+    vel_user_max: 0.9
+    omega_user_max: 1.031
+0410:
+  shared_control:
+    goal_dist: 20.0
+    vel_user_max: 1.2
+    omega_user_max: 4.124
+  rds:
+    goal_dist: 20.0
+    vel_user_max: 0.9
+    omega_user_max: 1.031
+  mds:
+    goal_dist: 20.0
+    vel_user_max: 0.9
+    omega_user_max: 1.031
+0327:
+  shared_control:
+    goal_dist: 40.0
+    vel_user_max: 1.2
+    omega_user_max: 1.0
+0325:
+  shared_control:
+    goal_dist: 40.0
+    vel_user_max: 1.2
+    omega_user_max: 1.0
