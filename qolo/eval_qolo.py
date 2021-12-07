@@ -20,6 +20,7 @@ The emulation results is exported with suffix as "_qolo_eval.npy".
 """
 TODO:
 1. check data source from pose2d (odom) or tf_qolo
+2. use try/catch when loading files
 """
 # =============================================================================
 
@@ -31,7 +32,6 @@ import numpy as np
 from crowdbot_data import CrowdBotDatabase
 from eval_res_plot import save_motion_img
 from metric_qolo_perf import (
-    compute_time_path,
     compute_fluency,
     compute_agreement,
     compute_relative_jerk,
@@ -143,8 +143,11 @@ if __name__ == "__main__":
             print("ERROR: Please extract twist_stamped by using commands2npy.py")
         cmd_raw_dict = np.load(cmd_raw_filepath, allow_pickle=True).item()
 
-        # 1. compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
-        time_path_computed = compute_time_path(qolo_twist, qolo_pose2d, args.goal_dist)
+        # load _path_eval.npy
+        path_eval_filepath = os.path.join(eval_res_dir, seq + "_path_eval.npy")
+        if not os.path.exists(path_eval_filepath):
+            print("ERROR: Please extract twist_stamped by using eval_qolo_path.py")
+        path_eval_dict = np.load(path_eval_filepath, allow_pickle=True).item()
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
         qolo_eval_npy = os.path.join(eval_res_dir, seq + "_qolo_eval.npy")
@@ -156,14 +159,14 @@ if __name__ == "__main__":
             # viz twist, acc, jerk from qolo_command and qolo_state
             save_motion_img(
                 qolo_command_dict,
-                qolo_eval_dict,
+                path_eval_dict,
                 eval_res_dir,
                 seq,
                 suffix="_qolo_command",
             )
             save_motion_img(
                 qolo_state_dict,
-                qolo_eval_dict,
+                path_eval_dict,
                 eval_res_dir,
                 seq,
                 suffix="_qolo_state",
@@ -178,8 +181,8 @@ if __name__ == "__main__":
                 lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
                 ts = lidar_stamped_dict.item().get("timestamp")
 
-                start_cmd_ts = time_path_computed[0]
-                end_cmd_ts = time_path_computed[1]
+                start_cmd_ts = path_eval_dict["start_command_ts"]
+                end_cmd_ts = path_eval_dict["end_command_ts"]
 
                 attrs = ("jerk", "agreement", "fluency")
 
@@ -213,30 +216,20 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"avg_linear_diff": agreement_contri[5]})
                 qolo_eval_dict.update({"avg_angular_diff": agreement_contri[7]})
 
-                # 4. add path related-metrics
-                qolo_eval_dict.update({"start_command_ts": start_cmd_ts})
-                qolo_eval_dict.update({"end_command_ts": end_cmd_ts})
-                qolo_eval_dict.update({"duration2goal": time_path_computed[2]})
-                qolo_eval_dict.update({"path_length2goal": time_path_computed[3]})
-                qolo_eval_dict.update({"goal_reached": time_path_computed[5]})
-                qolo_eval_dict.update({"min_dist2goal": time_path_computed[6]})
-                qolo_eval_dict.update({"rel_duration2goal": time_path_computed[8]})
-                qolo_eval_dict.update({"rel_path_length2goal": time_path_computed[9]})
-
                 np.save(qolo_eval_npy, qolo_eval_dict)
 
                 if args.save_img:
                     # viz twist, acc, jerk from qolo_command and qolo_state
                     save_motion_img(
                         qolo_command_dict,
-                        qolo_eval_dict,
+                        path_eval_dict,
                         eval_res_dir,
                         seq,
                         suffix="_qolo_command",
                     )
                     save_motion_img(
                         qolo_state_dict,
-                        qolo_eval_dict,
+                        path_eval_dict,
                         eval_res_dir,
                         seq,
                         suffix="_qolo_state",

@@ -20,6 +20,7 @@ The emulation results is exported with suffix as "_crowd_eval.npy".
 TODO:
 1. compare with detected pedestrain from the rosbag!
 2. speed up `compute_crowd_metrics`
+3. use try/catch when loading files
 """
 # =============================================================================
 
@@ -32,7 +33,6 @@ import matplotlib.pyplot as plt
 
 from crowdbot_data import CrowdBotDatabase
 from eval_res_plot import save_cd_img, save_md_img
-from metric_qolo_perf import compute_time_path
 from metric_crowd import compute_crowd_metrics, compute_norm_prox
 
 
@@ -105,8 +105,11 @@ if __name__ == "__main__":
             print("ERROR: Please extract pose2d by using pose2d2npy.py")
         qolo_pose2d = np.load(qolo_pose2d_path, allow_pickle=True).item()
 
-        # compute (start_ts, end_idx, end_ts, duration2goal, path_length2goal)
-        time_path_computed = compute_time_path(qolo_twist, qolo_pose2d, args.goal_dist)
+        # load _path_eval.npy
+        path_eval_filepath = os.path.join(eval_res_dir, seq + "_path_eval.npy")
+        if not os.path.exists(path_eval_filepath):
+            print("ERROR: Please extract twist_stamped by using eval_qolo_path.py")
+        path_eval_dict = np.load(path_eval_filepath, allow_pickle=True).item()
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
         crowd_eval_npy = os.path.join(eval_res_dir, seq + "_crowd_eval.npy")
@@ -116,10 +119,10 @@ if __name__ == "__main__":
             crowd_eval_dict = np.load(crowd_eval_npy, allow_pickle=True).item()
 
             # figure1: crowd density
-            save_cd_img(crowd_eval_dict, eval_res_dir, seq)
+            save_cd_img(crowd_eval_dict, path_eval_dict, eval_res_dir, seq)
 
             # figure2: min. dist.
-            save_md_img(crowd_eval_dict, eval_res_dir, seq)
+            save_md_img(crowd_eval_dict, path_eval_dict, eval_res_dir, seq)
 
             print("Replot images!")
         else:
@@ -202,23 +205,17 @@ if __name__ == "__main__":
                     {'std_crowd_density5': np.std(crowd_eval_dict['crowd_density5'])}
                 )
 
-                # other attributes from time_path_computed
+                # other attributes
                 crowd_eval_dict.update({"timestamp": ts})
-                crowd_eval_dict.update({"start_command_ts": time_path_computed[0]})
-                crowd_eval_dict.update({"end_command_ts": time_path_computed[1]})
-                crowd_eval_dict.update({"duration2goal": time_path_computed[2]})
-                crowd_eval_dict.update({"path_length2goal": time_path_computed[3]})
-                crowd_eval_dict.update({"goal_reached": time_path_computed[5]})
-                crowd_eval_dict.update({"min_dist2goal": time_path_computed[6]})
 
                 np.save(crowd_eval_npy, crowd_eval_dict)
 
                 if args.save_img:
                     # figure1: crowd density
-                    save_cd_img(crowd_eval_dict, eval_res_dir, seq)
+                    save_cd_img(crowd_eval_dict, path_eval_dict, eval_res_dir, seq)
 
                     # figure2: min. dist.
-                    save_md_img(crowd_eval_dict, eval_res_dir, seq)
+                    save_md_img(crowd_eval_dict, path_eval_dict, eval_res_dir, seq)
 
             else:
                 print(

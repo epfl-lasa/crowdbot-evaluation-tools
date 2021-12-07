@@ -17,7 +17,6 @@ shared control performance of qolo.
 """
 TODO:
 1. use qolo_twist and qolo_pose2d sample at the same timestamps
-2. use more reasonable method to define initial theta
 """
 # =============================================================================
 
@@ -44,10 +43,12 @@ def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
     pose_ts = qolo_pose2d.get("timestamp")
     pose_x = qolo_pose2d.get("x")
     pose_y = qolo_pose2d.get("y")
-    theta = qolo_pose2d.get("theta")
+    pose_theta = qolo_pose2d.get("theta")
 
-    angle_init = np.sum(theta[9:19]) / 10.0
-    goal_loc = np.array([np.cos(angle_init), np.sin(angle_init)]) * goal_dist
+    # init_yaw = np.sum(pose_theta[9:19]) / 10.0
+    avg_num = 10
+    init_yaw = np.sum(pose_theta[start_idx : start_idx + avg_num]) / avg_num
+    goal_loc = np.array([np.cos(init_yaw), np.sin(init_yaw)]) * goal_dist
 
     # 3. determine when the closest point to the goal
     goal_reached = False
@@ -103,18 +104,19 @@ def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
     rel_duration2goal = theory_duration2goal / duration2goal
     rel_path_length2goal = path_length2goal / l_goal
 
-    return (
-        start_ts,
-        end_ts,
-        duration2goal,
-        path_length2goal,
-        end_idx,
-        goal_reached,
-        min_dist2goal,
-        goal_loc,
-        rel_duration2goal,
-        rel_path_length2goal,
-    )
+    return {
+        "start_command_ts": start_ts,
+        "end_command_ts": end_ts,
+        "start_idx": start_idx,
+        "end_idx": end_idx,
+        "goal_loc": goal_loc,
+        "goal_reached": goal_reached,
+        "min_dist2goal": min_dist2goal,
+        "duration2goal": duration2goal,
+        "path_length2goal": path_length2goal,
+        "rel_duration2goal": rel_duration2goal,
+        "rel_path_length2goal": rel_path_length2goal,
+    }
 
 
 def compute_relative_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
@@ -295,12 +297,12 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
                 # print(u_robot[idx, :])
                 #     print(contribution_vec[-1])
             else:
-                if (u_diff[idx, 0] < -u_diff[idx, 1]) or (
-                    -u_diff[idx, 0] > u_diff[idx, 1]
-                ):
-                    print(idx)
-                    print("human cmd", u_human[idx, :])
-                    print("robot cmd", u_robot[idx, :])
+                # if (u_diff[idx, 0] < -u_diff[idx, 1]) or (
+                #     -u_diff[idx, 0] > u_diff[idx, 1]
+                # ):
+                #     print(idx)
+                #     print("human cmd", u_human[idx, :])
+                #     print("robot cmd", u_robot[idx, :])
 
                 if (u_human[idx, 0] == 0) and (u_human[idx, 1] == 0):
                     if np.nonzero(u_human[idx, :]):

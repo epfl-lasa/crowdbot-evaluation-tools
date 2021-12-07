@@ -1,3 +1,8 @@
+0000:
+  test:
+    goal_dist: 30.0
+    vel_user_max: 0.7
+    omega_user_max: 0.7
 1203:
   shared_control:
     goal_dist: 30.0

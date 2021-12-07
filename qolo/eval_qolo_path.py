@@ -19,6 +19,7 @@ The emulation results is exported with suffix as "_path_eval.npy".
 """
 TODO:
 1. change goal_dist according to `data_params.yaml`
+2. use try/catch when loading files
 """
 # =============================================================================
 
@@ -128,41 +129,9 @@ if __name__ == "__main__":
         else:
             if (not os.path.exists(path_eval_npy)) or (args.overwrite):
 
-                """
-                time_path_computed = (
-                start_ts,
-                end_ts,
-                duration2goal,
-                path_length2goal,
-                end_idx,
-                goal_reached,
-                min_dist2goal,
-                goal_loc,
-                rel_duration2goal,
-                rel_path_length2goal,
-                )
-                """
-                time_path_computed = compute_time_path(
+                path_eval_dict = compute_time_path(
                     qolo_twist, qolo_pose2d, args.goal_dist
                 )
-
-                path_eval_dict = dict()
-
-                # timestamp can be read from lidars/ folder
-                stamp_file_path = os.path.join(cb_data.lidar_dir, seq + "_stamped.npy")
-                lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
-                lidar_ts = lidar_stamped_dict.item().get("timestamp")
-
-                path_eval_dict.update({"start_command_ts": time_path_computed[0]})
-                path_eval_dict.update({"end_command_ts": time_path_computed[1]})
-                path_eval_dict.update({"duration2goal": time_path_computed[2]})
-                path_eval_dict.update({"path_length2goal": time_path_computed[3]})
-                path_eval_dict.update({"end_idx": time_path_computed[4]})
-                path_eval_dict.update({"goal_reached": time_path_computed[5]})
-                path_eval_dict.update({"min_dist2goal": time_path_computed[6]})
-                path_eval_dict.update({"goal_loc": time_path_computed[7]})
-                path_eval_dict.update({"rel_duration2goal": time_path_computed[8]})
-                path_eval_dict.update({"rel_path_length2goal": time_path_computed[9]})
 
                 np.save(path_eval_npy, path_eval_dict)
 

@@ -25,15 +25,15 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-def save_cd_img(eval_dict, base_dir, seq_name):
+def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     """save crowd_density plotting"""
 
     # unpack md data from eval_dict
-    ts = eval_dict.get("timestamp")
-    cd5 = eval_dict.get("crowd_density5")
-    cd10 = eval_dict.get("crowd_density10")
-    start_ts = eval_dict.get("start_command_ts")
-    duration2goal = eval_dict.get("duration2goal")
+    ts = crowd_eval_dict.get("timestamp")
+    cd5 = crowd_eval_dict.get("crowd_density5")
+    cd10 = crowd_eval_dict.get("crowd_density10")
+    start_ts = path_eval_dict.get("start_command_ts")
+    duration2goal = path_eval_dict.get("duration2goal")
 
     duration = np.max(ts) - np.min(ts)
 
@@ -78,14 +78,14 @@ def save_cd_img(eval_dict, base_dir, seq_name):
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
 
 
-def save_md_img(eval_dict, base_dir, seq_name):
+def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     """save min_dist plotting"""
 
     # unpack md data from eval_dict
-    ts = eval_dict.get("timestamp")
-    md = eval_dict.get("min_dist")
-    start_ts = eval_dict.get("start_command_ts")
-    duration2goal = eval_dict.get("duration2goal")
+    ts = crowd_eval_dict.get("timestamp")
+    md = crowd_eval_dict.get("min_dist")
+    start_ts = path_eval_dict.get("start_command_ts")
+    duration2goal = path_eval_dict.get("duration2goal")
 
     duration = np.max(ts) - np.min(ts)
 
@@ -139,10 +139,10 @@ def save_md_img(eval_dict, base_dir, seq_name):
     plt.savefig(md_img_path, dpi=300)  # png, pdf
 
 
-def save_motion_img(qolo_command_dict, qolo_eval_dict, base_dir, seq_name, suffix):
+def save_motion_img(qolo_command_dict, path_eval_dict, base_dir, seq_name, suffix):
     ts = qolo_command_dict["timestamp"]
-    start_ts = qolo_eval_dict.get("start_command_ts")
-    duration2goal = qolo_eval_dict.get("duration2goal")
+    start_ts = path_eval_dict.get("start_command_ts")
+    duration2goal = path_eval_dict.get("duration2goal")
 
     new_start_ts = np.max([start_ts - np.min(ts), 0.0])
     new_end_ts = new_start_ts + duration2goal
@@ -225,6 +225,7 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
 
     duration2goal = path_eval_dict['duration2goal']
     path_length2goal = path_eval_dict['path_length2goal']
+    start_idx = path_eval_dict['start_idx']
     end_idx = path_eval_dict['end_idx']
     min_dist2goal = path_eval_dict['min_dist2goal']
     goal_loc = path_eval_dict['goal_loc']
@@ -233,7 +234,7 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     ax.plot(
         pose_x[:end_idx],
         pose_y[:end_idx],
-        "orangered",
+        "orange",
         linewidth=2,
         label="path (l=%.1f m, t=%.1f s)" % (path_length2goal, duration2goal),
     )
@@ -250,8 +251,10 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     ax.set_ylabel("y [m]")
 
     # start arrow
-    arrow_len = 3.0
-    init_yaw = np.sum(pose_theta[9:19]) / 10.0  # pose_theta[0]
+    arrow_len = 5.0
+    avg_num = 10
+    init_yaw = np.sum(pose_theta[start_idx : start_idx + avg_num]) / avg_num
+    # init_yaw = np.sum(pose_theta[9:19]) / 10.0  # pose_theta[0]
     xy = (pose_x[0], pose_y[0])
     dxy = (np.cos(init_yaw) * arrow_len, np.sin(init_yaw) * arrow_len)
     xytext = tuple(map(sum, zip(xy, dxy)))
@@ -260,7 +263,7 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
         "",
         xy=xy,
         xytext=xytext,
-        arrowprops=dict(arrowstyle="<-", lw=1.0),
+        arrowprops=dict(arrowstyle="<-", lw=2.0),
         color='purple',
     )
 
