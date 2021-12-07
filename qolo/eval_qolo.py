@@ -10,10 +10,8 @@
 """
 # =============================================================================
 """
-The module provides the evaluation pipeline includeing the computation of
-path efficiency and share control-related metrics (relative time to goal,
-relative time to goal, relative jerk, agreement, fluency and corresponding
-visualization.
+The module provides the evaluation pipeline to compute the share control-related
+metrics (relative jerk, agreement, fluency) and corresponding visualization.
 The emulation results is exported with suffix as "_qolo_eval.npy".
 """
 # =============================================================================
@@ -27,26 +25,38 @@ TODO:
 import os
 import argparse
 
+
 import numpy as np
 
-from crowdbot_data import CrowdBotDatabase
+from crowdbot_data import CrowdBotDatabase, CrowdbotExpParam, CROWDBOT_EVAL_TOOLKIT_DIR
 from eval_res_plot import save_motion_img
 from metric_qolo_perf import (
     compute_fluency,
-    compute_agreement,
+    compute_agree_contri,
     compute_relative_jerk,
 )
 
 #%% main function
 if __name__ == "__main__":
+
+    data_params_path = os.path.join(
+        CROWDBOT_EVAL_TOOLKIT_DIR, "data", "data_params.yaml"
+    )
+
     parser = argparse.ArgumentParser(description="Evaluate control performance")
 
     parser.add_argument(
         "-f",
         "--folder",
-        default="0421_mds",
+        default="0424_mds",
         type=str,
         help="different subfolder in rosbag/ dir",
+    )
+    parser.add_argument(
+        "--params_path",
+        default=data_params_path,
+        type=str,
+        help="path to dataset parameters",
     )
     parser.add_argument(
         "--save_img",
@@ -77,6 +87,18 @@ if __name__ == "__main__":
     cb_data = CrowdBotDatabase(args.folder)
 
     print("Starting evaluating qolo from {} sequences!".format(cb_data.nr_seqs()))
+
+    all_data_params = CrowdbotExpParam(args.params_path)
+    date = args.folder[:4]
+    control_type = args.folder[5:]
+    data_params = all_data_params.get_params(date, control_type)
+    # {'goal_dist': float, 'vel_user_max': float, 'omega_user_max': float}
+    print("# Experiment data:", date)
+    print("# Experiment control type:", control_type)
+    print("# Experiment settings:", data_params)
+
+    vel_user_max = data_params['vel_user_max']
+    omega_user_max = data_params['omega_user_max']
 
     eval_res_dir = os.path.join(cb_data.metrics_dir)
 
@@ -192,9 +214,13 @@ if __name__ == "__main__":
                 qolo_eval_dict.update({"std_fluency": fluency[1]})
 
                 # 4. agreement with command (sampled)
-                control_type = args.folder[5:]
-                agreement_contri = compute_agreement(
-                    cmd_raw_dict, start_cmd_ts, end_cmd_ts, control_type
+                agreement_contri = compute_agree_contri(
+                    cmd_raw_dict,
+                    start_cmd_ts,
+                    end_cmd_ts,
+                    control_type,
+                    vel_user_max,
+                    omega_user_max,
                 )
                 qolo_eval_dict.update({"contribution": agreement_contri[0]})
                 qolo_eval_dict.update({"avg_agreement": agreement_contri[1]})

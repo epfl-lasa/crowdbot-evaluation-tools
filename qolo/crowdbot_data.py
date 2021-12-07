@@ -21,26 +21,43 @@ import yaml
 import numpy as np
 from pathlib import Path
 
+CROWDBOT_EVAL_TOOLKIT_DIR = Path(__file__).parents[1]
+
+
+def read_yaml(yaml_file):
+    with open(yaml_file, encoding='utf-8') as f:
+        data = yaml.load(f.read(), Loader=yaml.FullLoader)
+    return data
+
+
+class CrowdbotExpParam:
+    """Class for extracting experiment parameter according to date and type"""
+
+    def __init__(self, file, encoding="utf-8"):
+        self.file = file
+        self.data = read_yaml(self.file)
+
+    def get_params(self, date, control_type):
+        return self.data[int(date)][control_type]
+
 
 class CrowdBotData(object):
-    DEFAULT_CONFIG_PATH = os.path.join(Path(__file__).parents[1], 'data/data_path.yaml')
+    """Class for extracting experiment parameter according to date and type"""
+
+    CROWDBOT_EVAL_TOOLKIT_DIR = Path(__file__).parents[1]
+    DEFAULT_CONFIG_PATH = os.path.join(CROWDBOT_EVAL_TOOLKIT_DIR, 'data/data_path.yaml')
 
     def __init__(self, config=DEFAULT_CONFIG_PATH):
         self.config = config
-        data_config = self.read_yaml()
+        data_config = read_yaml(self.config)
         self.bagbase_dir = data_config['bagbase_dir']
         self.outbase_dir = data_config['outbase_dir']
 
-    def read_yaml(self):
-        with open(self.config, encoding='utf-8') as f:
-            data = yaml.load(f.read(), Loader=yaml.FullLoader)
-        return data
-
     def write_yaml(self, data):
         """
-        :param yaml_path:
-        :param data:
-        :param encoding:
+        :param yaml_path
+        :param data
+        :param encoding
         """
         with open(self.config, 'w', encoding='utf-8') as f:
             yaml.dump(data, stream=f, allow_unicode=True)
@@ -53,7 +70,7 @@ class CrowdBotDatabase(CrowdBotData):
             super(CrowdBotDatabase, self).__init__()
         else:
             super(CrowdBotDatabase, self).__init__(config)
-        data_config = self.read_yaml()
+        data_config = read_yaml(self.config)
         self.bagbase_dir = data_config['bagbase_dir']
         self.outbase_dir = data_config['outbase_dir']
 

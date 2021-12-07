@@ -18,44 +18,41 @@ The emulation results is exported with suffix as "_path_eval.npy".
 # =============================================================================
 """
 TODO:
-1. change goal_dist according to `data_params.yaml`
-2. use try/except when loading files
+1. use try/except when loading files
 """
 # =============================================================================
 
 import os
 import argparse
+from pathlib import Path
 
 import numpy as np
 
-from crowdbot_data import CrowdBotDatabase
+from crowdbot_data import CrowdBotDatabase, CrowdbotExpParam, CROWDBOT_EVAL_TOOLKIT_DIR
 from eval_res_plot import save_path_img
 from metric_qolo_perf import compute_time_path
 
 #%% main function
 if __name__ == "__main__":
+
+    data_params_path = os.path.join(
+        CROWDBOT_EVAL_TOOLKIT_DIR, "data", "data_params.yaml"
+    )
+
     parser = argparse.ArgumentParser(description="Evaluate path efficiency")
 
     parser.add_argument(
-        "-b",
-        "--base",
-        default="/home/crowdbot/Documents/yujie/crowdbot_tools",
-        type=str,
-        help="base folder, i.e., the path of the current workspace",
-    )
-    parser.add_argument(
-        "-d",
-        "--data",
-        default="data",
-        type=str,
-        help="data folder, i.e., the name of folder that stored extracted raw data and processed data",
-    )
-    parser.add_argument(
         "-f",
         "--folder",
-        default="0421_mds",
+        default="0424_mds",
         type=str,
         help="different subfolder in rosbag/ dir",
+    )
+    parser.add_argument(
+        "--params_path",
+        default=data_params_path,
+        type=str,
+        help="path to dataset parameters",
     )
     parser.add_argument(
         "--save_img",
@@ -78,14 +75,20 @@ if __name__ == "__main__":
         help="Whether to re-plot existing images (default: false)",
     )
     parser.set_defaults(replot=False)
-    parser.add_argument(
-        "--goal_dist", default=20.0, type=float, help="The length to travel in the test"
-    )
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
 
     print("Starting evaluating qolo from {} sequences!".format(cb_data.nr_seqs()))
+
+    all_data_params = CrowdbotExpParam(args.params_path)
+    date = args.folder[:4]
+    control_type = args.folder[5:]
+    data_params = all_data_params.get_params(date, control_type)
+    # {'goal_dist': float, 'vel_user_max': float, 'omega_user_max': float}
+    print("# Experiment data:", date)
+    print("# Experiment control type:", control_type)
+    print("# Experiment settings:", data_params)
 
     eval_res_dir = os.path.join(cb_data.metrics_dir)
 
@@ -130,7 +133,7 @@ if __name__ == "__main__":
             if (not os.path.exists(path_eval_npy)) or (args.overwrite):
 
                 path_eval_dict = compute_time_path(
-                    qolo_twist, qolo_pose2d, args.goal_dist
+                    qolo_twist, qolo_pose2d, data_params["goal_dist"]
                 )
 
                 np.save(path_eval_npy, path_eval_dict)

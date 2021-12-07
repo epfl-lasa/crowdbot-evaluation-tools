@@ -14,11 +14,7 @@ The module provides functions to compute metrics about the path efficiency and
 shared control performance of qolo.
 """
 # =============================================================================
-"""
-TODO:
-1. use qolo_twist and qolo_pose2d sample at the same timestamps
-"""
-# =============================================================================
+
 
 import numpy as np
 
@@ -26,7 +22,7 @@ import numpy as np
 def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
     """Compute starting and ending timestamp and path"""
 
-    print("The length to travel in the test: {} m".format(goal_dist))
+    print("Distance to travel in the experiment: {} m".format(goal_dist))
 
     # 1. calculate starting timestamp based on nonzero twist command
     # starting: larger than zero
@@ -85,7 +81,6 @@ def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
         Lr=L_goal/L_crowd
         where L_crowd is the distance traveled by the robot
     """
-    # TODO: use qolo_twist and qolo_pose2d sample at the same timestamps
     vel_command_all = qolo_twist.get("x")
     twist_ts_all = qolo_twist.get("timestamp")
     start_vel_idx = start_idx
@@ -198,17 +193,27 @@ def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
 
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L222
 # qolo_command & qolo_human_desired (from to GUI) but not `qolo_state`
-def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
-    """compute real qolo velocity in reference to command"""
+def compute_agree_contri(
+    qolo_command,
+    start_cmd_ts,
+    end_cmd_ts,
+    control_type,
+    vel_user_max,
+    omega_user_max,
+):
+    """compute agreement and contribution for each type of control method"""
+
+    print(
+        "Nominal max velocity in the experiment: ({} m/s, {} rad/s)".format(
+            vel_user_max, omega_user_max
+        )
+    )
 
     # unpack data
     vel_user = qolo_command.get("nominal_linear")
     omega_user = qolo_command.get("nominal_angular")
     vel_robo = qolo_command.get("corrected_linear")
     omega_robo = qolo_command.get("corrected_linear")
-    # print(vel_user, omega_user)
-    # print(vel_robo, omega_robo)
-    # print(vel_robo.min(), omega_robo.min())
 
     # find start and ending timestamp
     cmd_ts = qolo_command.get("timestamp")
@@ -217,7 +222,6 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
         start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
     if cmd_ts.max() < end_cmd_ts:
         end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
-    # print(start_idx, end_idx)
 
     # only consider data within the operation duration
     vel_user = vel_user[start_idx:end_idx]
@@ -226,17 +230,15 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
     omega_robo = omega_robo[start_idx:end_idx]
 
     # normalized by max speed -> contribution
-    # vel_user_max, omega_user_max = np.max(np.abs(vel_user)), np.max(np.abs(omega_user))
-    # print(vel_user_max, omega_user_max)
-    # print("start_t/end_t:", start_cmd_ts - cmd_ts.min(), end_cmd_ts - cmd_ts.min())
-    if 'shared_control' in control_type:
-        vel_user_max, omega_user_max = 1.2, 4.124
-    elif 'rds' in control_type:
-        vel_user_max, omega_user_max = 0.9, 4.124 / 4
-    elif 'mds' in control_type:
-        vel_user_max, omega_user_max = 0.9, 4.124 / 4
-    elif 'test' in control_type:
-        vel_user_max, omega_user_max = 1.2, 1.0
+    # if 'shared_control' in control_type:
+    #     vel_user_max, omega_user_max = 1.2, 4.124
+    # elif 'rds' in control_type:
+    #     vel_user_max, omega_user_max = 0.9, 4.124 / 4
+    # elif 'mds' in control_type:
+    #     vel_user_max, omega_user_max = 0.9, 4.124 / 4
+    # elif 'test' in control_type:
+    #     vel_user_max, omega_user_max = 1.2, 1.0
+
     norm_vel_u = vel_user / vel_user_max
     norm_omega_u = omega_user / omega_user_max
     norm_vel_r = vel_robo / vel_user_max
@@ -265,11 +267,6 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
     cmd_diff_vw = np.column_stack((vel_diff, omega_diff))
     cmd_diff = np.linalg.norm(cmd_diff_vw, axis=1)
 
-    # agreement_data = agreement_vec.mean(), agreement_vec.std()
-    # cmd_diff_data = [np.mean(command_vec), np.std(command_vec)]
-    # linear_data = [vel_diff.mean(), vel_diff.std()]
-    # heading_data = [omega_diff.mean(), omega_diff.std()]
-
     # contribution
     contribution_vec = []
     u_human = np.vstack((norm_vel_u, norm_omega_u)).T  # human
@@ -278,7 +275,6 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
         u_diff = u_robot
     else:
         u_diff = u_human - u_robot
-    # print(u_human - u_robot)
     u_human_norm = np.linalg.norm(u_human, axis=1)
     u_diff_norm = np.linalg.norm(u_diff, axis=1)
     for idx in range(vel_user.shape[0]):
@@ -291,18 +287,7 @@ def compute_agreement(qolo_command, start_cmd_ts, end_cmd_ts, control_type):
                     contribution_vec.append(u_diff[idx, 0])
                 else:
                     contribution_vec.append(u_diff_norm[idx] / np.sqrt(2))
-                # print(contribution_vec[-1])
-                # if contribution_vec[-1] > 1.01:
-                # print("Larger than 1")
-                # print(u_robot[idx, :])
-                #     print(contribution_vec[-1])
             else:
-                # if (u_diff[idx, 0] < -u_diff[idx, 1]) or (
-                #     -u_diff[idx, 0] > u_diff[idx, 1]
-                # ):
-                #     print(idx)
-                #     print("human cmd", u_human[idx, :])
-                #     print("robot cmd", u_robot[idx, :])
 
                 if (u_human[idx, 0] == 0) and (u_human[idx, 1] == 0):
                     if np.nonzero(u_human[idx, :]):
