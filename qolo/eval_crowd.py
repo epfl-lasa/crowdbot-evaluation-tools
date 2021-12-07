@@ -20,7 +20,7 @@ The emulation results is exported with suffix as "_crowd_eval.npy".
 TODO:
 1. compare with detected pedestrain from the rosbag!
 2. speed up `compute_crowd_metrics`
-3. use try/catch when loading files
+3. use try/except when loading files
 """
 # =============================================================================
 
@@ -136,8 +136,10 @@ if __name__ == "__main__":
                 # targeted metrics and correspoding dtype
                 attrs = (
                     "all_det",
+                    "within_det3",
                     "within_det5",
                     "within_det10",
+                    "crowd_density3",
                     "crowd_density5",
                     "crowd_density10",
                     "min_dist",
@@ -146,6 +148,8 @@ if __name__ == "__main__":
                     np.uint8,
                     np.uint8,
                     np.uint8,
+                    np.uint8,
+                    np.float32,
                     np.float32,
                     np.float32,
                     np.float32,
@@ -164,13 +168,14 @@ if __name__ == "__main__":
 
                     if fr_idx % num_msgs_between_logs == 0 or fr_idx >= nr_frames - 1:
                         print(
-                            "Seq {}/{} - Frame {}/{}: filtered/overall boxes within 10m: {}/{}".format(
+                            "Seq {}/{} - Frame {}/{}: Crowd density within 3/5/10m: {:.2f} / {:.2f} / {:.2f}".format(
                                 seq_idx + 1,
                                 cb_data.nr_seqs(),
                                 fr_idx + 1,
                                 nr_frames,
-                                metrics[2],
-                                metrics[0],
+                                metrics[4],
+                                metrics[5],
+                                metrics[6],
                             )
                         )
 
@@ -178,8 +183,7 @@ if __name__ == "__main__":
                     for idx, val in enumerate(metrics):
                         crowd_eval_list_dict[attrs[idx]].append(val)
 
-                # TODO: only evaluate the metrics during operation
-
+                # evaluate the metrics through the sequence
                 crowd_eval_dict = {
                     name: np.asarray(crowd_eval_list_dict[attrs[idx]], dtype=dtype)
                     for idx, (name, dtype) in enumerate(zip(attrs, dtypes))

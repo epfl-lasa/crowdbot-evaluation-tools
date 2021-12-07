@@ -20,7 +20,7 @@ The emulation results is exported with suffix as "_qolo_eval.npy".
 """
 TODO:
 1. check data source from pose2d (odom) or tf_qolo
-2. use try/catch when loading files
+2. use try/except when loading files
 """
 # =============================================================================
 

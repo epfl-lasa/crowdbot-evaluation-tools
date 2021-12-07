@@ -19,7 +19,7 @@ The emulation results is exported with suffix as "_path_eval.npy".
 """
 TODO:
 1. change goal_dist according to `data_params.yaml`
-2. use try/catch when loading files
+2. use try/except when loading files
 """
 # =============================================================================
 
