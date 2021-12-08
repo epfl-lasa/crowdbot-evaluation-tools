@@ -6,15 +6,15 @@
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/crowdbot/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+__conda_setup="$('/home/crowdbot/miniconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
 if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
+  eval "$__conda_setup"
 else
-    if [ -f "/home/crowdbot/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/crowdbot/miniconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/crowdbot/miniconda3/bin:$PATH"
-    fi
+  if [ -f "/home/crowdbot/miniconda3/etc/profile.d/conda.sh" ]; then
+    . "/home/crowdbot/miniconda3/etc/profile.d/conda.sh"
+  else
+    export PATH="/home/crowdbot/miniconda3/bin:$PATH"
+  fi
 fi
 unset __conda_setup
 # <<< conda initialize <<<
@@ -25,17 +25,17 @@ readonly OUTPUT_DATABASE=$(python3 parse_yaml.py ../data/data_path.yaml --get ou
 
 for i in "$@"; do
   case $i in
-    -e=*|--env=*)
-      ENVIRONMENT="${i#*=}"
-      shift # past argument=value
-      ;;
-    -t=*|--type=*)
-      TYPE="${i#*=}"
-      shift # past argument=value
-      ;;
-    *)
-      # unknown option
-      ;;
+  -e=* | --env=*)
+    ENVIRONMENT="${i#*=}"
+    shift # past argument=value
+    ;;
+  -t=* | --type=*)
+    TYPE="${i#*=}"
+    shift # past argument=value
+    ;;
+  *)
+    # unknown option
+    ;;
   esac
 done
 echo "CONDA ENVIRONMENT  = ${ENVIRONMENT}"
@@ -59,6 +59,7 @@ python3 ../qolo/twist2npy.py --overwrite -f ${TYPE}
 python3 ../qolo/pose2d2npy.py --overwrite -f ${TYPE}
 
 echo "########## Evaluate the qolo performance given extracted data ##########"
+python3 ../qolo/eval_qolo_path.py --overwrite -f ${TYPE}
 python3 ../qolo/eval_qolo.py --overwrite -f ${TYPE}
 
 echo "########## Finished!!! ##########"
