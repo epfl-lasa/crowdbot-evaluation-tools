@@ -36,7 +36,7 @@ from process_util import ts_to_sec
 def extract_pose2d_from_rosbag(bag_file_path, args):
     """extract pose2d from rosbag without rosbag play"""
     pose2d_msg_sum = 0
-    num_msgs_between_logs = 100
+    num_msgs_between_logs = 1000
     x_list, y_list, theta_list, t_list = [], [], [], []
 
     with rosbag.Bag(bag_file_path, "r") as bag:

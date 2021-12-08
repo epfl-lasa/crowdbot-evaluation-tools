@@ -29,7 +29,7 @@ import argparse
 import numpy as np
 
 from crowdbot_data import CrowdBotDatabase, CrowdbotExpParam, CROWDBOT_EVAL_TOOLKIT_DIR
-from eval_res_plot import save_motion_img
+from eval_res_plot import save_motion_img, save_twist_cmd_img
 from metric_qolo_perf import (
     compute_fluency,
     compute_agree_contri,
@@ -163,6 +163,14 @@ if __name__ == "__main__":
         # only for plotting function update!
         if args.replot:
             qolo_eval_npy = np.load(qolo_eval_npy, allow_pickle=True).item()
+
+            # save_twist_cmd_img(
+            #     qolo_twist,
+            #     cmd_raw_dict,
+            #     eval_res_dir,
+            #     seq,
+            #     suffix="_twist_toGui_comp",
+            # )
 
             # viz twist, acc, jerk from qolo_command and qolo_state
             save_motion_img(

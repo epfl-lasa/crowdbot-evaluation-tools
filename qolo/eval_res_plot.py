@@ -26,7 +26,62 @@ import matplotlib.patches as mpatches
 
 
 def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
-    """save crowd_density plotting"""
+    """save crowd_density (3m, 5m, and 10m) plotting"""
+
+    # unpack md data from eval_dict
+    ts = crowd_eval_dict.get("timestamp")
+    cd3 = crowd_eval_dict.get("crowd_density3")
+    cd5 = crowd_eval_dict.get("crowd_density5")
+    cd10 = crowd_eval_dict.get("crowd_density10")
+    start_ts = path_eval_dict.get("start_command_ts")
+    duration2goal = path_eval_dict.get("duration2goal")
+
+    duration = np.max(ts) - np.min(ts)
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    # crowd_density chart
+    (l1,) = ax.plot(ts - np.min(ts), cd3, linewidth=1, color="tomato", label="3 m")
+    (l2,) = ax.plot(ts - np.min(ts), cd5, linewidth=1, color="limegreen", label="5 m")
+    (l3,) = ax.plot(ts - np.min(ts), cd10, linewidth=1, color="violet", label="10 m")
+
+    # start_ts vertical line
+    new_start_ts = np.max([start_ts - np.min(ts), 0.0])
+    ax.axvline(x=new_start_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_start_ts + 1,
+        y=0.60,
+        s="$t_s$={0:.1f}s".format(new_start_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+    new_end_ts = new_start_ts + duration2goal
+    ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_end_ts + 1,
+        y=0.60,
+        s="$t_e$={0:.1f}s".format(new_end_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+
+    ax.legend(handles=[l1, l2, l3], ncol=1, loc="upper right", fontsize="x-small")
+    ax.set_title(
+        "Crowd Density within x [m] of qolo ({0:.1f}s)".format(duration), fontsize=15
+    )
+    _ = ax.set_xlabel("t [s]")
+    _ = ax.set_ylabel("Density [1/$m^2$]")
+
+    ax.set_xlim(left=0.0)
+    ax.set_ylim(bottom=0.0, top=0.8)
+
+    fig.tight_layout()
+    cd_img_path = os.path.join(base_dir, seq_name + "_crowd_density.png")
+    plt.savefig(cd_img_path, dpi=300)  # png, pdf
+
+
+def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
+    """save crowd_density (5m and 10m)  plotting"""
 
     # unpack md data from eval_dict
     ts = crowd_eval_dict.get("timestamp")
@@ -137,6 +192,35 @@ def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     fig.tight_layout()
     md_img_path = os.path.join(base_dir, seq_name + "_min_dist.png")
     plt.savefig(md_img_path, dpi=300)  # png, pdf
+
+
+def save_twist_cmd_img(
+    qolo_twist, cmd_raw_dict, base_dir, seq_name, suffix="_twist_toGui_comp"
+):
+    """
+    Only for debug:
+    linear vel in twist = corrected_linear in rds_to_gui
+    angular vel in twist = corrected_angular in rds_to_gui
+    """
+    twist_ts = qolo_twist["timestamp"]
+    cmd_ts = cmd_raw_dict["timestamp"]
+    min_ts = np.min([twist_ts.min(), cmd_ts.min()])
+    new_twist_ts = twist_ts - min_ts
+    new_cmd_ts = cmd_ts - min_ts
+    fig, ax = plt.subplots(1, 2, sharex="col", figsize=(10, 4))
+    ax[0].plot(new_twist_ts, qolo_twist["x"], 'r', linewidth=2)
+    ax[0].plot(new_cmd_ts, cmd_raw_dict["nominal_linear"], 'g:')
+    ax[0].plot(new_cmd_ts, cmd_raw_dict["corrected_linear"], 'b--', linewidth=2)
+
+    ax[1].plot(new_twist_ts, qolo_twist["zrot"], 'r', linewidth=2)
+    ax[1].plot(new_cmd_ts, cmd_raw_dict["nominal_angular"], 'g:')
+    ax[1].plot(new_cmd_ts, cmd_raw_dict["corrected_angular"], 'b--', linewidth=2)
+
+    fig.tight_layout()
+    qolo_img_path = os.path.join(base_dir, seq_name + suffix + ".png")
+    plt.savefig(qolo_img_path, dpi=300)  # png, pdf
+
+    plt.close()
 
 
 def save_motion_img(qolo_command_dict, path_eval_dict, base_dir, seq_name, suffix):
