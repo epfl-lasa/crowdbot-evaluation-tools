@@ -26,7 +26,7 @@ TODO:
 
 import os
 import argparse
-
+import math
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -34,6 +34,12 @@ import matplotlib.pyplot as plt
 from crowdbot_data import CrowdBotDatabase
 from eval_res_plot import save_cd_img, save_md_img
 from metric_crowd import compute_crowd_metrics, compute_norm_prox
+
+# cross-zero checking: https://stackoverflow.com/a/29674950/7961693
+def zero_crossing_check(data):
+    crossing_idx = np.where(np.diff(np.signbit(data)))[0]
+    less_than_zero = math.ceil(float(crossing_idx.shape[0]) / 2)
+    return less_than_zero
 
 
 #%% main function
@@ -136,9 +142,11 @@ if __name__ == "__main__":
                 # targeted metrics and correspoding dtype
                 attrs = (
                     "all_det",
+                    "within_det2_5",
                     "within_det3",
                     "within_det5",
                     "within_det10",
+                    "crowd_density2_5",
                     "crowd_density3",
                     "crowd_density5",
                     "crowd_density10",
@@ -149,6 +157,8 @@ if __name__ == "__main__":
                     np.uint8,
                     np.uint8,
                     np.uint8,
+                    np.uint8,
+                    np.float32,
                     np.float32,
                     np.float32,
                     np.float32,
@@ -168,14 +178,15 @@ if __name__ == "__main__":
 
                     if fr_idx % num_msgs_between_logs == 0 or fr_idx >= nr_frames - 1:
                         print(
-                            "Seq {}/{} - Frame {}/{}: Crowd density within 3/5/10m: {:.2f} / {:.2f} / {:.2f}".format(
+                            "Seq {}/{} - Frame {}/{}: Crowd density within 2.5/3/5/10m: {:.2f} / {:.2f} / {:.2f} / {:.2f}".format(
                                 seq_idx + 1,
                                 cb_data.nr_seqs(),
                                 fr_idx + 1,
                                 nr_frames,
-                                metrics[4],
                                 metrics[5],
                                 metrics[6],
+                                metrics[7],
+                                metrics[8],
                             )
                         )
 
@@ -194,14 +205,42 @@ if __name__ == "__main__":
                     {"normalized_proximity": compute_norm_prox(metrics[5])}
                 )
 
-                # avg_min_dict = np.average(crowd_eval_dict['min_dict'])
+                # calculate the avg for each matrix except avg_min_dist
                 for attr in attrs:
+                    if attr == "min_dist":
+                        continue
                     avg_attr = "avg_" + attr
                     crowd_eval_dict.update(
                         {avg_attr: np.average(crowd_eval_dict[attr])}
                     )
 
-                # max and std of crowd density within 5m
+                # calculate avg_min_dist
+                # only consider the point that more than zero
+                min_dist_list = np.array(crowd_eval_dict["min_dist"])
+                min_dist_list = min_dist_list[min_dist_list > 0]
+                avg_min_dist = np.sum(min_dist_list) / min_dist_list.shape[0]
+                # consider the number of crossing zero from positive to negative
+                virtual_collision = zero_crossing_check(min_dist_list)
+
+                crowd_eval_dict.update({'avg_min_dist': avg_min_dist})
+                crowd_eval_dict.update({'virtual_collision': virtual_collision})
+
+                # max and std of crowd density within 2.5m/5m
+                crowd_eval_dict.update(
+                    {
+                        'max_crowd_density2_5': np.max(
+                            crowd_eval_dict['crowd_density2_5']
+                        )
+                    }
+                )
+                crowd_eval_dict.update(
+                    {
+                        'std_crowd_density2_5': np.std(
+                            crowd_eval_dict['crowd_density2_5']
+                        )
+                    }
+                )
+
                 crowd_eval_dict.update(
                     {'max_crowd_density5': np.max(crowd_eval_dict['crowd_density5'])}
                 )

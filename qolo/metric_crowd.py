@@ -64,23 +64,28 @@ def compute_crowd_metrics(bbox):
         all_dist_capsuled[idx] = capsule_qolo.distanceLocal(x_dist, y_dist)
 
     # 2. within_det
+    within_det2_5 = np.sum(np.less(all_dist, 2.5))
     within_det3 = np.sum(np.less(all_dist, 3.0))
     within_det5 = np.sum(np.less(all_dist, 5.0))
     within_det10 = np.sum(np.less(all_dist, 10.0))
 
     # 3. min_dist/proximity: all_dist_capsuled or all_dist
+    # only consider the dist larger than )
     min_dist = min(all_dist_capsuled)
 
     # 4. crowd_density
+    crowd_density2_5 = within_det2_5 / (np.pi * 2.5 ** 2)
     crowd_density3 = within_det3 / (np.pi * 3.0 ** 2)
     crowd_density5 = within_det5 / (np.pi * 5.0 ** 2)
     crowd_density10 = within_det10 / (np.pi * 10.0 ** 2)
 
     return (
         all_det,
+        within_det2_5,
         within_det3,
         within_det5,
         within_det10,
+        crowd_density2_5,
         crowd_density3,
         crowd_density5,
         crowd_density10,
