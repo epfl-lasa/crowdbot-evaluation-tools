@@ -38,7 +38,7 @@ class CrowdbotExpParam:
         self.data = read_yaml(self.file)
 
     def get_params(self, date, control_type):
-        return self.data[int(date)][control_type]
+        return self.data[date][control_type]
 
 
 class CrowdBotData(object):
