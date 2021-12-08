@@ -124,6 +124,7 @@ def categorical_plot(
     lgd_labels=None,
     loc='lower right',
     kind='violin',
+    titlefontsz=12,
 ):
 
     sns.set_theme(style="whitegrid")
@@ -131,7 +132,7 @@ def categorical_plot(
     # fmt: off
     # use stripplot (less points) instead of swarmplot to handle many datapoints
     sns.swarmplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
-                  size=9, alpha=0.8, palette="colorblind",
+                  size=6, alpha=0.8, palette="colorblind",
                   edgecolor='black', dodge=True,
                  )
     if kind == 'violin':
@@ -168,7 +169,7 @@ def categorical_plot(
         else:
             axes.legend(handles=handout, labels=lablout, loc=loc)
 
-    axes.set_title(title)
+    axes.set_title(title, fontweight='bold', fontsize=titlefontsz)
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_ylim(bottom=ylim[0], top=ylim[1])
