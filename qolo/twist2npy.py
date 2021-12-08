@@ -50,28 +50,60 @@ def extract_twist_from_rosbag(bag_file_path, args):
                     args.twist_topic, total_num_twist_msgs
                 )
             )
-        else:
-            print("There is no messages inside {} topic".format(args.twist_topic))
 
-        for topic, msg, t in bag.read_messages():
-            if topic == args.twist_topic:
-                x_vel = msg.twist.linear.x
-                zrot_vel = msg.twist.angular.z
-                ts_vel = ts_to_sec(msg.header.stamp)
-                x_list.append(x_vel)
-                zrot_list.append(zrot_vel)
-                t_list.append(ts_vel)
+            for topic, msg, t in bag.read_messages():
+                if topic == args.twist_topic:
+                    x_vel = msg.twist.linear.x
+                    zrot_vel = msg.twist.angular.z
+                    ts_vel = ts_to_sec(msg.header.stamp)
+                    x_list.append(x_vel)
+                    zrot_list.append(zrot_vel)
+                    t_list.append(ts_vel)
 
-                if (
-                    twist_msg_sum % num_msgs_between_logs == 0
-                    or twist_msg_sum >= total_num_twist_msgs - 1
-                ):
-                    print(
-                        "twist messages: {} / {}".format(
-                            twist_msg_sum + 1, total_num_twist_msgs
+                    if (
+                        twist_msg_sum % num_msgs_between_logs == 0
+                        or twist_msg_sum >= total_num_twist_msgs - 1
+                    ):
+                        print(
+                            "twist messages: {} / {}".format(
+                                twist_msg_sum + 1, total_num_twist_msgs
+                            )
                         )
+                    twist_msg_sum += 1
+        else:
+            print("Warning: No twist detected => use commands (rds_to_gui) instead")
+            print("linear vel in twist equals to corrected_linear in rds_to_gui")
+            print("angular vel in twist equals to corrected_angular in rds_to_gui")
+            total_num_twist_msgs = bag.get_message_count(
+                topic_filters=args.to_gui_topic
+            )
+            if total_num_twist_msgs > 0:
+                print(
+                    "Found commands topic: {} with {} messages".format(
+                        args.to_gui_topic, total_num_twist_msgs
                     )
-                twist_msg_sum += 1
+                )
+                for topic, msg, t in bag.read_messages():
+                    if topic == args.to_gui_topic:
+                        x_vel = msg.corrected_command.linear
+                        zrot_vel = msg.corrected_command.angular
+                        ts_vel = ts_to_sec(t)
+                        x_list.append(x_vel)
+                        zrot_list.append(zrot_vel)
+                        t_list.append(ts_vel)
+
+                        if (
+                            twist_msg_sum % num_msgs_between_logs == 0
+                            or twist_msg_sum >= total_num_twist_msgs - 1
+                        ):
+                            print(
+                                "twist messages: {} / {}".format(
+                                    twist_msg_sum + 1, total_num_twist_msgs
+                                )
+                            )
+                        twist_msg_sum += 1
+            else:
+                print("Error: No commands topic found as well!!!")
 
     t_np = np.asarray(t_list, dtype=np.float64)
     x_np = np.asarray(x_list, dtype=np.float64)
@@ -118,12 +150,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="0325_shared_control",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
     parser.add_argument(
         "--twist_topic", default="/qolo/twist", type=str, help="topic for qolo twist"
+    )
+    parser.add_argument(
+        "--to_gui_topic",
+        default="/rds_to_gui",
+        type=str,
+        help="topic for qolo rds_to_gui",
     )
     parser.add_argument(
         "--overwrite",
@@ -207,7 +245,7 @@ if __name__ == "__main__":
             # jerk_sampled
             jerk_sampled_dict = compute_motion_derivative(acc_sampled_dict)
             print(
-                "NaN index in x_jerk: {}\nNaN index in zrot_acc: {}".format(
+                "NaN index in x_jerk: {}\nNaN index in zrot_jerk: {}".format(
                     np.squeeze(np.argwhere(np.isnan(jerk_sampled_dict["x"]))),
                     np.squeeze(np.argwhere(np.isnan(jerk_sampled_dict["zrot"]))),
                 ),
