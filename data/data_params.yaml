@@ -39,11 +39,11 @@
     omega_user_max: 1.031
 "0327":
   shared_control:
-    goal_dist: 40.0
+    goal_dist: 30.0
     vel_user_max: 1.2
     omega_user_max: 1.0
 "0325":
   shared_control:
-    goal_dist: 40.0
+    goal_dist: 30.0
     vel_user_max: 1.2
     omega_user_max: 1.0
