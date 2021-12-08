@@ -33,6 +33,16 @@ from crowdbot_data import CrowdBotDatabase, bag_file_filter
 from process_util import interp_translation, compute_motion_derivative, ts_to_sec
 
 
+def check_zero_diff(src_list):
+
+    total_len = src_list.shape[0]
+    diff = np.diff(src_list)
+    zero_diff = diff[diff == 0.0]
+    zero_diff_len = zero_diff.shape[0]
+
+    print("Zero_diff: {}/{}".format(zero_diff_len, total_len))
+
+
 #%% Utility function for extraction twist_stamped from rosbag and apply interpolation
 def extract_twist_from_rosbag(bag_file_path, args):
     """Extract twist_stamped from rosbag without rosbag play"""
@@ -92,6 +102,8 @@ def extract_twist_from_rosbag(bag_file_path, args):
                         zrot_list.append(zrot_vel)
                         t_list.append(ts_vel)
 
+                        print(ts_vel, x_vel, zrot_vel)
+
                         if (
                             twist_msg_sum % num_msgs_between_logs == 0
                             or twist_msg_sum >= total_num_twist_msgs - 1
@@ -122,6 +134,10 @@ def interp_twist(twist_stamped_dict, target_dict):
     source_zrot = twist_stamped_dict.get("zrot")
     interp_ts = target_dict.get("timestamp")
 
+    # check_zero_diff(interp_ts)
+    print("lidar timestamp", min(interp_ts), max(interp_ts))
+    print("twist timestamp", min(source_ts), max(source_ts))
+
     # method1: saturate the timestamp outside the range
     if min(interp_ts) < min(source_ts):
         interp_ts[interp_ts < min(source_ts)] = min(source_ts)
@@ -150,7 +166,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="0325_shared_control",
+        default="0327_shared_control",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -216,20 +232,37 @@ if __name__ == "__main__":
                 ).item()
 
             # twist_sampled
+            # np.diff(lidar_stamped)[0] == 0.0
             lidar_stamped = np.load(
                 os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
                 allow_pickle=True,
             ).item()
-            twist_sampled_dict, lidar_stamped = interp_twist(
+            # check_zero_diff(lidar_stamped["timestamp"])
+            # np.diff(twist_stamped_dict['timestamp'])[0] == 0.0
+            twist_sampled_dict, lidar_stamped_ts = interp_twist(
                 twist_stamped_dict, lidar_stamped
             )
+
+            # check_zero_diff(lidar_stamped_ts)
+            # check_zero_diff(twist_sampled_dict["timestamp"])
+
             qolo_command_dict = {
                 "timestamp": twist_sampled_dict["timestamp"],
                 "x_vel": twist_sampled_dict['x'],
                 "zrot_vel": twist_sampled_dict['zrot'],
             }
 
+            print("Data from twist_sampled_dict")
+            print(
+                "NaN index in x_vel: {}\nNaN index in zrot_vel: {}".format(
+                    np.squeeze(np.argwhere(np.isnan(twist_sampled_dict["x"]))),
+                    np.squeeze(np.argwhere(np.isnan(twist_sampled_dict["zrot"]))),
+                ),
+            )
+
             # acc_sampled
+            # generate from this step!!!
+            # np.diff(twist_sampled_dict['timestamp'])[0] == 0.0 => True
             acc_sampled_dict = compute_motion_derivative(twist_sampled_dict)
             print(
                 "NaN index in x_acc: {}\nNaN index in zrot_acc: {}".format(
@@ -289,4 +322,26 @@ if __name__ == "__main__":
 """
 ref: https://github.com/uzh-rpg/rpg_e2vid/blob/master/scripts/extract_events_from_rosbag.py
 http://wiki.ros.org/rosbag/Code%20API#Python_API
+"""
+
+"""
+Issues found: timestamp difference because recording in wrong computer time
+lidar timestamp 1616842678.0695062 1616842846.7601984
+twist timestamp 1616669108.7600613 1616669279.065613
+
+`python3 qolo/twist2npy.py --overwrite -f 0327_shared_control`
+/hdd/data_qolo/crowd_qolo_recordings/0327_shared_control/2021-03-27-11-45-08.bag
+/hdd/data_qolo/crowd_qolo_recordings/0327_shared_control/2021-03-27-11-48-13.bag
+twist messages: 1806 / 1806
+Current twist extracted!
+/home/crowdbot/.local/lib/python3.8/site-packages/numpy/lib/function_base.py:1080: RuntimeWarning: invalid value encountered in true_divide
+  out[tuple(slice1)] = (f[tuple(slice4)] - f[tuple(slice2)]) / (2. * ax_dx)
+/home/crowdbot/.local/lib/python3.8/site-packages/numpy/lib/function_base.py:1101: RuntimeWarning: invalid value encountered in double_scalars
+  out[tuple(slice1)] = (f[tuple(slice2)] - f[tuple(slice3)]) / dx_0
+/home/crowdbot/.local/lib/python3.8/site-packages/numpy/lib/function_base.py:1108: RuntimeWarning: invalid value encountered in double_scalars
+  out[tuple(slice1)] = (f[tuple(slice2)] - f[tuple(slice3)]) / dx_n
+NaN index in x_acc: [   0    1    2 ... 3344 3345 3346]
+NaN index in zrot_acc: [   0    1    2 ... 3344 3345 3346]
+NaN index in x_jerk: [   0    1    2 ... 3344 3345 3346]
+NaN index in zrot_jerk: [   0    1    2 ... 3344 3345 3346]
 """
