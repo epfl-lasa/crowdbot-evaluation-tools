@@ -44,7 +44,7 @@ class Capsule:
         return self.distanceLocal(p_rel_local[0], p_rel_local[1])
 
 
-def compute_crowd_metrics(bbox):
+def compute_crowd_metrics(bbox, virtual_radius=0.45):
     """compute crowd density and min_dist from qolo"""
 
     # 0. all_det
@@ -54,9 +54,10 @@ def compute_crowd_metrics(bbox):
     # all_dist = np.linalg.norm(bbox[:, [0, 1]], axis=1)
     bbox_xy = bbox[:, [0, 1]]
     all_dist = np.linalg.norm(bbox_xy, axis=1)
+
     # consider qolo capsule
-    # all_dist_capsuled
-    capsule_qolo = Capsule(0.18, -0.5, 0.45)
+    # print("Considered virtual radius is {} m.".format(virtual_radius))
+    capsule_qolo = Capsule(0.18, -0.5, virtual_radius)
     all_dist_capsuled = np.ones([all_det]) * np.inf
     for idx in range(all_det):
         x_dist = bbox_xy[idx, 0]

@@ -19,8 +19,7 @@ The emulation results is exported with suffix as "_crowd_eval.npy".
 """
 TODO:
 1. compare with detected pedestrain from the rosbag!
-2. speed up `compute_crowd_metrics`
-3. use try/except when loading files
+2. use try/except when loading files
 """
 # =============================================================================
 
@@ -31,7 +30,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from crowdbot_data import CrowdBotDatabase
+from crowdbot_data import CrowdBotDatabase, CrowdbotExpParam, CROWDBOT_EVAL_TOOLKIT_DIR
 from eval_res_plot import save_cd_img, save_md_img
 from metric_crowd import compute_crowd_metrics, compute_norm_prox
 
@@ -44,6 +43,11 @@ def zero_crossing_check(data):
 
 #%% main function
 if __name__ == "__main__":
+
+    data_params_path = os.path.join(
+        CROWDBOT_EVAL_TOOLKIT_DIR, "data", "data_params.yaml"
+    )
+
     parser = argparse.ArgumentParser(description="Evaluate crowd characteristics")
 
     parser.add_argument(
@@ -52,6 +56,12 @@ if __name__ == "__main__":
         default="nocam_rosbags",
         type=str,
         help="different subfolder in rosbag/ dir",
+    )
+    parser.add_argument(
+        "--params_path",
+        default=data_params_path,
+        type=str,
+        help="path to dataset parameters",
     )
     parser.add_argument(
         "--save_img",
@@ -82,6 +92,15 @@ if __name__ == "__main__":
     cb_data = CrowdBotDatabase(args.folder)
 
     print("Starting evaluating crowd from {} sequences!".format(cb_data.nr_seqs()))
+
+    all_data_params = CrowdbotExpParam(args.params_path)
+    date = args.folder[:4]
+    control_type = args.folder[5:]
+    data_params = all_data_params.get_params(date, control_type)
+    # {'goal_dist': float, 'vel_user_max': float, 'omega_user_max': float}
+    print("# Experiment data:", date)
+    print("# Experiment control type:", control_type)
+    print("# Experiment settings:", data_params)
 
     eval_res_dir = os.path.join(cb_data.metrics_dir)
 
@@ -191,7 +210,9 @@ if __name__ == "__main__":
 
                     _, _, _, trks = cb_data[seq_idx, fr_idx]
 
-                    metrics = compute_crowd_metrics(trks)
+                    metrics = compute_crowd_metrics(
+                        trks, virtual_radius=data_params["virtual_radius"]
+                    )
 
                     if fr_idx % num_msgs_between_logs == 0 or fr_idx >= nr_frames - 1:
                         print(
