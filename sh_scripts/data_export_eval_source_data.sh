@@ -1,6 +1,6 @@
 #!/bin/bash
 # derived from https://stackoverflow.com/a/14203146/7961693
-# sh data_export_eval_source_data.sh -e=py38cuda110 -t=0410_rds
+# sh data_export_eval_source_data.sh -e=py38cuda110 -t=0424_mds
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!

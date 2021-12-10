@@ -1,6 +1,5 @@
 #!/bin/bash
 # derived from https://stackoverflow.com/a/14203146/7961693
-# sh eval_all.sh -e=py38cuda110 -t=test
 # sh eval_all.sh -e=py38cuda110 -t=0424_mds
 
 # >>> conda initialize >>>

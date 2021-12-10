@@ -2,7 +2,6 @@
 # derived from https://stackoverflow.com/a/14203146/7961693
 # sh data_export_eval_qolo.sh -e=py38cuda110 -t=0424_mds
 # sh data_export_eval_qolo.sh -e=py38cuda110 -t=single_oa
-# sh data_export_eval_qolo.sh -e=py38cuda110 -t=ssingle_collision
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -53,9 +52,13 @@ echo "########## Export pointcloud and lidar timestamp ##########"
 python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE}
 
 echo "########## Export qolo status ##########"
+echo "##### commands2npy.py #####"
 python3 ../qolo/commands2npy.py --overwrite -f ${TYPE}
+echo "##### tfqolo2npy.py #####"
 python3 ../qolo/tfqolo2npy.py --overwrite -f ${TYPE}
+echo "##### twist2npy.py #####"
 python3 ../qolo/twist2npy.py --overwrite -f ${TYPE}
+echo "##### pose2d2npy.py #####"
 python3 ../qolo/pose2d2npy.py --overwrite -f ${TYPE}
 
 echo "########## Finished!!! ##########"
