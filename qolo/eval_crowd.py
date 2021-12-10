@@ -124,6 +124,23 @@ if __name__ == "__main__":
         if args.replot:
             crowd_eval_dict = np.load(crowd_eval_npy, allow_pickle=True).item()
 
+            # recalculate virtual_collision
+            min_dist_list = np.array(crowd_eval_dict["min_dist"])
+            start_idx_ = path_eval_dict['start_idx']
+            end_idx_ = path_eval_dict['end_idx']
+            min_dist_list = min_dist_list[start_idx_ : end_idx_ + 1]
+            # only consider the point that more than zero
+            min_dist_list_ = min_dist_list[min_dist_list > 0]
+            avg_min_dist = np.sum(min_dist_list_) / min_dist_list_.shape[0]
+
+            # consider the number of crossing zero from positive to negative
+            virtual_collision = zero_crossing_check(min_dist_list)
+
+            crowd_eval_dict['avg_min_dist'] = avg_min_dist
+            crowd_eval_dict['virtual_collision'] = virtual_collision
+            print("virtual_collision:", crowd_eval_dict['virtual_collision'])
+            np.save(crowd_eval_npy, crowd_eval_dict)
+
             # figure1: crowd density
             save_cd_img(crowd_eval_dict, path_eval_dict, eval_res_dir, seq)
 
@@ -215,15 +232,20 @@ if __name__ == "__main__":
                     )
 
                 # calculate avg_min_dist
-                # only consider the point that more than zero
                 min_dist_list = np.array(crowd_eval_dict["min_dist"])
-                min_dist_list = min_dist_list[min_dist_list > 0]
-                avg_min_dist = np.sum(min_dist_list) / min_dist_list.shape[0]
+                start_idx_ = path_eval_dict['start_idx']
+                end_idx_ = path_eval_dict['end_idx']
+                min_dist_list = min_dist_list[start_idx_ : end_idx_ + 1]
+                # only consider the point that more than zero
+                min_dist_list_ = min_dist_list[min_dist_list > 0]
+                avg_min_dist = np.sum(min_dist_list_) / min_dist_list_.shape[0]
+
                 # consider the number of crossing zero from positive to negative
                 virtual_collision = zero_crossing_check(min_dist_list)
 
                 crowd_eval_dict.update({'avg_min_dist': avg_min_dist})
                 crowd_eval_dict.update({'virtual_collision': virtual_collision})
+                print("virtual_collision:", crowd_eval_dict['virtual_collision'])
 
                 # max and std of crowd density within 2.5m/5m
                 crowd_eval_dict.update(

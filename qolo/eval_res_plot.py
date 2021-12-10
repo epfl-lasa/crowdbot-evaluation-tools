@@ -53,7 +53,7 @@ def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
         y=0.60,
         s="$t_s$={0:.1f}s".format(new_start_ts),
         horizontalalignment="left",
-        fontsize=10,
+        fontsize=6,
     )
     new_end_ts = new_start_ts + duration2goal
     ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
@@ -62,7 +62,7 @@ def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
         y=0.60,
         s="$t_e$={0:.1f}s".format(new_end_ts),
         horizontalalignment="left",
-        fontsize=10,
+        fontsize=6,
     )
 
     ax.legend(handles=[l1, l2, l3], ncol=1, loc="upper right", fontsize="x-small")
@@ -78,6 +78,8 @@ def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     fig.tight_layout()
     cd_img_path = os.path.join(base_dir, seq_name + "_crowd_density.png")
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
+
+    plt.close()
 
 
 def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
@@ -106,7 +108,7 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
         y=0.40,
         s="$t_s$={0:.1f}s".format(new_start_ts),
         horizontalalignment="left",
-        fontsize=10,
+        fontsize=6,
     )
     new_end_ts = new_start_ts + duration2goal
     ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
@@ -115,7 +117,7 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
         y=0.40,
         s="$t_e$={0:.1f}s".format(new_end_ts),
         horizontalalignment="left",
-        fontsize=10,
+        fontsize=6,
     )
 
     ax.legend(handles=[l1, l2], ncol=2, loc="upper right", fontsize="x-small")
@@ -131,6 +133,8 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     fig.tight_layout()
     cd_img_path = os.path.join(base_dir, seq_name + "_crowd_density.png")
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
+
+    plt.close()
 
 
 def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
@@ -157,7 +161,7 @@ def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
         y=4.2,
         s="$t_s$={0:.1f}s".format(new_start_ts),
         horizontalalignment="left",
-        fontsize=10,
+        fontsize=6,
     )
     new_end_ts = new_start_ts + duration2goal
     ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
@@ -166,18 +170,18 @@ def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
         y=4.2,
         s="$t_e$={0:.1f}s".format(new_end_ts),
         horizontalalignment="left",
-        fontsize=10,
+        fontsize=6,
     )
 
-    # y=0.3 horizontal line (if consider the qolo capsule)
-    # ax.plot((0.0, duration), (0.3, 0.3), linestyle="--", color="navy")
+    # y=0.0 horizontal line (if consider the qolo capsule)
+    ax.plot((0.0, duration), (0.0, 0.0), linestyle="--", color="navy")
     # plt.text(
     #     x=duration / 2,
-    #     y=0.4,
+    #     y=-0.1,
     #     s=r"$\mathrm{dist}_{\mathrm{limit}}=0.3$",
     #     horizontalalignment="center",
-    #     verticalalignment="baseline",
-    #     fontsize=10,
+    #     verticalalignment="top",
+    #     fontsize=8,
     # )
 
     ax.set_title(
@@ -186,12 +190,15 @@ def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     _ = ax.set_xlabel("t [s]")
     _ = ax.set_ylabel("Distance [m]")
 
-    ax.set_xlim(left=0.0)
-    ax.set_ylim(bottom=0.0, top=5.0)
+    ax.set_xlim(left=0.0, right=duration)
+    # decrease the min value to negative value
+    ax.set_ylim(bottom=-0.5, top=5.0)
 
     fig.tight_layout()
     md_img_path = os.path.join(base_dir, seq_name + "_min_dist.png")
     plt.savefig(md_img_path, dpi=300)  # png, pdf
+
+    plt.close()
 
 
 def save_twist_cmd_img(
@@ -280,8 +287,6 @@ def save_motion_img(qolo_command_dict, path_eval_dict, base_dir, seq_name, suffi
                 alpha=0.2,
             )
             ax[i, j].add_patch(rect_down)
-            # TODO: cannot show correctly when `MAX=nan, MIN=-nan` occurs
-            # print("MAX={}, MIN=-{}".format(max_y, min_y))
 
             ax[i, j].set_ylabel(unit[i * 2 + j])
             if i == 2:
@@ -298,7 +303,6 @@ def save_motion_img(qolo_command_dict, path_eval_dict, base_dir, seq_name, suffi
     )  # "_qolo_command"
     plt.savefig(qolo_img_path, dpi=300)  # png, pdf
 
-    # https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
     plt.close()
 
 

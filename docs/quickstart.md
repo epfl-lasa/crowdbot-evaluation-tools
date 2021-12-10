@@ -32,24 +32,13 @@
 
     - `bagbase_dir` is where rosbags are stored
 
-      ```shell
-      crowd_qolo_recordings$ tree -L 1
-      .
-      ├── 0325_rds
-      ├── MDS
-      ├── RDS
-      ├── shared_control
-      ├── shared_test
-      └── test
-      ```
-
     - `outbase_dir` is where extracted lidar, qolo_state, algorithm result, and evaluation results are stored, In terms of example, please check [outbase_dir](#outbase_dir)
 
-    ~~Create symbolic link of shared_test folder (including two rosbags) in current workspace~~
+    ~~Create symbolic link of 0410_shared_control folder (including two rosbags) in current workspace~~
 
     ~~`cd path/to/crowdbot-evaluation-tools`~~
 
-    ~~`ln -s  /hdd/data_qolo/crowd_qolo_recordings/shared_test/ data/rosbag/shared_test`~~
+    ~~`ln -s  /hdd/data_qolo/crowd_qolo_recordings/0410_shared_control/ data/rosbag/0410_shared_control`~~
 
 2. data conversion from original rosbags
 
@@ -58,7 +47,7 @@
     - export pointcloud and lidar timestamp
 
         ```shell
-        python3 qolo/gen_lidar_from_rosbags.py --overwrite -f shared_test
+        python3 qolo/gen_lidar_from_rosbags.py --overwrite -f 0410_shared_control
         ```
 
       - `--overwrite` flag is used to overwrite existing data
@@ -69,49 +58,65 @@
 
     ```shell
     cd sh_scripts
-    sh data_export_eval_source_data.sh -e=py38cuda110 -t=shared_test
+    sh data_export_eval_source_data.sh -e=py38cuda110 -t=0410_shared_control
     ```
 
     - export qolo status
 
         ```shell
-        python3 qolo/tfqolo2npy.py --overwrite -f shared_test
-        python3 qolo/twist2npy.py --overwrite -f shared_test
-        python3 qolo/pose2d2npy.py --overwrite -f shared_test
+        python3 qolo/commands2npy.py --overwrite -f 0410_shared_control
+        python3 qolo/tfqolo2npy.py --overwrite -f 0410_shared_control
+        python3 qolo/twist2npy.py --overwrite -f 0410_shared_control
+        python3 qolo/pose2d2npy.py --overwrite -f 0410_shared_control
         ```
 
 3. apply algorithms to extracted data
 
     ```sh
-    python3 qolo/gen_detection_res.py -f shared_test
-    python3 qolo/gen_tracking_res.py -f shared_test
+    python3 qolo/gen_detection_res.py -f 0410_shared_control
+    python3 qolo/gen_tracking_res.py -f 0410_shared_control
     ```
 
 4. visualization of current evaluation result
 
     ```shell
-    python3 qolo/gen_viz_img_o3d.py -f shared_test
-    python3 qolo/gen_video.py -f shared_test
+    python3 qolo/gen_viz_img_o3d.py -f 0410_shared_control
+    python3 qolo/gen_video.py -f 0410_shared_control
     ```
 
-    The visualization results can be found in `./data/shared_test_processed/media/`
+    The visualization results can be found in `./data/0410_shared_control_processed/media/`
 
 5. evaluate the qolo and crowd data from algorithm result and extracted data
 
-    ```shell
-    python3 qolo/eval_qolo_path.py --overwrite -f shared_test
-    python3 qolo/eval_crowd.py --overwrite -f shared_test
-    python3 qolo/eval_qolo.py --overwrite -f shared_test
-    ```
+    - default: skip the sequences that have been analyzed
 
-    The visualization results can be found in `./data/shared_test_processed/metrics/`
+    - overwrite all produced data
+
+        ```shell
+        python3 qolo/eval_qolo_path.py --overwrite -f 0410_shared_control
+        python3 qolo/eval_crowd.py --overwrite -f 0410_shared_control
+        python3 qolo/eval_qolo.py --overwrite -f 0410_shared_control
+        ```
+
+        - `--overwrite` flag is used to overwrite existing data
+
+    - replot all images
+
+        ```shell
+        python qolo/eval_crowd.py --replot -f 0410_shared_control
+        python qolo/eval_qolo.py --replot -f 0410_shared_control
+        ```
+
+        - `--replot` flag is used to replot resulting data
+
+    The visualization results can be found in `./data/0410_shared_control_processed/metrics/`
 
 ## outbase_dir
 
 ```shell
 crowdbot_data_analysis$ tree -L 3
 .
-└── shared_test_processed
+└── 0410_shared_control_processed
     ├── alg_res
     │   ├── detections
     │   └── tracks
