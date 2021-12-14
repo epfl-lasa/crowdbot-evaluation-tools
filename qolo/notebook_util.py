@@ -18,12 +18,16 @@ for better notebook use.
 import os
 import numpy as np
 import os.path as path
+import pandas as pd
+
 import matplotlib
 from matplotlib.patches import PathPatch
 import matplotlib.pyplot as plt
 
 plt.ioff()
 import seaborn as sns
+
+from crowdbot_data import CrowdBotDatabase
 
 
 def set_box_color(bp, color):
@@ -125,6 +129,7 @@ def categorical_plot(
     loc='lower right',
     kind='violin',
     titlefontsz=12,
+    yint=False,
 ):
 
     sns.set_theme(style="whitegrid")
@@ -173,3 +178,72 @@ def categorical_plot(
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_ylim(bottom=ylim[0], top=ylim[1])
+    if yint:
+        print("Force to int ylabel!")
+        # https://stackoverflow.com/a/11417609
+        ya = axes.get_yaxis()
+        from matplotlib.ticker import MaxNLocator
+
+        ya.set_major_locator(MaxNLocator(integer=True))
+
+
+def gen_res_df(eval_dirs, crowd_metrics, path_metrics, control_metrics):
+    frames = []
+    for eval_dir in eval_dirs:
+
+        print("Reading results from {}".format(eval_dir))
+
+        # new a CrowdBotDatabase() instance
+        eval_database = CrowdBotDatabase(classdir=eval_dir)
+
+        eval_dict = {'seq': eval_database.seqs}
+        eval_dict.update(
+            {'control_type': [eval_dir[5:] for i in range(eval_database.nr_seqs())]}
+        )
+
+        eval_dict.update({k: [] for k in crowd_metrics})
+        eval_dict.update({k: [] for k in path_metrics})
+        eval_dict.update({k: [] for k in control_metrics})
+
+        for idx, seq in enumerate(eval_database.seqs):
+            eval_res_dir = os.path.join(eval_database.metrics_dir)
+
+            crowd_eval_npy = os.path.join(eval_res_dir, seq + "_crowd_eval.npy")
+            crowd_eval_dict = np.load(
+                crowd_eval_npy,
+                allow_pickle=True,
+            ).item()
+            for iidx, val in enumerate(crowd_metrics):
+                eval_dict[crowd_metrics[iidx]].append(crowd_eval_dict[val])
+
+            path_eval_npy = os.path.join(eval_res_dir, seq + "_path_eval.npy")
+            path_eval_dict = np.load(
+                path_eval_npy,
+                allow_pickle=True,
+            ).item()
+            for iidx, val in enumerate(path_metrics):
+                eval_dict[path_metrics[iidx]].append(path_eval_dict[val])
+
+            qolo_eval_npy = os.path.join(eval_res_dir, seq + "_qolo_eval.npy")
+            qolo_eval_dict = np.load(
+                qolo_eval_npy,
+                allow_pickle=True,
+            ).item()
+            for iidx, val in enumerate(control_metrics):
+                eval_dict[control_metrics[iidx]].append(qolo_eval_dict[val])
+
+        eval_df = pd.DataFrame(eval_dict)
+        eval_df.columns = (
+            ['seq', 'control_type']
+            + list(crowd_metrics)
+            + list(path_metrics)
+            + list(control_metrics)
+        )
+
+        # Filter path_length2goal less than 5 meter
+        eval_df = eval_df[eval_df.path_length2goal >= 5.0]
+
+        frames.append(eval_df)
+
+    eval_res_df = pd.concat(frames, ignore_index=True)
+    return eval_res_df
