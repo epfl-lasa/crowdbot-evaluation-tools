@@ -33,7 +33,7 @@ from eval_res_plot import save_motion_img, save_twist_cmd_img
 from metric_qolo_perf import (
     compute_fluency,
     compute_agree_contri,
-    compute_relative_jerk,
+    compute_rel_jerk,
 )
 
 #%% main function
@@ -209,8 +209,12 @@ if __name__ == "__main__":
                 zrot_jerk = qolo_command_dict["zrot_jerk"]
 
                 # relative jerk
-                rel_jerk = compute_relative_jerk(
-                    x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts
+                rel_jerk = compute_rel_jerk(
+                    x_jerk,
+                    zrot_jerk,
+                    cmd_ts,
+                    start_cmd_ts,
+                    end_cmd_ts,
                 )
                 qolo_eval_dict.update({"rel_jerk": rel_jerk})
                 qolo_eval_dict.update({"avg_linear_jerk": np.average(x_jerk)})

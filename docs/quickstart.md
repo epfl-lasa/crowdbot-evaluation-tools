@@ -103,6 +103,7 @@
     - replot all images
 
         ```shell
+        python qolo/eval_qolo_path.py --replot -f 0410_shared_control
         python qolo/eval_crowd.py --replot -f 0410_shared_control
         python qolo/eval_qolo.py --replot -f 0410_shared_control
         ```

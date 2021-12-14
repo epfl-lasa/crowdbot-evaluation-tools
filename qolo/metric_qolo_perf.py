@@ -14,7 +14,7 @@ The module provides functions to compute metrics about the path efficiency and
 shared control performance of qolo.
 """
 # =============================================================================
-
+# TODO: check the end_idx calculation
 
 import numpy as np
 
@@ -114,15 +114,16 @@ def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
     }
 
 
-def compute_relative_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
+# deprecated because of using nominal sum
+def compute_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
     """Compute relative jerk, which is the time integral of x_jerk and zrot_jerk
-    along the operation duration. Can consider normalizing by the duration"""
+    (direct sum) along the operation duration. Can consider normalizing by the duration"""
 
     start_idx, end_idx = 0, len(cmd_ts) - 1
     # find start and ending points
     if cmd_ts.min() < start_cmd_ts:
         start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
-    if cmd_ts.max() < end_cmd_ts:
+    if cmd_ts.max() > end_cmd_ts:
         end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
     # print(start_idx, end_idx)
 
@@ -134,14 +135,67 @@ def compute_relative_jerk(x_jerk, zrot_jerk, cmd_ts, start_cmd_ts, end_cmd_ts):
         jerk_sum += (x_jerk[start_idx + idx] + zrot_jerk[start_idx + idx]) * (
             cmd_ts[start_idx + idx + 1] - cmd_ts[start_idx + idx]
         )
-    # compute the existing jerk
-    jerk_sum += (x_jerk[end_idx] + zrot_jerk[end_idx]) * (end_cmd_ts - cmd_ts[end_idx])
+    # compute the exiting jerk
+    # jerk_sum += (x_jerk[end_idx] + zrot_jerk[end_idx]) * (end_cmd_ts - cmd_ts[end_idx])
 
     # normalized by time
     duration = end_cmd_ts - start_cmd_ts
-    relative_jerk = jerk_sum / duration
+    qolo_jerk = jerk_sum / duration
 
-    return relative_jerk
+    return qolo_jerk
+
+
+def compute_rel_jerk(
+    x_jerk,
+    zrot_jerk,
+    cmd_ts,
+    start_cmd_ts,
+    end_cmd_ts,
+    baseline=13.80,
+):
+    """Compute relative jerk, which is the time integral of x_jerk and zrot_jerk
+    (square sum) along the operation duration. Can consider normalizing by the duration"""
+
+    # load with actual index!!!
+    start_idx, end_idx = 0, len(cmd_ts) - 1
+    # find start and ending points
+    if cmd_ts.min() < start_cmd_ts:
+        start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
+    if cmd_ts.max() > end_cmd_ts:
+        end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
+    # print(cmd_ts.min(), start_cmd_ts, cmd_ts[start_idx])
+    # print(cmd_ts.max(), end_cmd_ts, cmd_ts[end_idx])
+
+    # print(start_idx, end_idx)
+
+    # compute the entering jerk
+    # jerk_sum = np.linalg.norm([x_jerk[start_idx], zrot_jerk[start_idx]]) * (
+    #     cmd_ts[start_idx + 1] - start_cmd_ts
+    # )
+    jerk_sum = 0
+    for idx in range(1, end_idx - start_idx):
+        jerk_sum += np.linalg.norm(
+            [x_jerk[start_idx + idx], zrot_jerk[start_idx + idx]]
+        ) * (cmd_ts[start_idx + idx + 1] - cmd_ts[start_idx + idx])
+    # compute the exiting jerk
+    # jerk_sum += np.linalg.norm([x_jerk[end_idx], zrot_jerk[end_idx]]) * (
+    #     end_cmd_ts - cmd_ts[end_idx]
+    # )
+    # print('starting time', cmd_ts[start_idx + 1] - start_cmd_ts)
+    # print('final time', end_cmd_ts - cmd_ts[end_idx])
+
+    # normalized by time
+    duration = end_cmd_ts - start_cmd_ts
+    qolo_jerk = jerk_sum / duration
+    rel_jerk = qolo_jerk / baseline
+    print(
+        "qolo_jerk = jerk_sum / duration: {} = {}/{}".format(
+            qolo_jerk, jerk_sum, duration
+        )
+    )
+    print('relative jerk:', rel_jerk)
+
+    return rel_jerk
 
 
 # https://github.com/epfl-lasa/qolo-evaluation/blob/main/notebook/crowd_evaluation.py#L187
@@ -160,7 +214,7 @@ def compute_fluency(qolo_command, start_cmd_ts, end_cmd_ts):
     start_idx, end_idx = 0, len(cmd_ts) - 1
     if cmd_ts.min() < start_cmd_ts:
         start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
-    if cmd_ts.max() < end_cmd_ts:
+    if cmd_ts.max() > end_cmd_ts:
         end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
     # print(start_idx, end_idx)
 
@@ -220,7 +274,7 @@ def compute_agree_contri(
     start_idx, end_idx = 0, len(cmd_ts) - 1
     if cmd_ts.min() < start_cmd_ts:
         start_idx = np.argmax(cmd_ts[cmd_ts - start_cmd_ts <= 0])
-    if cmd_ts.max() < end_cmd_ts:
+    if cmd_ts.max() > end_cmd_ts:
         end_idx = np.argmax(cmd_ts[cmd_ts - end_cmd_ts <= 0])
 
     # only consider data within the operation duration
