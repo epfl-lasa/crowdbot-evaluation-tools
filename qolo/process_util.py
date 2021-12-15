@@ -23,9 +23,11 @@ from scipy import interpolate
 from scipy.spatial.transform import Slerp
 from scipy.spatial.transform import Rotation as R
 
+
 def ts_to_sec(ts):
     """convert ros timestamp into second"""
     return ts.secs + ts.nsecs / float(1e9)
+
 
 # https://docs.scipy.org/doc/scipy/reference/spatial.transform.html
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html
@@ -139,3 +141,29 @@ def smooth(
             thres=thres,
         )
     return nd_data_smoothed
+
+
+def strict_increase(ts, value=1e-5):
+    """
+    Add small values to ensure list strictly in increasing order
+    `np.finfo(float).eps` is not recommended
+    also not less than 1e-6
+    """
+    ts_delta = np.diff(ts)
+    # find the index with zero variation
+    res_zero_idx = np.where(ts_delta == 0)[0].tolist()
+    res_neg_idx = np.where(ts_delta < 0)[0].tolist()
+    # add small variation to last index
+    for idx in sorted(res_zero_idx + res_neg_idx):
+        ts[idx + 1] = ts[idx] + value
+    return ts
+
+
+def check_zero_diff(src_list):
+
+    total_len = src_list.shape[0]
+    diff = np.diff(src_list)
+    zero_diff = diff[diff == 0.0]
+    zero_diff_len = zero_diff.shape[0]
+
+    print("Zero_diff: {}/{}".format(zero_diff_len, total_len))

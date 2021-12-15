@@ -39,6 +39,7 @@ from process_util import (
     compute_motion_derivative,
     smooth1d,
     smooth,
+    strict_increase,
 )
 
 #%% Utility function for extraction tf from rosbag and apply interpolation
@@ -94,9 +95,11 @@ def deduplicate_tf(qolo_tf):
     qolo_z = np.nonzero(tf_qolo_pos_delta[:, 2])
     tf_qolo_unique_idx = tuple(set(qolo_x[0]) & set(qolo_y[0]) & set(qolo_z[0]))
 
-    ts_new = ts[list(tf_qolo_unique_idx)]
-    tf_qolo_pos_new = tf_qolo_pos[tf_qolo_unique_idx, :]
-    tf_qolo_ori_ori = tf_qolo_ori[tf_qolo_unique_idx, :]
+    new_idx = sorted(tf_qolo_unique_idx)
+
+    ts_new = ts[list(new_idx)]
+    tf_qolo_pos_new = tf_qolo_pos[new_idx, :]
+    tf_qolo_ori_ori = tf_qolo_ori[new_idx, :]
     print(
         "Reduplicated Output {} frames, about {:.1f} Hz".format(
             len(ts_new), len(ts_new) / (max(ts_new) - min(ts_new))
@@ -115,15 +118,18 @@ def interp_pose(source_dict, interp_ts):
     source_pos = source_dict.get("position")
     source_ori = source_dict.get("orientation")
 
-    if min(interp_ts) > max(source_ts):
-        # existing 0327 data has wrong timestamps
-        print("Warning: all interp_ts are larger than source_ts")
-        source_ts += min(interp_ts) - min(source_ts)
+    # if min(interp_ts) > max(source_ts):
+    #     # existing 0327 data has wrong timestamps
+    #     print("Warning: all interp_ts are larger than source_ts")
+    #     source_ts += min(interp_ts) - min(source_ts)
+
+    # source_ts = strict_increase(source_ts)
+    # interp_ts = strict_increase(interp_ts)
 
     # method1: saturate the timestamp outside the range
-    if min(interp_ts) < min(source_ts):
+    if np.min(interp_ts) < np.min(source_ts):
         interp_ts[interp_ts < min(source_ts)] = min(source_ts)
-    if max(interp_ts) > max(source_ts):
+    if np.max(interp_ts) > np.max(source_ts):
         interp_ts[interp_ts > max(source_ts)] = max(source_ts)
 
     # method2: discard timestamps smaller or bigger than source
@@ -136,6 +142,7 @@ def interp_pose(source_dict, interp_ts):
 
     # print(interp_ts.min(), interp_ts.max(), source_ts.min(), source_ts.max())
 
+    # Slerp -> interp_rotation -> ValueError: Times must be in strictly increasing order.
     interp_dict = {}
     interp_dict["timestamp"] = interp_ts
     interp_dict["orientation"] = interp_rotation(source_ts, interp_ts, source_ori)
