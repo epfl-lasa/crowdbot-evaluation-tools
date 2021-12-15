@@ -230,7 +230,9 @@ def save_twist_cmd_img(
     plt.close()
 
 
-def save_motion_img(qolo_command_dict, path_eval_dict, base_dir, seq_name, suffix):
+def save_motion_img(
+    qolo_command_dict, path_eval_dict, base_dir, seq_name, suffix, command=True
+):
     ts = qolo_command_dict["timestamp"]
     start_ts = path_eval_dict.get("start_command_ts")
     duration2goal = path_eval_dict.get("duration2goal")
@@ -291,10 +293,31 @@ def save_motion_img(qolo_command_dict, path_eval_dict, base_dir, seq_name, suffi
             ax[i, j].set_ylabel(unit[i * 2 + j])
             if i == 2:
                 ax[i, j].set_xlabel("t [s]")
-            if i == 0:  # only nominal velocity is always nonnegative
-                if i == 0 and j == 0:
+                if j == 0:
+                    if command:
+                        ax[i, j].set_ylim(bottom=-10, top=10)
+                    else:
+                        ax[i, j].set_ylim(bottom=-50, top=50)
+                elif j == 1:
+                    if command:
+                        ax[i, j].set_ylim(bottom=-20, top=20)
+                    else:
+                        ax[i, j].set_ylim(bottom=-50, top=50)
+            elif i == 1:
+                if j == 0:
+                    if command:
+                        ax[i, j].set_ylim(bottom=-1, top=1)
+                    else:
+                        ax[i, j].set_ylim(bottom=-2, top=2)
+                elif j == 1:
+                    if command:
+                        ax[i, j].set_ylim(bottom=-1, top=1)
+                    else:
+                        ax[i, j].set_ylim(bottom=-2, top=2)
+            elif i == 0:  # only nominal velocity is always nonnegative
+                if j == 0:
                     ax[i, j].set_ylim(bottom=-1.5, top=1.5)
-                elif i == 0 and j == 1:
+                elif j == 1:
                     ax[i, j].set_ylim(bottom=-2, top=2)
 
     fig.tight_layout()
@@ -322,19 +345,19 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     ax.plot(
         pose_x[:end_idx],
         pose_y[:end_idx],
-        "orange",
+        "tomato",
         linewidth=2,
-        label="path (l=%.1f m, t=%.1f s)" % (path_length2goal, duration2goal),
+        label="Goal path (l=%.1f m, t=%.1f s)" % (path_length2goal, duration2goal),
     )
     ax.plot(
         pose_x[end_idx:],
         pose_y[end_idx:],
-        "skyblue",
+        "navy",
         linewidth=2,
-        label="remaining path",
+        label="Return path",
     )
-    ax.plot([goal_loc[0]], [goal_loc[1]], "kx", label="goal")
-    ax.legend(fontsize="x-small")
+    # ax.plot([goal_loc[0]], [goal_loc[1]], "kx", label="goal")
+    ax.plot([goal_loc[0]], [goal_loc[1]], "kx")
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
 
@@ -346,7 +369,6 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     xy = (pose_x[0], pose_y[0])
     dxy = (np.cos(init_yaw) * arrow_len, np.sin(init_yaw) * arrow_len)
     xytext = tuple(map(sum, zip(xy, dxy)))
-
     ax.annotate(
         "",
         xy=xy,
@@ -354,6 +376,14 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
         arrowprops=dict(arrowstyle="<-", lw=2.0),
         color='purple',
     )
+
+    # https://stackoverflow.com/a/9216646
+    goal_circle = mpatches.Circle(
+        tuple(goal_loc), 3, color='skyblue', fill=True, label="Goal area"
+    )
+    ax.add_patch(goal_circle)
+
+    ax.legend(fontsize="x-small")
 
     # adjust plots with equal axis aspect ratios
     ax.axis("equal")

@@ -22,19 +22,19 @@
 <details>
     <summary><b>eval_crowd demo</b></summary>
     <details>
-        <summary><b>crowd_density variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-24-13-07-54_crowd_density.png" alt="crowd_density"   width="500" > </div>
+        <summary><b>crowd_density variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_crowd_density.png" alt="crowd_density"   width="500" > </div>
     </details>
     <details>
-        <summary><b>min_dist variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-24-13-07-54_min_dist.png" alt="min_dist"   width="500" > </div>
+        <summary><b>min_dist variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_min_dist.png" alt="min_dist"   width="500" > </div>
     </details>
 </details>
 <details open>
     <summary><b>eval_qolo demo</b></summary>
     <details>
-        <summary><b>path/time to goal</b></summary> <div align="center"> <img src="./example/2021-04-24-13-07-54_path.png" alt="path"   width="500" > </div>
+        <summary><b>path/time to goal</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_path.png" alt="path"   width="500" > </div>
     </details>
     <details open>
-        <summary><b>twist_acc_jerk</b></summary> <div align="center"> <img src="./example/2021-04-24-13-07-54_qolo_command.png" alt="twist_acc_jerk"   width="500" > </div>
+        <summary><b>twist_acc_jerk</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_qolo_command.png" alt="twist_acc_jerk"   width="500" > </div>
     </details>
 </details>
 

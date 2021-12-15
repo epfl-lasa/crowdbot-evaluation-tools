@@ -186,6 +186,7 @@ if __name__ == "__main__":
                 eval_res_dir,
                 seq,
                 suffix="_qolo_state",
+                command=False,
             )
 
             print("Replot images!")
@@ -257,6 +258,7 @@ if __name__ == "__main__":
                         eval_res_dir,
                         seq,
                         suffix="_qolo_state",
+                        command=False,
                     )
             else:
                 print(
