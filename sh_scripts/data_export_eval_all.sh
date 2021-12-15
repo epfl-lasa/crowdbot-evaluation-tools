@@ -61,14 +61,14 @@ echo "##### pose2d2npy.py #####"
 python3 ../qolo/pose2d2npy.py --overwrite -f ${TYPE}
 
 echo "########## Apply algorithms to extracted data ##########"
-echo "##### eval_qolo_path.py #####"
-python3 ../qolo/eval_qolo_path.py --overwrite -f ${TYPE}
 echo "##### gen_detection_res.py #####"
 python3 ../qolo/gen_detection_res.py -f ${TYPE}
 echo "##### gen_tracking_res.py #####"
 python3 ../qolo/gen_tracking_res.py -f ${TYPE}
 
 echo "########## Evaluate the performance ##########"
+echo "##### eval_qolo_path.py #####"
+python3 ../qolo/eval_qolo_path.py --overwrite -f ${TYPE}
 echo "##### eval_qolo.py #####"
 python3 ../qolo/eval_qolo.py --overwrite -f ${TYPE}
 echo "##### eval_crowd.py #####"

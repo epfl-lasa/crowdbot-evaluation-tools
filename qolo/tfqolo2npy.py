@@ -115,6 +115,11 @@ def interp_pose(source_dict, interp_ts):
     source_pos = source_dict.get("position")
     source_ori = source_dict.get("orientation")
 
+    if min(interp_ts) > max(source_ts):
+        # existing 0327 data has wrong timestamps
+        print("Warning: all interp_ts are larger than source_ts")
+        source_ts += min(interp_ts) - min(source_ts)
+
     # method1: saturate the timestamp outside the range
     if min(interp_ts) < min(source_ts):
         interp_ts[interp_ts < min(source_ts)] = min(source_ts)

@@ -102,7 +102,7 @@ def extract_twist_from_rosbag(bag_file_path, args):
                         zrot_list.append(zrot_vel)
                         t_list.append(ts_vel)
 
-                        print(ts_vel, x_vel, zrot_vel)
+                        # print(ts_vel, x_vel, zrot_vel)
 
                         if (
                             twist_msg_sum % num_msgs_between_logs == 0
@@ -134,9 +134,13 @@ def interp_twist(twist_stamped_dict, target_dict):
     source_zrot = twist_stamped_dict.get("zrot")
     interp_ts = target_dict.get("timestamp")
 
-    # check_zero_diff(interp_ts)
     print("lidar timestamp", min(interp_ts), max(interp_ts))
     print("twist timestamp", min(source_ts), max(source_ts))
+
+    if min(interp_ts) > max(source_ts):
+        # existing 0327 data has wrong timestamps
+        print("Warning: all interp_ts are larger than source_ts")
+        source_ts += min(interp_ts) - min(source_ts)
 
     # method1: saturate the timestamp outside the range
     if min(interp_ts) < min(source_ts):
@@ -237,14 +241,10 @@ if __name__ == "__main__":
                 os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
                 allow_pickle=True,
             ).item()
-            # check_zero_diff(lidar_stamped["timestamp"])
-            # np.diff(twist_stamped_dict['timestamp'])[0] == 0.0
+
             twist_sampled_dict, lidar_stamped_ts = interp_twist(
                 twist_stamped_dict, lidar_stamped
             )
-
-            # check_zero_diff(lidar_stamped_ts)
-            # check_zero_diff(twist_sampled_dict["timestamp"])
 
             qolo_command_dict = {
                 "timestamp": twist_sampled_dict["timestamp"],
