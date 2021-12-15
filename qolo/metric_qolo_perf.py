@@ -167,6 +167,8 @@ def compute_rel_jerk(
     # print(cmd_ts.max(), end_cmd_ts, cmd_ts[end_idx])
 
     # print(start_idx, end_idx)
+    print("Avg linear jerk:", np.abs(x_jerk[start_idx : end_idx + 1]).mean())
+    print("Avg angular jerk:", np.abs(zrot_jerk[start_idx : end_idx + 1]).mean())
 
     # compute the entering jerk
     # jerk_sum = np.linalg.norm([x_jerk[start_idx], zrot_jerk[start_idx]]) * (
