@@ -156,6 +156,13 @@ def compute_rel_jerk(
     """Compute relative jerk, which is the time integral of x_jerk and zrot_jerk
     (square sum) along the operation duration. Can consider normalizing by the duration"""
 
+    # issues when exporint 0327
+    # 1616842678.0695062 1616669108.7600613
+    # 1616842846.7601984 1616669225.2152271
+    # start_cmd_ts and end_cmd_ts has wrong timestamp!!!
+    # print(cmd_ts.min(), start_cmd_ts)
+    # print(cmd_ts.max(), end_cmd_ts)
+
     # load with actual index!!!
     start_idx, end_idx = 0, len(cmd_ts) - 1
     # find start and ending points
