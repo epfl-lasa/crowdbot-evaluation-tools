@@ -13,17 +13,6 @@
 The module provides workflow to extract commands from rosbag.
 """
 # =============================================================================
-"""
-TODO:
-1. consider fixing the inequal timestamps with twist msg!
-rosbag info 2021-04-10-11-05-34.bag
-    /qolo/twist  3553 msgs    : geometry_msgs/TwistStamped
-    /rds_to_gui  3554 msgs    : rds_network_ros/ToGui
-rosbag info 2021-04-24-12-56-59.bag
-    /qolo/twist  3612 msgs    : geometry_msgs/TwistStamped
-    /rds_to_gui  3610 msgs    : rds_network_ros/ToGui
-"""
-# =============================================================================
 
 
 import os
@@ -54,13 +43,7 @@ def extract_cmd_from_rosbag(bag_file_path, args):
             )
         )
 
-        # Extract command from toGui msg to npy
-        # twist_counter = 0
-
         for topic, msg, t in bag.read_messages():
-            # if topic == args.twist_topic:
-            #     twist_counter += 1
-            #     twist_timestamp = ts_to_sec(msg.header.stamp)
             if topic == args.to_gui_topic:
                 # these messages do not have time stamps
                 timestamp = ts_to_sec(t)  # or t.to_sec()
@@ -78,18 +61,6 @@ def extract_cmd_from_rosbag(bag_file_path, args):
                     command_msg_sum % num_msgs_between_logs == 0
                     or command_msg_sum >= total_num_command_msgs - 1
                 ):
-                    # if ("twist_timestamp" in locals().keys()) and (
-                    #     "timestamp" in locals().keys()
-                    # ):
-                    #     print(
-                    #         "ts difference between twist[{}] and to_gui[{}] msg: {} - {} = {}".format(
-                    #             twist_counter,
-                    #             command_msg_sum + 1,
-                    #             twist_timestamp,
-                    #             timestamp,
-                    #             twist_timestamp - timestamp,
-                    #         )
-                    #     )
                     print(
                         "/rds_to_gui messages: {} / {}".format(
                             command_msg_sum + 1, total_num_command_msgs
@@ -97,7 +68,6 @@ def extract_cmd_from_rosbag(bag_file_path, args):
                     )
 
                 command_msg_sum += 1
-                # print(twist_counter, command_msg_sum)
 
     ts_np = np.array(ts_list)
     commands = np.array(commands_list)

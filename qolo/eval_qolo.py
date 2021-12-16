@@ -124,25 +124,23 @@ if __name__ == "__main__":
 
         # load twist, qolo_command
         twist_dir = os.path.join(cb_data.source_data_dir, "twist")
-        qolo_twist_path = os.path.join(twist_dir, seq + "_twist_raw.npy")
+        # qolo_twist_path = os.path.join(twist_dir, seq + "_twist_raw.npy")
         command_sampled_filepath = os.path.join(twist_dir, seq + "_qolo_command.npy")
-        if (not os.path.exists(qolo_twist_path)) or (
-            not os.path.exists(command_sampled_filepath)
-        ):
+        if not os.path.exists(command_sampled_filepath):
             print("ERROR: Please extract twist_stamped by using twist2npy.py")
-        qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
+        # qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
         qolo_command_dict = np.load(command_sampled_filepath, allow_pickle=True).item()
 
         # load qolo_state
         tfqolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
         qolo_state_filepath = os.path.join(tfqolo_dir, seq + "_qolo_state.npy")
-        qolo_lidarstamp_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_sampled.npy")
+        # qolo_lidarstamp_filepath = os.path.join(tfqolo_dir, seq + "_tfqolo_sampled.npy")
         if not os.path.exists(qolo_state_filepath):
             print("ERROR: Please extract twist_stamped by using tfqolo2npy.py")
         qolo_state_dict = np.load(qolo_state_filepath, allow_pickle=True).item()
-        qolo_lidarstamp_dict = np.load(
-            qolo_lidarstamp_filepath, allow_pickle=True
-        ).item()
+        # qolo_lidarstamp_dict = np.load(
+        #     qolo_lidarstamp_filepath, allow_pickle=True
+        # ).item()
 
         # load commands
         cmd_dir = os.path.join(cb_data.source_data_dir, "commands")
@@ -163,14 +161,6 @@ if __name__ == "__main__":
         # only for plotting function update!
         if args.replot:
             qolo_eval_npy = np.load(qolo_eval_npy, allow_pickle=True).item()
-
-            # save_twist_cmd_img(
-            #     qolo_twist,
-            #     cmd_raw_dict,
-            #     eval_res_dir,
-            #     seq,
-            #     suffix="_twist_toGui_comp",
-            # )
 
             # viz twist, acc, jerk from qolo_command and qolo_state
             save_motion_img(

@@ -16,8 +16,7 @@ acceleration, jerk by taking derivatives.
 # =============================================================================
 """
 TODO:
-1. bottleneck -> time-comsuming when using rosbag to extract data
-2. fixed NaN exists in acc and jerk
+1. fixed NaN exists in acc and jerk
 """
 # =============================================================================
 
@@ -138,9 +137,8 @@ def interp_twist(twist_stamped_dict, target_dict):
     print("twist timestamp", min(source_ts), max(source_ts))
 
     if min(interp_ts) > max(source_ts):
-        # existing 0327 data has wrong timestamps
         print("Warning: all interp_ts are larger than source_ts")
-        source_ts += min(interp_ts) - min(source_ts)
+        interp_ts -= min(interp_ts) - min(source_ts)
 
     # method1: saturate the timestamp outside the range
     if min(interp_ts) < min(source_ts):
@@ -170,7 +168,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="0327_shared_control",
+        default="0424_mds",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -242,9 +240,7 @@ if __name__ == "__main__":
                 allow_pickle=True,
             ).item()
 
-            twist_sampled_dict, lidar_stamped_ts = interp_twist(
-                twist_stamped_dict, lidar_stamped
-            )
+            twist_sampled_dict, _ = interp_twist(twist_stamped_dict, lidar_stamped)
 
             qolo_command_dict = {
                 "timestamp": twist_sampled_dict["timestamp"],
@@ -318,30 +314,3 @@ if __name__ == "__main__":
         """
 
     print("Finish extracting all twist & computing derivate of twist (qolo_command)!")
-
-"""
-ref: https://github.com/uzh-rpg/rpg_e2vid/blob/master/scripts/extract_events_from_rosbag.py
-http://wiki.ros.org/rosbag/Code%20API#Python_API
-"""
-
-"""
-Issues found: timestamp difference because recording in wrong computer time
-lidar timestamp 1616842678.0695062 1616842846.7601984
-twist timestamp 1616669108.7600613 1616669279.065613
-
-`python3 qolo/twist2npy.py --overwrite -f 0327_shared_control`
-/hdd/data_qolo/crowd_qolo_recordings/0327_shared_control/2021-03-27-11-45-08.bag
-/hdd/data_qolo/crowd_qolo_recordings/0327_shared_control/2021-03-27-11-48-13.bag
-twist messages: 1806 / 1806
-Current twist extracted!
-/home/crowdbot/.local/lib/python3.8/site-packages/numpy/lib/function_base.py:1080: RuntimeWarning: invalid value encountered in true_divide
-  out[tuple(slice1)] = (f[tuple(slice4)] - f[tuple(slice2)]) / (2. * ax_dx)
-/home/crowdbot/.local/lib/python3.8/site-packages/numpy/lib/function_base.py:1101: RuntimeWarning: invalid value encountered in double_scalars
-  out[tuple(slice1)] = (f[tuple(slice2)] - f[tuple(slice3)]) / dx_0
-/home/crowdbot/.local/lib/python3.8/site-packages/numpy/lib/function_base.py:1108: RuntimeWarning: invalid value encountered in double_scalars
-  out[tuple(slice1)] = (f[tuple(slice2)] - f[tuple(slice3)]) / dx_n
-NaN index in x_acc: [   0    1    2 ... 3344 3345 3346]
-NaN index in zrot_acc: [   0    1    2 ... 3344 3345 3346]
-NaN index in x_jerk: [   0    1    2 ... 3344 3345 3346]
-NaN index in zrot_jerk: [   0    1    2 ... 3344 3345 3346]
-"""
