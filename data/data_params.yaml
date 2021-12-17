@@ -58,3 +58,8 @@
     vel_user_max: 1.2
     omega_user_max: 1.0
     virtual_radius: 0.45
+  rds:
+    goal_dist: 30.0
+    vel_user_max: 0.9
+    omega_user_max: 1.031
+    virtual_radius: 0.45

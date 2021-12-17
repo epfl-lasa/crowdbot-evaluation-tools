@@ -1,6 +1,6 @@
 #!/bin/bash
 # derived from https://stackoverflow.com/a/14203146/7961693
-# sh data_export_eval_source_data.sh -e=py38cuda110 -t=0424_mds
+# sh export_eval_qolo.sh -e=py38cuda110 -t=0424_mds
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
@@ -47,8 +47,19 @@ conda activate ${ENVIRONMENT}
 
 echo "Number of rosbag in currnet control type:" $(ls -1 "${ROSBAG_DATABASE}/${TYPE}"/*".bag" | wc -l)
 
-echo "########## Export pointcloud and lidar timestamp ##########"
-# python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE}
+# pointcloud exported or not
+read -p "Has pointcloud exported (y/n)?" choice
+case "$choice" in
+y | Y) echo "yes" ;;
+n | N) echo "no" ;;
+*) echo "invalid" ;;
+esac
+
+case "$choice" in
+y | Y) echo "#### Skip exporting pointcloud ..." ;;
+n | N) echo "########## Export pointcloud and lidar timestamp ##########" && \
+python3 ../qolo/gen_lidar_from_rosbags.py --overwrite -f ${TYPE} ;;
+esac
 
 echo "########## Export qolo status ##########"
 echo "##### commands2npy.py #####"
@@ -71,7 +82,5 @@ echo "##### eval_qolo_path.py #####"
 python3 ../qolo/eval_qolo_path.py --overwrite -f ${TYPE}
 echo "##### eval_qolo.py #####"
 python3 ../qolo/eval_qolo.py --overwrite -f ${TYPE}
-# echo "##### eval_crowd.py #####"
-# python3 ../qolo/eval_crowd.py --overwrite -f ${TYPE}
 
 echo "########## Finished!!! ##########"
