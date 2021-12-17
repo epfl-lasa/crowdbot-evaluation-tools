@@ -3,7 +3,7 @@
 # =============================================================================
 """
 @Author        :   Yujie He
-@File          :   gen_video.py
+@File          :   gen_animation.py
 @Date created  :   2021/11/28
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
@@ -14,19 +14,17 @@ The module provides the workflow to generate videos and gifs from image folder
 with ffmpeg.
 """
 # =============================================================================
-"""
-TODO:
-1. consider using ffmpeg-py or imageio
-(example: https://github.com/facebookresearch/habitat-lab/blob/main/habitat/utils/visualizations/utils.py#L100)
-"""
-# =============================================================================
 
 
 import os
+import fnmatch
 import argparse
+
+import moviepy.editor as mpy
+
 from crowdbot_data import CrowdBotDatabase
 
-
+# need ffmpeg
 def img_dir2video_ffmpeg(img_dir, video_path):
     """Generate video using ffmpeg via os.system()"""
 
@@ -39,6 +37,7 @@ def img_dir2video_ffmpeg(img_dir, video_path):
     os.system(cmd)
 
 
+# need ffmpeg
 def video2gif_ffmpeg(video_path, gif_path, w=640, h=480):
     """Generate gif from video using ffmpeg via os.system()"""
 
@@ -87,10 +86,22 @@ if __name__ == "__main__":
         if not os.path.exists(video_seq_filepath):
             print("Images will be converted into {}".format(video_seq_filepath))
 
-            img_dir2video_ffmpeg(img_seq_dir, video_seq_filepath)
+            # img_dir2video_ffmpeg(img_seq_dir, video_seq_filepath)
 
-            video2gif_ffmpeg(
-                video_seq_filepath, video_seq_filepath.replace("mp4", "gif")
+            # video2gif_ffmpeg(
+            #     video_seq_filepath, video_seq_filepath.replace("mp4", "gif")
+            # )
+
+            img_files = sorted(fnmatch.filter(os.listdir(img_seq_dir), "*.png"))
+            print("{} frames detected".format(len(img_files)))
+            img_seq = [os.path.join(img_seq_dir, img) for img in img_files]
+
+            clip = mpy.ImageSequenceClip(img_seq, fps=30)
+            # .mp4 video
+            clip.write_videofile(video_seq_filepath, fps=15)
+            # .gif
+            clip.resize((720, 480)).write_gif(
+                video_seq_filepath.replace("mp4", "gif"), fps=15
             )
 
         else:

@@ -32,7 +32,7 @@ import open3d as o3d
 from viz_util import (
     id2color,
     bbox_lines,
-    boxes3d_to_corners3d_lidar,
+    boxes3d_to_corners3d,
     filter_pointcloud_distance,
     filter_detection_tracking_res,
 )
@@ -201,7 +201,7 @@ def plot_robot_frame_o3d(
         elif boxes.shape[1] == 8:
             ids = boxes[:, -1]
             boxes = boxes[:, :-1]
-            corners_xyz = boxes3d_to_corners3d_lidar(boxes, bottom_center=False)
+            corners_xyz = boxes3d_to_corners3d(boxes, bottom_center=False)
             # corners_xyz, connect_inds = boxes_to_corners(boxes, connect_inds=True)
 
             for id_, corners in zip(ids, corners_xyz):
@@ -330,7 +330,7 @@ def plot_world_frame_o3d(
         elif boxes.shape[1] == 8:
             ids = boxes[:, -1]
             boxes = boxes[:, :-1]
-            corners_xyz = boxes3d_to_corners3d_lidar(boxes, bottom_center=False)
+            corners_xyz = boxes3d_to_corners3d(boxes, bottom_center=False)
             # corners_xyz, connect_inds = boxes_to_corners(boxes, connect_inds=True)
 
             for id_, corners in zip(ids, corners_xyz):

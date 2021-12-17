@@ -27,7 +27,7 @@
 
 | **Example**                                                  | **Visualization**                                            |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **Qolo trajectories with tracked bounding box** (generated using [`gen_viz_img_o3d.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/gen_viz_img_o3d.py) and [`gen_video.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/gen_video.py)) | <img src="./example/2021-04-10-12-36-29.gif" alt="example video"   width="500" > |
+| **Qolo trajectories with tracked bounding box** (generated using [`gen_viz_img_o3d.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/gen_viz_img_o3d.py) and [`gen_animation.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/gen_animation.py)) | <img src="./example/2021-04-10-12-36-29.gif" alt="example video"   width="500" > |
 | **Crowd density** (generated using [`eval_crowd.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_crowd.py)) | <img src="./example/2021-04-24-11-35-54_crowd_density.png" alt="crowd_density"   width="500" > |
 | **Minimal distance** of pedestrian to Qolo (generated using [`eval_crowd.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_crowd.py)) | <img src="./example/2021-04-24-11-35-54_min_dist.png" alt="min_dist"   width="500" > |
 | **Path efficiency** (generated using [`eval_qolo_path.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo_path.py)) | <img src="./example/2021-04-24-11-35-54_path.png" alt="path"   width="500" > |

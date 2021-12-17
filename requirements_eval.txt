@@ -12,3 +12,6 @@ open3d==0.13.0
 rospkg
 pycryptodomex
 python-gnupg
+# video & gif generation
+ez_setup
+moviepy>=1.0.1

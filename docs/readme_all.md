@@ -396,9 +396,9 @@ python3 qolo/gen_viz_img.py -f 0424_rds_detector
 # TODO: check correctly or not
 # ffmpeg -y -r 15 -pattern_type glob -i "tmp/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "tmp/frames.mp4"
 # ffmpeg -y -r 15 -pattern_type glob -i "viz_imgs/nocam_2021-04-24-11-48-21/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "videos/nocam_2021-04-24-11-48-21.mp4"
-python3 qolo/gen_video.py -f nocam_rosbags
-python3 qolo/gen_video.py -f 0424_shared_control
-python3 qolo/gen_video.py -f 0424_rds_detector
+python3 qolo/gen_animation.py -f nocam_rosbags
+python3 qolo/gen_animation.py -f 0424_shared_control
+python3 qolo/gen_animation.py -f 0424_rds_detector
 ```
 
 - resulted structure in `data/` after generating detection results, images, and videos

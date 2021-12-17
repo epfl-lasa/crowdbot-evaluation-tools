@@ -81,7 +81,7 @@
 
     ```shell
     python3 qolo/gen_viz_img_o3d.py -f 0410_shared_control
-    python3 qolo/gen_video.py -f 0410_shared_control
+    python3 qolo/gen_animation.py -f 0410_shared_control
     ```
 
     The visualization results can be found in `./data/0410_shared_control_processed/media/`
