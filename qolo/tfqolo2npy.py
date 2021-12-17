@@ -27,6 +27,9 @@ import sys
 import argparse
 import numpy as np
 
+import quaternion as Q
+import quaternion.quaternion_time_series as qseries
+
 import rosbag
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "external"))
@@ -118,14 +121,6 @@ def interp_pose(source_dict, interp_ts):
     source_pos = source_dict.get("position")
     source_ori = source_dict.get("orientation")
 
-    # if min(interp_ts) > max(source_ts):
-    #     # existing 0327 data has wrong timestamps
-    #     print("Warning: all interp_ts are larger than source_ts")
-    #     source_ts += min(interp_ts) - min(source_ts)
-
-    # source_ts = strict_increase(source_ts)
-    # interp_ts = strict_increase(interp_ts)
-
     # method1: saturate the timestamp outside the range
     if np.min(interp_ts) < np.min(source_ts):
         interp_ts[interp_ts < min(source_ts)] = min(source_ts)
@@ -150,6 +145,44 @@ def interp_pose(source_dict, interp_ts):
     return interp_dict, interp_ts
 
 
+# calculate velocity
+def quat_mul(quat0, quat1):
+    x0, y0, z0, w0 = quat0
+    x1, y1, z1, w1 = quat1
+    return np.array(
+        [
+            w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1,
+            w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1,
+            w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1,
+            w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1,
+        ],
+        dtype=np.float64,
+    )
+
+
+def quat_norm(quat_):
+    quat_sum = np.linalg.norm(quat_)
+    for i, val in enumerate(quat_):
+        quat_[i] = val / quat_sum
+    return quat_
+
+
+def quat_conjugate(quat_):
+    x0, y0, z0, w0 = quat_
+    return np.array(
+        [-x0, -y0, -z0, w0],
+        dtype=np.float64,
+    )
+
+
+def qv_mult(quat_, vec_):
+    # vec -> list; quat -> list
+    quat_ = quat_norm(quat_)
+    temp = quat_mul(quat_, vec_)
+    res_vec = quat_mul(temp, quat_conjugate(quat_))
+    return res_vec[:3]
+
+
 #%% main file
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
@@ -157,7 +190,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="0325_rds",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -319,18 +352,29 @@ if __name__ == "__main__":
                 state_pose_g, subset=["x", "y", "z"]
             )
 
-            xyz_vel_g = np.hstack(
+            # xyz_vel_g = np.hstack(
+            #     (state_vel_g["x"], state_vel_g["y"], state_vel_g["z"])
+            # )
+            # xyz_vel_g = np.reshape(xyz_vel_g, (-1, 3, 1))
+            # xyz_vel = np.matmul(w2r_rot_mat_aligned_list, xyz_vel_g)  # (frames, 3, 1)
+            # xyz_vel = np.reshape(xyz_vel, (-1, 3))
+
+            # https://math.stackexchange.com/a/2030281
+            # https://answers.ros.org/question/196149/how-to-rotate-vector-by-quaternion-in-python/
+            xyz_vel_g = np.vstack(
                 (state_vel_g["x"], state_vel_g["y"], state_vel_g["z"])
-            )
-            xyz_vel_g = np.reshape(xyz_vel_g, (-1, 3, 1))
-            xyz_vel = np.matmul(w2r_rot_mat_aligned_list, xyz_vel_g)  # (frames, 3, 1)
-            xyz_vel = np.reshape(xyz_vel, (-1, 3))
+            ).T
+            xyz_vel = np.zeros_like(xyz_vel_g)
+            for idx in range(xyz_vel_g.shape[0]):
+                vel = xyz_vel_g[idx, :]
+                quat = quat_xyzw[idx, :]
+                vel_ = np.zeros(4, dtype=np.float64)
+                vel_[:3] = vel
+                xyz_vel[idx, :] = qv_mult(quat, vel_)
+            print("Using new conversion")
 
             print("Computing angular velocity velocity!")
-            import quaternion as Q
-            import quaternion.quaternion_time_series as qseries
 
-            ## ensure the use of CubicSpline inside `angular_velocity`
             # calculate difference
             high_interp_ts_delta = np.diff(high_interp_ts)
 
