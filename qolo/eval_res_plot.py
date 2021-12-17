@@ -13,11 +13,6 @@
 The module provides plotting functions to visualize evaluation results
 """
 # =============================================================================
-"""
-TODO:
-1. cannot show correctly when `MAX=nan, MIN=-nan` occurs
-"""
-# =============================================================================
 
 import os
 import numpy as np
@@ -58,10 +53,10 @@ def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     new_end_ts = new_start_ts + duration2goal
     ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
     plt.text(
-        x=new_end_ts + 1,
+        x=new_end_ts - 1,
         y=0.60,
         s="$t_e$={0:.1f}s".format(new_end_ts),
-        horizontalalignment="left",
+        horizontalalignment="right",
         fontsize=6,
     )
 
@@ -166,23 +161,15 @@ def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     new_end_ts = new_start_ts + duration2goal
     ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
     plt.text(
-        x=new_end_ts + 1,
+        x=new_end_ts - 1,
         y=4.2,
         s="$t_e$={0:.1f}s".format(new_end_ts),
-        horizontalalignment="left",
+        horizontalalignment="right",
         fontsize=6,
     )
 
     # y=0.0 horizontal line (if consider the qolo capsule)
     ax.plot((0.0, duration), (0.0, 0.0), linestyle="--", color="navy")
-    # plt.text(
-    #     x=duration / 2,
-    #     y=-0.1,
-    #     s=r"$\mathrm{dist}_{\mathrm{limit}}=0.3$",
-    #     horizontalalignment="center",
-    #     verticalalignment="top",
-    #     fontsize=8,
-    # )
 
     ax.set_title(
         "Min. Distance of Pedestrain from qolo ({0:.1f}s)".format(duration), fontsize=15
@@ -250,11 +237,8 @@ def save_motion_img(
         "$J_w$ [$rad/s^3$]",
     )
 
-    # ref: https://jakevdp.github.io/PythonDataScienceHandbook/04.08-multiple-subplots.html
     fig, ax = plt.subplots(3, 2, sharex="col", figsize=(10, 4))
     fig.subplots_adjust(hspace=0.4, wspace=0.4)
-    # ref: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/axes_zoom_effect.html#sphx-glr-gallery-subplots-axes-and-figures-axes-zoom-effect-py
-    # ref: https://matplotlib.org/stable/gallery/shapes_and_collections/artist_reference.html#sphx-glr-gallery-shapes-and-collections-artist-reference-py
 
     for i in range(3):
         for j in range(2):
@@ -264,11 +248,6 @@ def save_motion_img(
             ax[i, j].axvline(x=new_start_ts, linestyle="--", linewidth=1.5, color="red")
             ax[i, j].axvline(x=new_end_ts, linestyle="--", linewidth=1.5, color="red")
 
-            # ref: https://stackoverflow.com/questions/50753721/can-not-reset-the-axes
-            # print(type(np.max(yy)))
-            # print(type(np.abs(np.min(yy))))
-            # TypeError: 'numpy.float64' object cannot be interpreted as an integer
-            # y_lim = np.max(np.max(yy), np.abs(np.min(yy)))
             if np.max(yy) >= np.abs(np.min(yy)):
                 y_lim = np.max(yy)
             else:
@@ -377,7 +356,6 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
         color='purple',
     )
 
-    # https://stackoverflow.com/a/9216646
     goal_circle = mpatches.Circle(
         tuple(goal_loc), 3, color='skyblue', fill=True, label="Goal area"
     )
@@ -393,5 +371,4 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     path_img_path = os.path.join(base_dir, seq_name + "_path.png")
     plt.savefig(path_img_path, dpi=300)  # png, pdf
 
-    # https://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
     plt.close()
