@@ -1,8 +1,8 @@
 # crowdbot-evaluation-tools
 
 <p align="center">
-<img src="https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/img/Dataset-LASA-CrwodBot-Qolo-2021.gif"  width="700"></>	
-	
+<img src="https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/img/Dataset-LASA-CrwodBot-Qolo-2021.gif"  width="700"></>
+
 > Repository for crowd tracking and robot performance evaluation in navigation experiments
 
 ## Files & Folders
@@ -10,42 +10,30 @@
 - [`docs/`](./docs/): documentation
 - [`qolo/`](./qolo/): codespace for crowdbot evaluation
 - [`notebook/`](./notebook/): example notebooks for demo
-  - **[intro_to_dataset.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/intro_to_dataset.ipynb)**
-  - **[comprehensive_eval.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/comprehensive_eval.ipynb)**
+  - **[intro to dataset](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/intro_to_dataset.ipynb)**
+  - **[comprehensive evaluation](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/comprehensive_eval_ver3.ipynb)**
 - [`sh_scripts/`](./sh_scripts/): shell scripts to execute pipelines for extracting source data, applying algorithms, and evaluating with different metrics
 - [`crowdbot_tools_archive/`](./crowdbot_tools_archive/): archive of https://github.com/danjia21/crowdbot_tools
-- `dev_log.md`: update development once updated!
 
 ## Dataset
 
-<details open>
-    <summary><b>Proposed dataset structure</b></summary> <div align="center"> <img src="./example/dataset_stucture.png" alt="dataset"   width="500" > </div>
-</details>
-
-## Examples
+### Structure
 
 <details>
-    <summary><b>animation with qolo trajectories and detection/tracking results within 8 meter</b></summary> <div align="center"> <img src="./example/2021-04-10-12-36-29.gif" alt="example video"   width="500" > </div>
+    <summary><b>Proposed dataset structure</b></summary> <div align="center"> <img src="./example/dataset_structure.png" alt="dataset"   width="500" > </div>
 </details>
 
-<details>
-    <summary><b>eval_crowd demo</b></summary>
-    <details>
-        <summary><b>crowd_density variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_crowd_density.png" alt="crowd_density"   width="500" > </div>
-    </details>
-    <details>
-        <summary><b>min_dist variations along the timestamps</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_min_dist.png" alt="min_dist"   width="500" > </div>
-    </details>
-</details>
-<details open>
-    <summary><b>eval_qolo demo</b></summary>
-    <details>
-        <summary><b>path/time to goal</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_path.png" alt="path"   width="500" > </div>
-    </details>
-    <details open>
-        <summary><b>twist_acc_jerk</b></summary> <div align="center"> <img src="./example/2021-04-24-13-11-03_qolo_command.png" alt="twist_acc_jerk"   width="500" > </div>
-    </details>
-</details>
+### Demo
+
+| **Example**                                                  | **Visualization**                                            |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Qolo trajectories with tracked bounding box** (generated using [`gen_viz_img_o3d.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/gen_viz_img_o3d.py) and [`gen_video.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/gen_video.py)) | <img src="./example/2021-04-10-12-36-29.gif" alt="example video"   width="500" > |
+| **Crowd density** (generated using [`eval_crowd.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_crowd.py)) | <img src="./example/2021-04-24-11-35-54_crowd_density.png" alt="crowd_density"   width="500" > |
+| **Minimal distance** of pedestrian to Qolo (generated using [`eval_crowd.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_crowd.py)) | <img src="./example/2021-04-24-11-35-54_min_dist.png" alt="min_dist"   width="500" > |
+| **Path efficiency** (generated using [`eval_qolo_path.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo_path.py)) | <img src="./example/2021-04-24-11-35-54_path.png" alt="path"   width="500" > |
+| **Qolo command** (generated using [`eval_qolo.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo.py)) | <img src="./example/2021-04-24-11-35-54_qolo_command.png" alt="command"   width="700" > |
+| **Qolo state** (generated using [`eval_qolo.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo.py)) | <img src="./example/2021-04-24-11-35-54_qolo_state.png" alt="state"   width="700" > |
+
 
 ## References:
 
