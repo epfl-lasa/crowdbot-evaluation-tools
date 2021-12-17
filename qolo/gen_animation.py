@@ -74,14 +74,16 @@ if __name__ == "__main__":
             )
         )
 
-        # seq source: data/xxxx_processed/viz_imgs/seq
-        img_seq_dir = os.path.join(cb_data.img3d_dir, seq)
+        # seq src: data/xxxx_processed/media/img_o3d/seq
+        img3d_dir = os.path.join(cb_data.media_dir, "img_o3d")
+        img_seq_dir = os.path.join(img3d_dir, seq)
         if not os.path.exists(img_seq_dir):
             print("please generate images with gen_viz_img_o3d.py")
 
-        # seq dest: data/xxxx_processed/videos/seq.mp4
-        os.makedirs(cb_data.video_dir, exist_ok=True)
-        video_seq_filepath = os.path.join(cb_data.video_dir, seq + ".mp4")
+        # seq dest: data/xxxx_processed/media/videos/seq.mp4
+        video_dir = os.path.join(cb_data.media_dir, "videos")
+        os.makedirs(video_dir, exist_ok=True)
+        video_seq_filepath = os.path.join(video_dir, seq + ".mp4")
 
         if not os.path.exists(video_seq_filepath):
             print("Images will be converted into {}".format(video_seq_filepath))

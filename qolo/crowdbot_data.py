@@ -80,21 +80,18 @@ class CrowdBotDatabase(CrowdBotData):
         # lidars/
         self.lidar_dir = os.path.join(data_processed_dir, "lidars")
 
-        # alg_res/
+        # alg_res/[detections/tracks]
         self.alg_res_dir = os.path.join(data_processed_dir, "alg_res")
         self.dets_dir = os.path.join(self.alg_res_dir, "detections")
         self.trks_dir = os.path.join(self.alg_res_dir, "tracks")
 
-        # source_data/[tf_qolo/pose/twist/acc]
+        # source_data/[tf_qolo/pose/twist/acc/timestamp]
         self.source_data_dir = os.path.join(data_processed_dir, "source_data")
 
         self.metrics_dir = os.path.join(data_processed_dir, "metrics")
 
-        # media/[viz_imgs/videos]
+        # media/[img_o3d/videos]
         self.media_dir = os.path.join(data_processed_dir, "media")
-        # self.imgs_dir = os.path.join(self.media_dir, "viz_imgs")
-        self.img3d_dir = os.path.join(self.media_dir, "img_o3d")
-        self.video_dir = os.path.join(self.media_dir, "media", "videos")
 
         # filter sequence dir from self.lidar_dir (*_stamped.npy in the same folder)
         self.seqs = [
