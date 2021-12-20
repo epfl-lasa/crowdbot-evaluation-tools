@@ -15,9 +15,7 @@ The module provides ...
 # =============================================================================
 """
 TODO:
-1. add --overwrite flag
-2. save detection results in different way instead of txt files
-3. extract trajectories
+1. save detection results in different way instead of txt files
 """
 # =============================================================================
 
@@ -35,17 +33,32 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="1203_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
+    parser.add_argument(
+        "--overwrite",
+        dest="overwrite",
+        action="store_true",
+        help="Whether to overwrite existing output (default: false)",
+    )
+    parser.set_defaults(overwrite=False)
     # ckpt_e40_train_val.pth | ckpt_e40_train.pth
     parser.add_argument(
         "--model", default="ckpt_e40_train.pth", type=str, help="checkpoints filename"
     )
+    parser.add_argument(
+        "--save_num",
+        type=int,
+        default=100,
+        help="numbers of detected bbox to save",
+    )
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
+
+    save_bbox_num = args.save_num
 
     # model checkpoints
     ckpt_path = os.path.join(
@@ -74,8 +87,13 @@ if __name__ == "__main__":
         det_seq_dir = os.path.join(cb_data.dets_dir, seq)
 
         # os.makedirs(det_seq_dir, exist_ok=True)
-        if not os.path.exists(det_seq_dir):
-            os.makedirs(det_seq_dir)
+        if os.path.exists(det_seq_dir) and not args.overwrite:
+            print("{} detection results already generated!!!".format(seq))
+            print("Will not overwrite. If you want to overwrite, use flag --overwrite")
+            continue
+        else:
+            if not os.path.exists(det_seq_dir):
+                os.makedirs(det_seq_dir)
 
             for frame in frames:
                 with open(os.path.join(lidar_file_dir, seq, frame), "rb") as f:
@@ -83,7 +101,13 @@ if __name__ == "__main__":
 
                 boxes, scores = detector(pc.T)
 
-                out = np.concatenate((boxes, scores[:, np.newaxis]), axis=1)
+                # save top 100 bbox with score
+                if len(scores) >= save_bbox_num:
+                    boxes_, scores_ = boxes[:100, :], scores[:100, :]
+                else:
+                    boxes_, scores_ = boxes, scores
+
+                out = np.concatenate((boxes_, scores_[:, np.newaxis]), axis=1)
                 np.savetxt(
                     os.path.join(det_seq_dir, frame.replace("nby", "txt")),
                     out,
@@ -92,6 +116,3 @@ if __name__ == "__main__":
 
             print(detector)
             detector.reset()
-        else:
-            print("{} detection results already generated!!!".format(seq))
-            continue

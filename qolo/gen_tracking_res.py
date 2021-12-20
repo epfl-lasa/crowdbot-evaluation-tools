@@ -15,9 +15,7 @@ The module provides ...
 # =============================================================================
 """
 TODO:
-1. add --overwrite flag
-2. save tracking results in different way instead of txt files
-3. extract trajectories
+1. save tracking results in different way instead of txt files
 """
 # =============================================================================
 
@@ -62,6 +60,13 @@ if __name__ == "__main__":
         type=str,
         help="different subfolder in rosbag/ dir",
     )
+    parser.add_argument(
+        "--overwrite",
+        dest="overwrite",
+        action="store_true",
+        help="Whether to overwrite existing output (default: false)",
+    )
+    parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
     min_conf = 0.5
@@ -74,13 +79,15 @@ if __name__ == "__main__":
     for seq_idx in range(seq_num):
         tracker = AB3DMOT(max_age=2, min_hits=3)
 
+        seq = cb_data.seqs[seq_idx]
+
         counter += 1
         print("({}/{}): {} frames".format(counter, seq_num, cb_data.nr_frames(seq_idx)))
 
         # seq dest: data/xxxx_processed/alg_res/tracks/seq
-        trk_seq_dir = os.path.join(cb_data.trks_dir, cb_data.seqs[seq_idx])
+        trk_seq_dir = os.path.join(cb_data.trks_dir, seq)
 
-        if not os.path.exists(trk_seq_dir):
+        if not os.path.exists(trk_seq_dir) or args.overwrite:
             for fr_idx in range(cb_data.nr_frames(seq_idx)):
                 lidar, dets, dets_conf, _ = cb_data[seq_idx, fr_idx]
 
@@ -96,7 +103,6 @@ if __name__ == "__main__":
                 os.makedirs(trk_seq_dir, exist_ok=True)
                 np.savetxt(f_path, trks, delimiter=",")
         else:
-            print(
-                "{} tracking results already generated!!!".format(cb_data.seqs[seq_idx])
-            )
+            print("{} tracking results already generated!!!".format(seq))
+            print("Will not overwrite. If you want to overwrite, use flag --overwrite")
             continue
