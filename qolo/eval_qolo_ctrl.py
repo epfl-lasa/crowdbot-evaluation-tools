@@ -156,7 +156,7 @@ if __name__ == "__main__":
         path_eval_dict = np.load(path_eval_filepath, allow_pickle=True).item()
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
-        qolo_eval_npy = os.path.join(eval_res_dir, seq + "_qolo_eval.npy")
+        qolo_eval_npy = os.path.join(eval_res_dir, seq, seq + "_qolo_eval.npy")
 
         # only for plotting function update!
         if args.replot:

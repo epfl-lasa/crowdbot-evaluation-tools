@@ -71,7 +71,7 @@ def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     ax.set_ylim(bottom=0.0, top=0.8)
 
     fig.tight_layout()
-    cd_img_path = os.path.join(base_dir, seq_name + "_crowd_density.png")
+    cd_img_path = os.path.join(base_dir, seq_name, seq_name + "_crowd_density.png")
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
 
     plt.close()
@@ -126,7 +126,7 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     ax.set_ylim(bottom=0.0, top=0.5)
 
     fig.tight_layout()
-    cd_img_path = os.path.join(base_dir, seq_name + "_crowd_density.png")
+    cd_img_path = os.path.join(base_dir, seq_name, seq_name + "_crowd_density.png")
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
 
     plt.close()
@@ -182,7 +182,7 @@ def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     ax.set_ylim(bottom=-0.5, top=5.0)
 
     fig.tight_layout()
-    md_img_path = os.path.join(base_dir, seq_name + "_min_dist.png")
+    md_img_path = os.path.join(base_dir, seq_name, seq_name + "_min_dist.png")
     plt.savefig(md_img_path, dpi=300)  # png, pdf
 
     plt.close()
@@ -301,7 +301,7 @@ def save_motion_img(
 
     fig.tight_layout()
     qolo_img_path = os.path.join(
-        base_dir, seq_name + suffix + ".png"
+        base_dir, seq_name, seq_name + suffix + ".png"
     )  # "_qolo_command"
     plt.savefig(qolo_img_path, dpi=300)  # png, pdf
 
@@ -368,7 +368,7 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
 
     ax.set_title("Path. Closest distance to the goal={0:.1f}m".format(min_dist2goal))
     fig.tight_layout()
-    path_img_path = os.path.join(base_dir, seq_name + "_path.png")
+    path_img_path = os.path.join(base_dir, seq_name, seq_name + "_path.png")
     plt.savefig(path_img_path, dpi=300)  # png, pdf
 
     plt.close()

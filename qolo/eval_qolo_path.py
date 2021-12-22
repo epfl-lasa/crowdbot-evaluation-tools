@@ -120,7 +120,10 @@ if __name__ == "__main__":
         qolo_twist = np.load(qolo_twist_path, allow_pickle=True).item()
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
-        path_eval_npy = os.path.join(eval_res_dir, seq + "_path_eval.npy")
+        eval_seq_dir_path = os.path.join(eval_res_dir, seq)
+        if not os.path.exists(eval_seq_dir_path):
+            os.makedirs(eval_seq_dir_path)
+        path_eval_npy = os.path.join(eval_seq_dir_path, seq + "_path_eval.npy")
 
         # only for plotting function update!
         if args.replot:

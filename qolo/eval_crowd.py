@@ -137,7 +137,7 @@ if __name__ == "__main__":
         path_eval_dict = np.load(path_eval_filepath, allow_pickle=True).item()
 
         # dest: seq+'_crowd_eval.npy' file in eval_res_dir
-        crowd_eval_npy = os.path.join(eval_res_dir, seq + "_crowd_eval.npy")
+        crowd_eval_npy = os.path.join(eval_res_dir, seq, seq + "_crowd_eval.npy")
 
         # only for plotting function update!
         if args.replot:
@@ -171,9 +171,13 @@ if __name__ == "__main__":
             if (not os.path.exists(crowd_eval_npy)) or (args.overwrite):
 
                 # timestamp can be read from lidars/ folder
-                stamp_file_path = os.path.join(cb_data.lidar_dir, seq + "_stamped.npy")
-                lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
-                ts = lidar_stamped_dict.item().get("timestamp")
+                lidar_stamp_dir = os.path.join(cb_data.source_data_dir, "timestamp")
+                stamp_file_path = os.path.join(lidar_stamp_dir, seq + "_stamped.npy")
+                lidar_stamped = np.load(
+                    stamp_file_path,
+                    allow_pickle=True,
+                ).item()
+                ts = lidar_stamped.get("timestamp")
 
                 # targeted metrics and correspoding dtype
                 attrs = (

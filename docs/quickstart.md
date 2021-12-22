@@ -115,40 +115,29 @@
 ## outbase_dir
 
 ```shell
-crowdbot_data_analysis$ tree -L 3
+$0424_mds_processed$ tree -L 2
 .
-└── 0410_shared_control_processed
-    ├── alg_res
-    │   ├── detections
-    │   └── tracks
-    ├── lidars
-    │   ├── 2021-04-10-12-36-29
-    │   ├── 2021-04-10-12-36-29_stamped.npy
-    │   ├── 2021-04-10-12-38-25
-    │   └── 2021-04-10-12-38-25_stamped.npy
-    ├── media
-    │   ├── videos
-    │   └── viz_imgs
-    ├── metrics
-    │   ├── 2021-04-10-12-36-29_crowd_density.png
-    │   ├── 2021-04-10-12-36-29_crowd_eval.npy
-    │   ├── 2021-04-10-12-36-29_min_dist.png
-    │   ├── 2021-04-10-12-36-29_path.png
-    │   ├── 2021-04-10-12-36-29_qolo_command.png
-    │   ├── 2021-04-10-12-36-29_qolo_eval.npy
-    │   ├── 2021-04-10-12-36-29_qolo_state.png
-    │   ├── 2021-04-10-12-38-25_crowd_density.png
-    │   ├── 2021-04-10-12-38-25_crowd_eval.npy
-    │   ├── 2021-04-10-12-38-25_min_dist.png
-    │   ├── 2021-04-10-12-38-25_path.png
-    │   ├── 2021-04-10-12-38-25_qolo_command.png
-    │   ├── 2021-04-10-12-38-25_qolo_eval.npy
-    │   └── 2021-04-10-12-38-25_qolo_state.png
-    ├── pcd
-    │   ├── 2021-04-10-12-36-29
-    │   └── 2021-04-10-12-38-25
-    └── source_data
-        ├── pose2d
-        ├── tf_qolo
-        └── twist
+├── alg_res
+│   ├── detections
+│   └── tracks
+├── lidars
+│   ├── 2021-04-24-12-04-04
+│   ├── 2021-04-24-12-07-57
+│   ├── 2021-04-24-12-10-45
+│   ├── 2021-04-24-12-54-04
+│   ├── 2021-04-24-12-56-59
+│   └── 2021-04-24-13-03-39
+├── metrics
+│   ├── 2021-04-24-12-04-04
+│   ├── 2021-04-24-12-07-57
+│   ├── 2021-04-24-12-10-45
+│   ├── 2021-04-24-12-54-04
+│   ├── 2021-04-24-12-56-59
+│   └── 2021-04-24-13-03-39
+└── source_data
+    ├── commands
+    ├── pose2d
+    ├── tf_qolo
+    ├── timestamp
+    └── twist
 ```
