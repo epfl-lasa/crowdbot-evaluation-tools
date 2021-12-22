@@ -53,6 +53,13 @@ if __name__ == "__main__":
         help="Consider pose transformation when plotting",
     )
     parser.set_defaults(consider_pose=True)
+    parser.add_argument(
+        "--overwrite",
+        dest="overwrite",
+        action="store_true",
+        help="Whether to overwrite existing rosbags (default: false)",
+    )
+    parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -73,7 +80,7 @@ if __name__ == "__main__":
         img3d_dir = os.path.join(cb_data.media_dir, "img_o3d")
         img_seq_dir = os.path.join(img3d_dir, seq)
 
-        if not os.path.exists(img_seq_dir):
+        if not os.path.exists(img_seq_dir) or args.overwrite:
             print("Images will be saved in {}".format(img_seq_dir))
             os.makedirs(img_seq_dir, exist_ok=True)
 
@@ -111,4 +118,5 @@ if __name__ == "__main__":
                     plot_robot_frame_o3d(lidar.T, trks, figpath)
         else:
             print("{} images already generated!!!".format(cb_data.seqs[seq_idx]))
+            print("Will not overwrite. If you want to overwrite, use flag --overwrite")
             continue

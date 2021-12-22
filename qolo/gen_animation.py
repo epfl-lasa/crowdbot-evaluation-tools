@@ -61,6 +61,13 @@ if __name__ == "__main__":
         type=str,
         help="different subfolder in rosbag/ dir",
     )
+    parser.add_argument(
+        "--overwrite",
+        dest="overwrite",
+        action="store_true",
+        help="Whether to overwrite existing rosbags (default: false)",
+    )
+    parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -85,7 +92,7 @@ if __name__ == "__main__":
         os.makedirs(video_dir, exist_ok=True)
         video_seq_filepath = os.path.join(video_dir, seq + ".mp4")
 
-        if not os.path.exists(video_seq_filepath):
+        if not os.path.exists(video_seq_filepath) or args.overwrite:
             print("Images will be converted into {}".format(video_seq_filepath))
 
             # img_dir2video_ffmpeg(img_seq_dir, video_seq_filepath)
@@ -95,16 +102,19 @@ if __name__ == "__main__":
             # )
 
             img_files = sorted(fnmatch.filter(os.listdir(img_seq_dir), "*.png"))
-            print("{} frames detected".format(len(img_files)))
-            img_seq = [os.path.join(img_seq_dir, img) for img in img_files]
+            if img_files:
+                print("{} frames detected".format(len(img_files)))
+                img_seq = [os.path.join(img_seq_dir, img) for img in img_files]
 
-            clip = mpy.ImageSequenceClip(img_seq, fps=30)
-            # .mp4 video
-            clip.write_videofile(video_seq_filepath, fps=15)
-            # .gif
-            clip.resize((720, 480)).write_gif(
-                video_seq_filepath.replace("mp4", "gif"), fps=15
-            )
+                clip = mpy.ImageSequenceClip(img_seq, fps=30)
+                # .mp4 video
+                clip.write_videofile(video_seq_filepath, fps=15)
+                # .gif
+                clip.resize((720, 480)).write_gif(
+                    video_seq_filepath.replace("mp4", "gif"), fps=15
+                )
+            else:
+                print("Please generate images for visualization using `gen_viz_img.py`")
 
         else:
             print("{} already generated!!!".format(video_seq_filepath))

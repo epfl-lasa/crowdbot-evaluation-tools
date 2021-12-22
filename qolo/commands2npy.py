@@ -202,5 +202,12 @@ if __name__ == "__main__":
             print(
                 "# Sample from {} frames to {} frames.".format(source_len, target_len)
             )
+        else:
+            print(
+                "Detecting the generated {} already existed!".format(
+                    cmd_sampled_filepath
+                )
+            )
+            print("Will not overwrite. If you want to overwrite, use flag --overwrite")
 
     print("Finish extracting all commands!")
