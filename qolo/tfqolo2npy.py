@@ -17,8 +17,7 @@ compute velocity acceleration, jerk by taking derivatives.
 # =============================================================================
 """
 TODO:
-1. bottleneck -> time-comsuming when using rosbag to extract data
-2. better filter to position, quaternions, velocities, etc.
+1. better filter to position, quaternions, velocities, etc.
 """
 # =============================================================================
 
@@ -304,33 +303,6 @@ if __name__ == "__main__":
             print("Computing linear velocity!")
             position_g = state_dict["position"]
 
-            """
-            # create low-pass filter
-            # ref:
-            #   https://ipython-books.github.io/102-applying-a-linear-filter-to-a-digital-signal/
-            import scipy.signal as sg
-
-            # method1: Butterworth digital and analog filter design.
-            #   https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html
-            #   https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt
-            # 4-th order, cut-off around 50Hz, original data 200Hz
-            # sos = sg.butter(4, 100, fs=200, output='sos')
-            # Digital filter critical frequencies must be 0 < Wn < fs/2 (fs=200 -> fs/2=100.0)
-            sos = sg.butter(N=3, Wn=90, fs=200, output='sos')
-            # apply to global position
-            position_g = sg.sosfilt(sos, position_g)
-            # create low-pass filter
-
-
-            # method2: triangular window of a given length and type. (useless)
-            #   https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.get_window.html
-            triang_w = sg.get_window('triang', 21)  # 11 21 31 41 51
-            for dim in range(np.shape(position_g)[1]):
-                position_g[:, dim] = sg.convolve(
-                    position_g[:, dim], triang_w / triang_w.sum(), mode='same'
-                )
-            """
-
             # smooth with Savitzky-Golay filter
             print("Using Savitzky-Golay filter to smooth position!")
             if args.smooth:
@@ -529,8 +501,10 @@ if __name__ == "__main__":
             np.save(state_filepath, state_dict)
 
             # _stamped.npy
+            lidar_stamp_dir = os.path.join(cb_data.source_data_dir, "timestamp")
+            stamp_file_path = os.path.join(lidar_stamp_dir, seq + "_stamped.npy")
             lidar_stamped = np.load(
-                os.path.join(cb_data.lidar_dir, seq + "_stamped.npy"),
+                stamp_file_path,
                 allow_pickle=True,
             ).item()
             lidar_ts = lidar_stamped.get("timestamp")

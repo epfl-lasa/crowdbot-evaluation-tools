@@ -80,7 +80,7 @@ echo "##### gen_tracking_res.py #####"
 echo "########## Evaluate the performance ##########"
 echo "##### eval_qolo_path.py #####"
 python3 ../qolo/eval_qolo_path.py --overwrite -f ${TYPE}
-echo "##### eval_qolo.py #####"
-python3 ../qolo/eval_qolo.py --overwrite -f ${TYPE}
+echo "##### eval_qolo_ctrl.py #####"
+python3 ../qolo/eval_qolo_ctrl.py --overwrite -f ${TYPE}
 
 echo "########## Finished!!! ##########"

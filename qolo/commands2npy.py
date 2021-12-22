@@ -128,7 +128,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="1203_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -188,8 +188,10 @@ if __name__ == "__main__":
                 cmd_raw_dict = np.load(cmd_raw_filepath, allow_pickle=True).item()
 
             # sample with lidar frame
+            lidar_stamp_dir = os.path.join(cb_data.source_data_dir, "timestamp")
+            stamp_file_path = os.path.join(lidar_stamp_dir, bag_name + "_stamped.npy")
             lidar_stamped = np.load(
-                os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
+                stamp_file_path,
                 allow_pickle=True,
             ).item()
             cmd_sampled_dict = interp_linear_dict(cmd_raw_dict, lidar_stamped)

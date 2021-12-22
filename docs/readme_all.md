@@ -441,12 +441,12 @@ results will be saved into `metrics/` subfolder
 #### run the crowd evaluation code
 
 ```sh
-python3 qolo/eval_qolo.py -f nocam_rosbags
-python3 qolo/eval_qolo.py -f 0424_shared_control
-python3 qolo/eval_qolo.py -f 0424_rds_detector
+python3 qolo/eval_qolo_ctrl.py -f nocam_rosbags
+python3 qolo/eval_qolo_ctrl.py -f 0424_shared_control
+python3 qolo/eval_qolo_ctrl.py -f 0424_rds_detector
 
-python3 qolo/eval_qolo.py -f nocam_rosbags --overwrite
-python3 qolo/eval_qolo.py -f nocam_rosbags --replot
+python3 qolo/eval_qolo_ctrl.py -f nocam_rosbags --overwrite
+python3 qolo/eval_qolo_ctrl.py -f nocam_rosbags --replot
 ```
 
 results will be saved into `metrics/` subfolder

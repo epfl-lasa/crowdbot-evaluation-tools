@@ -16,7 +16,6 @@ The module provides workflow to extract Pose2D msg from rosbag.
 """
 TODO:
 1. should specify which part of pose/odom data is saved instead of saving two many zeros
-2. interpolate to a reasonable timestamp (e.g., lidar frame)
 """
 # =============================================================================
 

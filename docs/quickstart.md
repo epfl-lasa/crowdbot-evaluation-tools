@@ -95,7 +95,7 @@
         ```shell
         python3 qolo/eval_qolo_path.py --overwrite -f 0410_shared_control
         python3 qolo/eval_crowd.py --overwrite -f 0410_shared_control
-        python3 qolo/eval_qolo.py --overwrite -f 0410_shared_control
+        python3 qolo/eval_qolo_ctrl.py --overwrite -f 0410_shared_control
         ```
 
         - `--overwrite` flag is used to overwrite existing data
@@ -105,7 +105,7 @@
         ```shell
         python qolo/eval_qolo_path.py --replot -f 0410_shared_control
         python qolo/eval_crowd.py --replot -f 0410_shared_control
-        python qolo/eval_qolo.py --replot -f 0410_shared_control
+        python qolo/eval_qolo_ctrl.py --replot -f 0410_shared_control
         ```
 
         - `--replot` flag is used to replot resulting data

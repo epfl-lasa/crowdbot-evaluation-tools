@@ -14,11 +14,6 @@ The module provides workflow to extract twist msg from rosbag and compute
 acceleration, jerk by taking derivatives.
 """
 # =============================================================================
-"""
-TODO:
-1. fixed NaN exists in acc and jerk
-"""
-# =============================================================================
 
 import os
 import sys
@@ -234,9 +229,10 @@ if __name__ == "__main__":
                 ).item()
 
             # twist_sampled
-            # np.diff(lidar_stamped)[0] == 0.0
+            lidar_stamp_dir = os.path.join(cb_data.source_data_dir, "timestamp")
+            stamp_file_path = os.path.join(lidar_stamp_dir, bag_name + "_stamped.npy")
             lidar_stamped = np.load(
-                os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
+                stamp_file_path,
                 allow_pickle=True,
             ).item()
 
@@ -257,15 +253,14 @@ if __name__ == "__main__":
             )
 
             # acc_sampled
-            # generate from this step!!!
-            # np.diff(twist_sampled_dict['timestamp'])[0] == 0.0 => True
             acc_sampled_dict = compute_motion_derivative(twist_sampled_dict)
-            print(
-                "NaN index in x_acc: {}\nNaN index in zrot_acc: {}".format(
-                    np.squeeze(np.argwhere(np.isnan(acc_sampled_dict["x"]))),
-                    np.squeeze(np.argwhere(np.isnan(acc_sampled_dict["zrot"]))),
-                ),
-            )
+            # existing NaN due to different duration of timestamp!
+            # print(
+            #     "NaN index in x_acc: {}\nNaN index in zrot_acc: {}".format(
+            #         np.squeeze(np.argwhere(np.isnan(acc_sampled_dict["x"]))),
+            #         np.squeeze(np.argwhere(np.isnan(acc_sampled_dict["zrot"]))),
+            #     ),
+            # )
             acc_sampled_dict["x"][np.isnan(acc_sampled_dict["x"])] = 0.0
             acc_sampled_dict["zrot"][np.isnan(acc_sampled_dict["zrot"])] = 0.0
             qolo_command_dict.update({"x_acc": acc_sampled_dict["x"]})
@@ -273,12 +268,13 @@ if __name__ == "__main__":
 
             # jerk_sampled
             jerk_sampled_dict = compute_motion_derivative(acc_sampled_dict)
-            print(
-                "NaN index in x_jerk: {}\nNaN index in zrot_jerk: {}".format(
-                    np.squeeze(np.argwhere(np.isnan(jerk_sampled_dict["x"]))),
-                    np.squeeze(np.argwhere(np.isnan(jerk_sampled_dict["zrot"]))),
-                ),
-            )
+            # existing NaN due to different duration of timestamp!
+            # print(
+            #     "NaN index in x_jerk: {}\nNaN index in zrot_jerk: {}".format(
+            #         np.squeeze(np.argwhere(np.isnan(jerk_sampled_dict["x"]))),
+            #         np.squeeze(np.argwhere(np.isnan(jerk_sampled_dict["zrot"]))),
+            #     ),
+            # )
             jerk_sampled_dict["x"][np.isnan(jerk_sampled_dict["x"])] = 0.0
             jerk_sampled_dict["zrot"][np.isnan(jerk_sampled_dict["zrot"])] = 0.0
             qolo_command_dict.update({"x_jerk": jerk_sampled_dict["x"]})
@@ -289,28 +285,5 @@ if __name__ == "__main__":
             )
 
             np.save(command_sampled_filepath, qolo_command_dict)
-
-        """
-        acc_dir = os.path.join(cb_data.source_data_dir, "acc")
-        if not os.path.exists(acc_dir):
-            os.makedirs(acc_dir)
-
-        # sample with lidar frame
-        acc_sampled_filepath = os.path.join(acc_dir, bag_name + "_acc_sampled.npy")
-
-        if (not os.path.exists(acc_sampled_filepath)) or (args.overwrite):
-            if not ("lidar_stamped" in locals().keys()):
-                lidar_stamped = np.load(
-                    os.path.join(cb_data.lidar_dir, bag_name + "_stamped.npy"),
-                    allow_pickle=True,
-                ).item()
-            if not ("twist_sampled_dict" in locals().keys()):
-                twist_sampled_dict = np.load(
-                    command_sampled_filepath, allow_pickle=True
-                ).item()
-
-            acc_sampled_dict = compute_motion_derivative(twist_sampled_dict)
-            np.save(acc_sampled_filepath, acc_sampled_dict)
-        """
 
     print("Finish extracting all twist & computing derivate of twist (qolo_command)!")

@@ -3,7 +3,7 @@
 # =============================================================================
 """
 @Author        :   Yujie He
-@File          :   eval_qolo.py
+@File          :   eval_qolo_ctrl.py
 @Date created  :   2021/11/09
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
@@ -183,10 +183,14 @@ if __name__ == "__main__":
         else:
             if (not os.path.exists(qolo_eval_npy)) or (args.overwrite):
 
-                # timestamp can be read from lidars/ folder
-                stamp_file_path = os.path.join(cb_data.lidar_dir, seq + "_stamped.npy")
-                lidar_stamped_dict = np.load(stamp_file_path, allow_pickle=True)
-                ts = lidar_stamped_dict.item().get("timestamp")
+                # timestamp can be read from tiemstamp/ folder
+                lidar_stamp_dir = os.path.join(cb_data.source_data_dir, "timestamp")
+                stamp_file_path = os.path.join(lidar_stamp_dir, seq + "_stamped.npy")
+                lidar_stamped = np.load(
+                    stamp_file_path,
+                    allow_pickle=True,
+                ).item()
+                ts = lidar_stamped.get("timestamp")
 
                 start_cmd_ts = path_eval_dict["start_command_ts"]
                 end_cmd_ts = path_eval_dict["end_command_ts"]

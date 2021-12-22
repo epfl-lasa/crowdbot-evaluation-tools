@@ -31,8 +31,8 @@
 | **Crowd density** (generated using [`eval_crowd.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_crowd.py)) | <img src="./example/2021-04-24-11-35-54_crowd_density.png" alt="crowd_density"   width="500" > |
 | **Minimal distance** of pedestrian to Qolo (generated using [`eval_crowd.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_crowd.py)) | <img src="./example/2021-04-24-11-35-54_min_dist.png" alt="min_dist"   width="500" > |
 | **Path efficiency** (generated using [`eval_qolo_path.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo_path.py)) | <img src="./example/2021-04-24-11-35-54_path.png" alt="path"   width="500" > |
-| **Qolo command** (generated using [`eval_qolo.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo.py)) | <img src="./example/2021-04-24-11-35-54_qolo_command.png" alt="command"   width="700" > |
-| **Qolo state** (generated using [`eval_qolo.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo.py)) | <img src="./example/2021-04-24-11-35-54_qolo_state.png" alt="state"   width="700" > |
+| **Qolo command** (generated using [`eval_qolo_ctrl.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo_ctrl.py)) | <img src="./example/2021-04-24-11-35-54_qolo_command.png" alt="command"   width="700" > |
+| **Qolo state** (generated using [`eval_qolo_ctrl.py`](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/qolo/eval_qolo_ctrl.py)) | <img src="./example/2021-04-24-11-35-54_qolo_state.png" alt="state"   width="700" > |
 
 
 ## References:

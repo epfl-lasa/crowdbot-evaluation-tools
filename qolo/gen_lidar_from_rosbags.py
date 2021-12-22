@@ -188,9 +188,9 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
         "timestamp": np.asarray(ts_list, dtype=np.float64),
         "id": np.array(frame_id),
     }
-    bagname = out_dir.split("/")[-1]
-    stamp_file_path = os.path.join(out_dir, "..", bagname + "_stamped.npy")
-    np.save(stamp_file_path, lidar_stamped_dict)
+    # bag_name = out_dir.split("/")[-1]
+    # stamp_file_path = os.path.join(out_dir, "..", bag_name + "_stamped.npy")
+    # np.save(stamp_file_path, lidar_stamped_dict)
 
     s = (
         "Summary\n"
@@ -203,6 +203,8 @@ def extract_lidar_from_rosbag(bag_path, out_dir, args):
     )
     print(s)
 
+    return lidar_stamped_dict
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="convert data from rosbag")
@@ -210,7 +212,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="1203_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -251,28 +253,37 @@ if __name__ == "__main__":
     rosbag_dir = os.path.join(qolo_dataset.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
-    # destination: lidar data in data/xxxx_processed/lidars
+    # destination: lidar data in xxxx_processed/lidars
     data_processed = args.folder + "_processed"
-    # data_processed_dir = os.path.join(base_folder, "data", data_processed)
     data_processed_dir = os.path.join(qolo_dataset.outbase_dir, data_processed)
     if not os.path.exists(data_processed_dir):
         os.makedirs(data_processed_dir)
     lidar_file_dir = os.path.join(data_processed_dir, "lidars")
+    lidar_stamp_dir = os.path.join(data_processed_dir, "source_data", "timestamp")
+    if not os.path.exists(lidar_stamp_dir):
+        os.makedirs(lidar_stamp_dir)
 
     print("Starting extracting lidar files from {} rosbags!".format(len(bag_files)))
 
     for idx, bf in enumerate(bag_files):
         bag_path = os.path.join(rosbag_dir, bf)
-        out_dir = os.path.join(lidar_file_dir, bf.split(".")[0])
+        bag_name = bf.split(".")[0]
+        out_dir = os.path.join(lidar_file_dir, bag_name)
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
         out_lidar_np = fnmatch.filter(os.listdir(out_dir), "*.nby")
-        out_pcd = fnmatch.filter(os.listdir(out_dir), "*.pcd")
 
         print("({}/{}): {}".format(idx + 1, len(bag_files), bag_path))
 
-        if (not out_pcd) or (args.overwrite):
-            extract_lidar_from_rosbag(bag_path, out_dir, args)
+        if args.overwrite:
+            lidar_stamped_dict = extract_lidar_from_rosbag(bag_path, out_dir, args)
+            print(
+                "lidar_stamped_dict with {} frames".format(
+                    len(lidar_stamped_dict['timestamp'])
+                )
+            )
+            stamp_file_path = os.path.join(lidar_stamp_dir, bag_name + "_stamped.npy")
+            np.save(stamp_file_path, lidar_stamped_dict)
         else:
             print("{} already extracted!!!".format(bf))
             continue
