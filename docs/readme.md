@@ -7,5 +7,3 @@
 ### Check the simplifie 👉 [Quickstart](./quickstart.md) instead!
 
 ## [3 Evaluation](./3_eval.md)
-
-## [4 TODO](./4_todo.md)

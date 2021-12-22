@@ -21,7 +21,7 @@
     python -m pip install --upgrade --force-reinstall numpy-quaternion
     ```
 
-## Simplified starting commands
+## Simplified commands for evaluation
 
 1. Set direcroty in `data/data_path.yaml`
 
@@ -33,12 +33,6 @@
     - `bagbase_dir` is where rosbags are stored
 
     - `outbase_dir` is where extracted lidar, qolo_state, algorithm result, and evaluation results are stored, In terms of example, please check [outbase_dir](#outbase_dir)
-
-    ~~Create symbolic link of 0410_shared_control folder (including two rosbags) in current workspace~~
-
-    ~~`cd path/to/crowdbot-evaluation-tools`~~
-
-    ~~`ln -s  /hdd/data_qolo/crowd_qolo_recordings/0410_shared_control/ data/rosbag/0410_shared_control`~~
 
 2. data conversion from original rosbags
 
@@ -94,28 +88,21 @@
 
         ```shell
         python3 qolo/eval_qolo_path.py --overwrite -f 0410_shared_control
-        python3 qolo/eval_crowd.py --overwrite -f 0410_shared_control
         python3 qolo/eval_qolo_ctrl.py --overwrite -f 0410_shared_control
+        python3 qolo/eval_crowd.py --overwrite -f 0410_shared_control
         ```
 
         - `--overwrite` flag is used to overwrite existing data
-
-    - replot all images
-
-        ```shell
-        python qolo/eval_qolo_path.py --replot -f 0410_shared_control
-        python qolo/eval_crowd.py --replot -f 0410_shared_control
-        python qolo/eval_qolo_ctrl.py --replot -f 0410_shared_control
-        ```
-
-        - `--replot` flag is used to replot resulting data
+        - `--replot` flag is used to update plots for each evaluation pipeline
 
     The visualization results can be found in `./data/0410_shared_control_processed/metrics/`
 
-## outbase_dir
+## outbase_dir example
+
+> taking `0424_mds_processed/` as an example
 
 ```shell
-$0424_mds_processed$ tree -L 2
+$ tree -L 2
 .
 ├── alg_res
 │   ├── detections
