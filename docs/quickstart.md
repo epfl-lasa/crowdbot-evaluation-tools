@@ -80,7 +80,7 @@
 4. visualization of current evaluation result
 
     ```shell
-    python3 qolo/gen_viz_img_o3d.py -f 0410_shared_control
+    python3 qolo/gen_viz_img.py -f 0410_shared_control
     python3 qolo/gen_animation.py -f 0410_shared_control
     ```
 

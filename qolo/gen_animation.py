@@ -78,7 +78,7 @@ if __name__ == "__main__":
         img3d_dir = os.path.join(cb_data.media_dir, "img_o3d")
         img_seq_dir = os.path.join(img3d_dir, seq)
         if not os.path.exists(img_seq_dir):
-            print("please generate images with gen_viz_img_o3d.py")
+            print("please generate images with gen_viz_img.py")
 
         # seq dest: data/xxxx_processed/media/videos/seq.mp4
         video_dir = os.path.join(cb_data.media_dir, "videos")

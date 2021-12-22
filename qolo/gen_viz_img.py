@@ -3,7 +3,7 @@
 # =============================================================================
 """
 @Author        :   Yujie He
-@File          :   gen_viz_img_o3d.py
+@File          :   gen_viz_img.py
 @Date created  :   2021/10/26
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="1203_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )

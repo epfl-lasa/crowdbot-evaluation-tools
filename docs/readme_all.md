@@ -364,9 +364,9 @@ conda install -c conda-forge scipy==1.4.0
 
 ```
 # generate images
-python3 qolo/gen_viz_img_o3d.py -f nocam_rosbags
-python3 qolo/gen_viz_img_o3d.py -f 0424_shared_control
-python3 qolo/gen_viz_img_o3d.py -f 0424_rds_detector
+python3 qolo/gen_viz_img.py -f nocam_rosbags
+python3 qolo/gen_viz_img.py -f 0424_shared_control
+python3 qolo/gen_viz_img.py -f 0424_rds_detector
 ```
 
 - **TODO: headless rendering: http://www.open3d.org/docs/latest/tutorial/visualization/headless_rendering.html **
