@@ -2,17 +2,17 @@
 
 ## Basic uses
 
+- Parameters
+    - `-e`: conda environment
+    - `-t`: target folder to evaluate from the crowdbot dataset
+- Example
+
 ```shell
 bash data_export_eval_all.sh -e=py38cuda110 -t=1203_test
 
 chmod +x data_export_eval_all.sh
 ./data_export_eval_all.sh -e=py38cuda110 -t=1203_test
 ```
-
-### Parameters
-
-- `-e`: conda environment
-- `-t`: target test folder in the crowdbot database
 
 ## Different scripts
 

@@ -2,6 +2,7 @@
 # derived from https://stackoverflow.com/a/14203146/7961693
 # sh export_eval_qolo.sh -e=py38cuda110 -t=0424_mds
 
+# copy the snippets below after `conda init`
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/home/crowdbot/miniconda3/bin/conda' 'shell.bash' 'hook' 2>/dev/null)"
@@ -16,6 +17,7 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
+# copy the snippets above after `conda init`
 
 # database path
 readonly ROSBAG_DATABASE=$(python3 parse_yaml.py ../data/data_path.yaml --get bagbase_dir)
@@ -38,9 +40,6 @@ for i in "$@"; do
 done
 echo "CONDA ENVIRONMENT  = ${ENVIRONMENT}"
 echo "CONTROL TYPE       = ${TYPE}"
-# echo "SEARCH PATH        = ${SEARCHPATH}"
-# echo "LIBRARY PATH       = ${LIBPATH}"
-# echo "DEFAULT            = ${DEFAULT}"
 
 conda activate ${ENVIRONMENT}
 # conda info
@@ -72,9 +71,9 @@ echo "##### pose2d2npy.py #####"
 python3 ../qolo/pose2d2npy.py --overwrite -f ${TYPE}
 
 echo "########## Apply algorithms to extracted data ##########"
-echo "##### gen_detection_res.py #####"
+# echo "##### gen_detection_res.py #####"
 # python3 ../qolo/gen_detection_res.py -f  ${TYPE}
-echo "##### gen_tracking_res.py #####"
+# echo "##### gen_tracking_res.py #####"
 # python3 ../qolo/gen_tracking_res.py -f ${TYPE}
 
 echo "########## Evaluate the performance ##########"
