@@ -10,12 +10,7 @@
 """
 # =============================================================================
 """
-The module provides ...
-"""
-# =============================================================================
-"""
-TODO:
-1. save detection results in different way instead of txt files
+The module provides pedestrian detection results based on Person_MinkUNet framework
 """
 # =============================================================================
 
@@ -44,6 +39,13 @@ if __name__ == "__main__":
         help="Whether to overwrite existing output (default: false)",
     )
     parser.set_defaults(overwrite=False)
+    parser.add_argument(
+        "--save_raw",
+        dest="save_raw",
+        action="store_true",
+        help="Whether to save raw data of detection results (default: false)",
+    )
+    parser.set_defaults(save_raw=False)
     # ckpt_e40_train_val.pth | ckpt_e40_train.pth
     parser.add_argument(
         "--model", default="ckpt_e40_train.pth", type=str, help="checkpoints filename"
@@ -77,25 +79,28 @@ if __name__ == "__main__":
 
         seq = cb_data.seqs[seq_idx]
 
-        # print(seq)
         counter += 1
         print("({}/{}): {}".format(counter, seq_num, seq))
         frames = os.listdir(os.path.join(lidar_file_dir, seq))
         frames.sort()
 
         # seq dest: data/xxxx_processed/detections/seq
-        det_seq_dir = os.path.join(cb_data.dets_dir, seq)
+        if args.save_raw:
+            det_seq_dir = os.path.join(cb_data.dets_dir, seq)
+        dnpy_all_path = os.path.join(cb_data.dets_dir, seq + '.npy')
 
         # os.makedirs(det_seq_dir, exist_ok=True)
-        if os.path.exists(det_seq_dir) and not args.overwrite:
+        if os.path.exists(dnpy_all_path) and not args.overwrite:
             print("{} detection results already generated!!!".format(seq))
             print("Will not overwrite. If you want to overwrite, use flag --overwrite")
             continue
         else:
-            if not os.path.exists(det_seq_dir):
+            if args.save_raw and (not os.path.exists(det_seq_dir)):
                 os.makedirs(det_seq_dir)
 
-            for frame in frames:
+            out_det_all = dict()
+
+            for fr_idx, frame in enumerate(frames):
                 with open(os.path.join(lidar_file_dir, seq, frame), "rb") as f:
                     pc = np.load(f)
 
@@ -103,16 +108,21 @@ if __name__ == "__main__":
 
                 # save top 100 bbox with score
                 if len(scores) >= save_bbox_num:
-                    boxes_, scores_ = boxes[:100, :], scores[:100, :]
+                    boxes_, scores_ = boxes[:100, :], scores[:100]
                 else:
                     boxes_, scores_ = boxes, scores
 
-                out = np.concatenate((boxes_, scores_[:, np.newaxis]), axis=1)
-                np.savetxt(
-                    os.path.join(det_seq_dir, frame.replace("nby", "txt")),
-                    out,
-                    delimiter=",",
-                )
-
+                out_det = np.concatenate((boxes_, scores_[:, np.newaxis]), axis=1)
+                if args.save_raw:
+                    np.savetxt(
+                        os.path.join(det_seq_dir, frame.replace("nby", "txt")),
+                        out_det,
+                        delimiter=",",
+                    )
+                out_det_all.update({fr_idx: out_det})
+            np.save(
+                dnpy_all_path,
+                out_det_all,
+            )
             print(detector)
             detector.reset()

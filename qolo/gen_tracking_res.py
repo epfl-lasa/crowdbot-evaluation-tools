@@ -10,14 +10,11 @@
 """
 # =============================================================================
 """
-The module provides ...
+The module provides pedestrian tracking results from detection results based on
+AB3DMOT framework
 """
 # =============================================================================
-"""
-TODO:
-1. save tracking results in different way instead of txt files
-"""
-# =============================================================================
+
 
 import os
 import sys
@@ -56,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="1203_test",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -67,6 +64,13 @@ if __name__ == "__main__":
         help="Whether to overwrite existing output (default: false)",
     )
     parser.set_defaults(overwrite=False)
+    parser.add_argument(
+        "--save_raw",
+        dest="save_raw",
+        action="store_true",
+        help="Whether to save raw data of detection results (default: false)",
+    )
+    parser.set_defaults(save_raw=False)
     args = parser.parse_args()
 
     min_conf = 0.5
@@ -85,11 +89,15 @@ if __name__ == "__main__":
         print("({}/{}): {} frames".format(counter, seq_num, cb_data.nr_frames(seq_idx)))
 
         # seq dest: data/xxxx_processed/alg_res/tracks/seq
-        trk_seq_dir = os.path.join(cb_data.trks_dir, seq)
+        if args.save_raw:
+            trk_seq_dir = os.path.join(cb_data.trks_dir, seq)
+        tnpy_all_path = os.path.join(cb_data.trks_dir, seq + '.npy')
 
-        if not os.path.exists(trk_seq_dir) or args.overwrite:
+        if not os.path.exists(tnpy_all_path) or args.overwrite:
+            out_trk_all = dict()
+
             for fr_idx in range(cb_data.nr_frames(seq_idx)):
-                lidar, dets, dets_conf, _ = cb_data[seq_idx, fr_idx]
+                _, dets, dets_conf, _ = cb_data[seq_idx, fr_idx]
 
                 dets = dets[dets_conf > min_conf]
                 dets = reorder(dets)
@@ -97,11 +105,18 @@ if __name__ == "__main__":
                 trks = tracker.update(trk_input)
                 trks = reorder_back(trks)
 
-                f_path = os.path.join(
-                    trk_seq_dir, cb_data.frames[seq_idx][fr_idx].replace("nby", "txt")
-                )
-                os.makedirs(trk_seq_dir, exist_ok=True)
-                np.savetxt(f_path, trks, delimiter=",")
+                if args.save_raw:
+                    f_path = os.path.join(
+                        trk_seq_dir,
+                        cb_data.frames[seq_idx][fr_idx].replace("nby", "txt"),
+                    )
+                    os.makedirs(trk_seq_dir, exist_ok=True)
+                    np.savetxt(f_path, trks, delimiter=",")
+                out_trk_all.update({fr_idx: trks})
+            np.save(
+                tnpy_all_path,
+                out_trk_all,
+            )
         else:
             print("{} tracking results already generated!!!".format(seq))
             print("Will not overwrite. If you want to overwrite, use flag --overwrite")
