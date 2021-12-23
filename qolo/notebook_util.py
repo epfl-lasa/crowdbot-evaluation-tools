@@ -187,9 +187,49 @@ def categorical_plot(
         ya.set_major_locator(MaxNLocator(integer=True))
 
 
-def gen_res_df(eval_dirs, crowd_metrics, path_metrics, control_metrics):
+def import_eval_res(
+    eval_dirs,
+    crowd_metrics=None,
+    path_metrics=None,
+    control_metrics=None,
+    travel_path_thres=5.0,
+):
+    if not crowd_metrics:
+        crowd_metrics = (
+            'avg_crowd_density2_5',
+            'std_crowd_density2_5',
+            'max_crowd_density2_5',
+            'avg_crowd_density5',
+            'std_crowd_density5',
+            'max_crowd_density5',
+            'avg_min_dist',
+            'virtual_collision',
+        )
+
+    if not path_metrics:
+        path_metrics = (
+            'rel_duration2goal',
+            'rel_path_length2goal',
+            'path_length2goal',
+            'duration2goal',
+            'min_dist2goal',
+        )
+
+    if not control_metrics:
+        control_metrics = (
+            'rel_jerk',
+            'avg_fluency',
+            'contribution',
+            'avg_agreement',
+        )
+
     frames = []
+
     for eval_dir in eval_dirs:
+
+        # extract date
+        date = eval_dir[:4]
+        control_type = eval_dir[5:]
 
         print("Reading results from {}".format(eval_dir))
 
@@ -198,7 +238,7 @@ def gen_res_df(eval_dirs, crowd_metrics, path_metrics, control_metrics):
 
         eval_dict = {'seq': eval_database.seqs}
         eval_dict.update(
-            {'control_type': [eval_dir[5:] for i in range(eval_database.nr_seqs())]}
+            {'control_type': [control_type for i in range(eval_database.nr_seqs())]}
         )
 
         eval_dict.update({k: [] for k in crowd_metrics})
@@ -208,7 +248,7 @@ def gen_res_df(eval_dirs, crowd_metrics, path_metrics, control_metrics):
         for idx, seq in enumerate(eval_database.seqs):
             eval_res_dir = os.path.join(eval_database.metrics_dir)
 
-            crowd_eval_npy = os.path.join(eval_res_dir, seq + "_crowd_eval.npy")
+            crowd_eval_npy = os.path.join(eval_res_dir, seq, seq + "_crowd_eval.npy")
             crowd_eval_dict = np.load(
                 crowd_eval_npy,
                 allow_pickle=True,
@@ -216,7 +256,7 @@ def gen_res_df(eval_dirs, crowd_metrics, path_metrics, control_metrics):
             for iidx, val in enumerate(crowd_metrics):
                 eval_dict[crowd_metrics[iidx]].append(crowd_eval_dict[val])
 
-            path_eval_npy = os.path.join(eval_res_dir, seq + "_path_eval.npy")
+            path_eval_npy = os.path.join(eval_res_dir, seq, seq + "_path_eval.npy")
             path_eval_dict = np.load(
                 path_eval_npy,
                 allow_pickle=True,
@@ -224,7 +264,7 @@ def gen_res_df(eval_dirs, crowd_metrics, path_metrics, control_metrics):
             for iidx, val in enumerate(path_metrics):
                 eval_dict[path_metrics[iidx]].append(path_eval_dict[val])
 
-            qolo_eval_npy = os.path.join(eval_res_dir, seq + "_qolo_eval.npy")
+            qolo_eval_npy = os.path.join(eval_res_dir, seq, seq + "_qolo_eval.npy")
             qolo_eval_dict = np.load(
                 qolo_eval_npy,
                 allow_pickle=True,
@@ -241,9 +281,10 @@ def gen_res_df(eval_dirs, crowd_metrics, path_metrics, control_metrics):
         )
 
         # Filter path_length2goal less than 5 meter
-        eval_df = eval_df[eval_df.path_length2goal >= 5.0]
+        eval_df = eval_df[eval_df.path_length2goal >= travel_path_thres]
+        # add date col
+        eval_df['date'] = [date] * len(eval_df)
 
         frames.append(eval_df)
 
-    eval_res_df = pd.concat(frames, ignore_index=True)
-    return eval_res_df
+    return pd.concat(frames, ignore_index=True)
