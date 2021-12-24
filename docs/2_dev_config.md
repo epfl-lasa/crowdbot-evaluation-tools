@@ -154,6 +154,17 @@ make conda-package
 python -c "import open3d"
 ```
 
+- **TODO: headless rendering: http://www.open3d.org/docs/latest/tutorial/visualization/headless_rendering.html**
+
+  ```sh
+  cmake -DENABLE_HEADLESS_RENDERING=ON \
+                  -DBUILD_GUI=OFF \
+                  -DBUILD_WEBRTC=OFF \
+                  -DUSE_SYSTEM_GLEW=OFF \
+                  -DUSE_SYSTEM_GLFW=OFF \
+                  ..
+  ```
+
 #### resulted folder structure
 
 ```shell

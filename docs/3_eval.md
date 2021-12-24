@@ -4,7 +4,7 @@
 
 #### prepare the data and dependency for code
 
-```sh
+```shell
 # download the rosbag and put them under rosbag
 cd path/to/crowdbot_tools/data
 mkdir rosbag && cd rosbag
@@ -18,81 +18,91 @@ ln -s  /hdd/data_qolo/lausanne_2021/24_04_2021/RDS/detector 0424_rds_detector
 sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
 ```
 
-#### run the data conversion code
+#### Extracting source data from rosbag
 
-```sh
-# convert the data format from rosbag
-cd path/to/crowdbot_tools
-python3 qolo/gen_lidar_from_rosbags.py -f nocam_rosbags
+#### Pointcloud & LiDAR Timestamp
+
+```shell
 python3 qolo/gen_lidar_from_rosbags.py -f 0424_shared_control
-python3 qolo/gen_lidar_from_rosbags.py -f 0424_rds_detector
 ```
 
-- resulted structure in `data/` after data conversion
+- input:
+- output:
+- detailed description:
 
-  ```sh
-  data$ tree -L 2
-  .
-  ├── rosbag
-  │   ├── 0424_shared_control -> /hdd/data_qolo/lausanne_2021/24_04_2021/shared_control
-  │   └── nocam_rosbags -> /hdd/data_qolo/lausanne_2021/nocam_rosbags/
-  ├── 0424_shared_control_processed
-  │   └── lidar
-  │       ├── 2021-04-24-13-07-54
-  │       │   ├── 00000.nby
-  │       │   ├── ...
-  │       │   └── 01878.nby
-  │       └── 2021-04-24-13-11-03
-  └── nocam_rosbags_processed
-      └── lidar
-          ├── nocam_2021-04-24-11-48-21
-          ├── nocam_2021-04-24-12-56-59
-          ├── nocam_2021-04-24-13-16-58
-          └── nocam_2021-05-08-11-32-47
-  ```
+#### tf_qolo information
 
-### Extracting pose_stamped from rosbag
-
-#### run the detection code
-
-```sh
-python3 qolo/gen_pose_with_timestamp.py -f nocam_rosbags
-python3 qolo/gen_pose_with_timestamp.py -f 0424_shared_control
-python3 qolo/gen_pose_with_timestamp.py -f 0424_rds_detector
+```shell
+python3 qolo/tfqolo2npy.py -f 0424_shared_control
 ```
+
+- input:
+- output:
+- detailed description:
+  TODO: include the method to filter the signal
+
+#### twist information
+
+```shell
+python3 qolo/twist2npy.py -f 0424_shared_control
+```
+
+- input:
+- output:
+- detailed description:
+
+#### pose information
+
+```shell
+python3 qolo/pose2d2npy.py -f 0424_shared_control
+```
+
+- input:
+- output:
+- detailed description:
+
+#### command information
+
+```shell
+python3 qolo/commands2npy.py -f 0424_shared_control
+```
+
+- input:
+- output:
+- detailed description:
 
 ### Running detector with Person-MinkUNet
 
-#### prepare checkpoints
+1. prepare checkpoints: downloads [checkpoints](https://github.com/VisualComputingInstitute/Person_MinkUNet/releases) into `qolo/Person_MinkUNet/models` for  erson_MinkUNet
 
-downloads [checkpoints](https://github.com/VisualComputingInstitute/Person_MinkUNet/releases) into `qolo/Person_MinkUNet/models` # for Person_MinkUNet
+  - Person_MinkUNet/models structure
 
-- Person_MinkUNet/models structure
+    ```
+    ├── models
+    │   ├── ckpt_e40_train.pth
+    │   ├── ckpt_e40_train_val.pth
+    │   ├── unet_bl_voxel_jrdb_0.05_0.1_train_vel.yaml
+    │   └── unet_bl_voxel_jrdb_0.05_0.1_train.yaml
+    ```
 
+
+2. run the detection code
+
+  ```shell
+  python3 qolo/gen_detection_res.py -f 0424_shared_control
   ```
-  ├── models
-  │   ├── ckpt_e40_train.pth
-  │   ├── ckpt_e40_train_val.pth
-  │   ├── unet_bl_voxel_jrdb_0.05_0.1_train_vel.yaml
-  │   └── unet_bl_voxel_jrdb_0.05_0.1_train.yaml
-  ```
 
-
-#### run the detection code
-
-```
-python3 qolo/gen_detection_res.py -f 0424_shared_control
-python3 qolo/gen_detection_res.py -f nocam_rosbags
-python3 qolo/gen_detection_res.py -f 0424_rds_detector
-```
+- input:
+- output:
+- detailed description:
 
 ### Running tracker with AB3DMOT
 
-- add PYTHONPATH variable (optional)
+1. add `PYTHONPATH` variable (optional)
 
     As indicated [here](https://github.com/xinshuoweng/AB3DMOT#dependencies), to load the library appropriately, please remember to append PYTHONPATH variable in each terminal or add the following to your ~/.profile
 
-    ```sh
+    ```shell
     # conda activate torch38_cu110
     export PYTHONPATH="${PYTHONPATH}:${PWD}/qolo/AB3DMOT"
     echo $PYTHONPATH
@@ -107,13 +117,15 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
     sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "AB3DMOT"))
     ```
 
-#### run the tracking code
+2. run the tracking code
 
-```sh
-python3 qolo/gen_tracking_res.py -f 0424_shared_control
-python3 qolo/gen_tracking_res.py -f nocam_rosbags
-python3 qolo/gen_tracking_res.py -f 0424_rds_detector
-```
+  ```shell
+  python3 qolo/gen_tracking_res.py -f 0424_shared_control
+  ```
+
+- input:
+- output:
+- detailed description:
 
 ### Visualizing scans, detections, and tracking results
 
@@ -121,63 +133,83 @@ python3 qolo/gen_tracking_res.py -f 0424_rds_detector
 
 - running scripts
 
-```
-# generate images
-python3 qolo/gen_viz_img.py -f nocam_rosbags
+```shell
 python3 qolo/gen_viz_img.py -f 0424_shared_control
-python3 qolo/gen_viz_img.py -f 0424_rds_detector
 ```
 
-- **TODO: headless rendering: http://www.open3d.org/docs/latest/tutorial/visualization/headless_rendering.html **
+#### video & gifs generated from image sequence
 
-```sh
-cmake -DENABLE_HEADLESS_RENDERING=ON \
-                 -DBUILD_GUI=OFF \
-                 -DBUILD_WEBRTC=OFF \
-                 -DUSE_SYSTEM_GLEW=OFF \
-                 -DUSE_SYSTEM_GLFW=OFF \
-                 ..
-```
-
-#### viz with mayavi
-
-```sh
-# generate images
-python3 qolo/gen_viz_img.py -f nocam_rosbags
-python3 qolo/gen_viz_img.py -f 0424_shared_control
-python3 qolo/gen_viz_img.py -f 0424_rds_detector
-```
-
-#### video making from image sequence
-
-```sh
-# generate video
-# TODO: check correctly or not
-# ffmpeg -y -r 15 -pattern_type glob -i "tmp/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "tmp/frames.mp4"
-# ffmpeg -y -r 15 -pattern_type glob -i "viz_imgs/nocam_2021-04-24-11-48-21/*.png" -c:v libx264 -vf fps=30 -pix_fmt yuv420p "videos/nocam_2021-04-24-11-48-21.mp4"
-python3 qolo/gen_animation.py -f nocam_rosbags
+```shell
 python3 qolo/gen_animation.py -f 0424_shared_control
-python3 qolo/gen_animation.py -f 0424_rds_detector
 ```
 
-- resulted structure in `data/` after generating detection results, images, and videos
+### Metrics & crowd characteristics
 
-  ```sh
-  data$ tree -L 2
-  .
-  ├── 0424_shared_control_processed
-  │   ├── detections
-  │   ├── lidar
-  │   ├── tracks
-  │   ├── videos
-  │   └── viz_imgs
-  ├── nocam_rosbags_processed
-  │   ├── detections
-  │   ├── lidar
-  │   ├── tracks
-  │   ├── videos
-  │   └── viz_imgs
-  └── rosbag
-      ├── 0424_shared_control -> /hdd/data_qolo/lausanne_2021/24_04_2021/shared_control
-      └── nocam_rosbags -> /hdd/data_qolo/lausanne_2021/nocam_rosbags/
-  ```
+#### Path efficiency-related metrics
+
+```shell
+python3 qolo/eval_qolo_path.py -f 0424_shared_control
+```
+
+- input:
+- output:
+- parameters: (in table way)
+- detailed description:
+
+#### Qolo control performance-related metrics
+
+```shell
+python3 qolo/eval_qolo_ctrl.py -f 0424_shared_control
+```
+
+- input:
+- output:
+- parameters: (in table way)
+- detailed description:
+
+#### Crowd-related metrics
+
+```shell
+python3 qolo/eval_crowd.py -f 0424_shared_control
+```
+
+- input:
+- output:
+- parameters: (in table way)
+- detailed description:
+
+### Other utility functions
+
+###
+
+### Dataset structure
+
+> taking `0424_mds_processed/` as an example
+
+```shellell
+$ tree -L 2
+.
+├── alg_res
+│   ├── detections
+│   └── tracks
+├── lidars
+│   ├── 2021-04-24-12-04-04
+│   ├── 2021-04-24-12-07-57
+│   ├── 2021-04-24-12-10-45
+│   ├── 2021-04-24-12-54-04
+│   ├── 2021-04-24-12-56-59
+│   └── 2021-04-24-13-03-39
+├── metrics
+│   ├── 2021-04-24-12-04-04
+│   ├── 2021-04-24-12-07-57
+│   ├── 2021-04-24-12-10-45
+│   ├── 2021-04-24-12-54-04
+│   ├── 2021-04-24-12-56-59
+│   └── 2021-04-24-13-03-39
+└── source_data
+    ├── commands
+    ├── pose2d
+    ├── tf_qolo
+    ├── timestamp
+    └── twist
+```
