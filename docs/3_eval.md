@@ -107,26 +107,6 @@ python3 qolo/gen_detection_res.py -f 0424_rds_detector
     sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "AB3DMOT"))
     ```
 
-- possible error caused by incomplete installation of numba
-
-  ```
-  $ python -c 'import numba'
-  Traceback (most recent call last):
-    File "<string>", line 1, in <module>
-    File "/home/crowdbot/.local/lib/python3.8/site-packages/numba/__init__.py", line 25, in <module>
-      from .decorators import autojit, cfunc, generated_jit, jit, njit, stencil
-    File "/home/crowdbot/.local/lib/python3.8/site-packages/numba/decorators.py", line 12, in <module>
-      from .targets import registry
-    File "/home/crowdbot/.local/lib/python3.8/site-packages/numba/targets/registry.py", line 5, in <module>
-      from . import cpu
-    File "/home/crowdbot/.local/lib/python3.8/site-packages/numba/targets/cpu.py", line 9, in <module>
-      from numba import _dynfunc, config
-  ImportError: /home/crowdbot/.local/lib/python3.8/site-packages/numba/_dynfunc.cpython-38-x86_64-linux-gnu.so: undefined symbol: _PyObject_GC_UNTRACK
-  ```
-
-  **solution**: `python -m pip install --upgrade --force-reinstall numba==0.53.1`
-
-
 #### run the tracking code
 
 ```sh
@@ -136,67 +116,6 @@ python3 qolo/gen_tracking_res.py -f 0424_rds_detector
 ```
 
 ### Visualizing scans, detections, and tracking results
-
-#### installing Open3D
-
-> http://www.open3d.org/docs/release/getting_started.html
->
-> http://www.open3d.org/docs/release/compilation.html
-
-
-```sh
-## METHOD1: install from conda directly
-conda install -c open3d-admin -c conda-forge open3d
-
-
-## METHOD2: compile and install
-git clone --recursive https://github.com/intel-isl/Open3D
-
-# You can also update the submodule manually
-git submodule update --init --recursive
-
-# update cmake (use following command to check whether version > 3.18)
-cmake --version
-# https://blog.csdn.net/i6101206007/article/details/113113633#21_snap__26
-# sudo snap install cmake --classic
-# sudo snap remove cmake
-sudo apt install build-essential libssl-dev
-wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0.tar.gz
-tar -zxvf cmake-3.20.0.tar.gz
-cd cmake-3.20.0
-./bootstrap
-make
-sudo make install
-export PATH=/path/to/cmake-3.20.0/bin:$PATH
-
-# install deps
-sudo apt install xorg-dev libglu1-mesa-dev python3-dev \
-libsdl2-dev libc++-7-dev libc++abi-7-dev ninja-build libxi-dev \
-libtbb-dev libosmesa6-dev libudev-dev autoconf libtool
-
-# config
-mkdir installed
-mkdir build
-cd build
-cmake -DCMAKE_INSTALL_PREFIX=../installed \
-      -DPYTHON_EXECUTABLE=/home/crowdbot/miniconda3/envs/py38cuda110/bin/python \
-      ..
-make -j$(nproc)
-make install
-
-# conda install conda-build
-make conda-package
-
-python -c "import open3d"
-```
-
-- other dependancy
-
-```
-conda install -c conda-forge scipy==1.4.0
-# pip install scipy==1.4.0 --user
-# validate by `python -c "import scipy; print(scipy.__version__)"`
-```
 
 #### viz with Open3D
 

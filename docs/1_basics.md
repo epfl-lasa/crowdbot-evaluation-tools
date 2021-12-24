@@ -9,9 +9,9 @@
 
 ### Related repos
 
-> main repo: https://github.com/danjia21/crowdbot_tools
+> main repo: https://github.com/epfl-lasa/crowdbot-evaluation-tools
 
 - https://github.com/VisualComputingInstitute/Person_MinkUNet
-- https://github.com/mit-han-lab/torchsparse
+    - https://github.com/mit-han-lab/torchsparse
 - https://github.com/xinshuoweng/AB3DMOT/tree/53ae98951d1128bfbffa9cc3b9888d7ffe0212ef
-- https://github.com/xinshuoweng/Xinshuo_PyToolbox
+    - https://github.com/xinshuoweng/Xinshuo_PyToolbox

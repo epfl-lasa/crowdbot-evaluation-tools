@@ -5,6 +5,12 @@ matplotlib
 scipy==1.7.2
 numba==0.53.1
 jupyter
+## deep learning
+# https://stackoverflow.com/a/60913038
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==1.7.0+cu110
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.8.1+cu110
 ## quaternion calculation
 numpy-quaternion
 ## image generation
