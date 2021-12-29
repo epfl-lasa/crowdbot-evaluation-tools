@@ -17,8 +17,20 @@ The emulation results is exported with suffix as "_path_eval.npy".
 """
 # =============================================================================
 """
-TODO:
-1. use try/except when loading files
+usage: eval_qolo_path.py [-h] [-f FOLDER] [--params_path PARAMS_PATH] [--save_img] [--overwrite]
+                         [--replot]
+
+Evaluate path efficiency
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f FOLDER, --folder FOLDER
+                        different subfolder in rosbag/ dir
+  --params_path PARAMS_PATH
+                        path to dataset parameters
+  --save_img            plot and save crowd density image (default: true)
+  --overwrite           Whether to overwrite existing rosbags (default: false)
+  --replot              Whether to re-plot existing images (default: false)
 """
 # =============================================================================
 
@@ -58,7 +70,7 @@ if __name__ == "__main__":
         "--save_img",
         dest="save_img",
         action="store_true",
-        help="plot and save crowd density image",
+        help="plot and save crowd density image (default: true)",
     )
     parser.set_defaults(save_img=True)
     parser.add_argument(

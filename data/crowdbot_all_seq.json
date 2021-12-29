@@ -2,491 +2,687 @@
     "2021-03-25-13-21-16": {
         "frame_num": 3254,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 164.43489527702332,
+        "path_length_total": 72.12654113769531
     },
     "2021-03-25-13-27-58": {
         "frame_num": 1027,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 52.26287794113159,
+        "path_length_total": 15.85886001586914
     },
     "2021-03-25-14-16-06": {
         "frame_num": 3421,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 174.20541977882385,
+        "path_length_total": 70.77385711669922
     },
     "2021-03-25-14-19-38": {
         "frame_num": 2969,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 151.33008694648743,
+        "path_length_total": 101.61256408691406
     },
     "2021-03-25-14-22-50": {
         "frame_num": 1906,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 97.74197506904602,
+        "path_length_total": 37.71437454223633
     },
     "2021-03-25-14-25-41": {
         "frame_num": 3218,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 163.84778809547424,
+        "path_length_total": 90.52565002441406
     },
     "2021-03-25-14-32-24": {
         "frame_num": 3047,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 155.20932865142822,
+        "path_length_total": 66.81831359863281
     },
     "2021-03-25-14-35-35": {
         "frame_num": 2679,
         "date": "2021-03-25",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 136.704185962677,
+        "path_length_total": 73.8855972290039
     },
     "2021-03-25-14-52-33": {
         "frame_num": 2537,
         "date": "2021-03-25",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 129.52879357337952,
+        "path_length_total": 73.76209259033203
     },
     "2021-03-25-14-54-51": {
         "frame_num": 2707,
         "date": "2021-03-25",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 138.11183214187622,
+        "path_length_total": 91.36304473876953
     },
     "2021-03-25-14-57-34": {
         "frame_num": 2534,
         "date": "2021-03-25",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 129.3731746673584,
+        "path_length_total": 76.95296478271484
     },
     "2021-03-25-15-01-20": {
         "frame_num": 410,
         "date": "2021-03-25",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 22.23805546760559,
+        "path_length_total": 2.074448823928833
     },
     "2021-03-25-15-01-50": {
         "frame_num": 2870,
         "date": "2021-03-25",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 146.29078698158264,
+        "path_length_total": 76.24151611328125
     },
     "2021-03-25-15-04-27": {
         "frame_num": 2896,
         "date": "2021-03-25",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 147.6205985546112,
+        "path_length_total": 82.45803833007812
     },
     "2021-03-27-11-45-08": {
         "frame_num": 3347,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 170.19710183143616,
+        "path_length_total": 75.72445678710938
     },
     "2021-03-27-11-48-13": {
         "frame_num": 3462,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 175.9718542098999,
+        "path_length_total": 90.38502502441406
     },
     "2021-03-27-11-51-18": {
         "frame_num": 3487,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 177.23212814331055,
+        "path_length_total": 103.85987091064453
     },
     "2021-03-27-11-55-00": {
         "frame_num": 3330,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 169.39812994003296,
+        "path_length_total": 88.21392059326172
     },
     "2021-03-27-11-58-00": {
         "frame_num": 3378,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 171.85084581375122,
+        "path_length_total": 100.09937286376953
     },
     "2021-03-27-12-05-47": {
         "frame_num": 2770,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 141.1094195842743,
+        "path_length_total": 92.7882080078125
     },
     "2021-03-27-12-08-34": {
         "frame_num": 4727,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 239.80166053771973,
+        "path_length_total": 99.79685974121094
     },
     "2021-03-27-12-14-13": {
         "frame_num": 3069,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 156.16478562355042,
+        "path_length_total": 69.83023834228516
     },
     "2021-03-27-12-25-21": {
         "frame_num": 3971,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 201.3153326511383,
+        "path_length_total": 103.37428283691406
     },
     "2021-03-27-12-29-38": {
         "frame_num": 3869,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 196.06748986244202,
+        "path_length_total": 104.66156005859375
     },
     "2021-03-27-12-34-13": {
         "frame_num": 3674,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 186.19496726989746,
+        "path_length_total": 111.13015747070312
     },
     "2021-03-27-12-38-16": {
         "frame_num": 4734,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 239.81430387496948,
+        "path_length_total": 50.524452209472656
     },
     "2021-03-27-12-42-24": {
         "frame_num": 3774,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 191.4300501346588,
+        "path_length_total": 91.70092010498047
     },
     "2021-03-27-12-45-45": {
         "frame_num": 3415,
         "date": "2021-03-27",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 173.1152651309967,
+        "path_length_total": 82.64961242675781
     },
     "2021-04-10-11-28-10": {
         "frame_num": 2991,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 151.02199387550354,
+        "path_length_total": 37.38090515136719
     },
     "2021-04-10-11-30-57": {
         "frame_num": 2882,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 145.5945212841034,
+        "path_length_total": 41.471248626708984
     },
     "2021-04-10-11-33-46": {
         "frame_num": 2944,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 148.73380255699158,
+        "path_length_total": 41.22426986694336
     },
     "2021-04-10-11-36-41": {
         "frame_num": 3614,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 182.30984544754028,
+        "path_length_total": 44.954708099365234
     },
     "2021-04-10-11-54-34": {
         "frame_num": 2302,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 116.09772181510925,
+        "path_length_total": 22.61589813232422
     },
     "2021-04-10-11-56-56": {
         "frame_num": 3272,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 165.17352557182312,
+        "path_length_total": 45.19070053100586
     },
     "2021-04-10-12-00-35": {
         "frame_num": 2770,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 140.13772749900818,
+        "path_length_total": 43.549644470214844
     },
     "2021-04-10-12-03-22": {
         "frame_num": 2480,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 125.19748401641846,
+        "path_length_total": 43.05297088623047
     },
     "2021-04-10-12-06-26": {
         "frame_num": 2747,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 138.8938546180725,
+        "path_length_total": 42.465858459472656
     },
     "2021-04-10-12-08-58": {
         "frame_num": 2681,
         "date": "2021-04-10",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 135.33637070655823,
+        "path_length_total": 44.686038970947266
     },
     "2021-04-10-10-38-36": {
         "frame_num": 2790,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 141.04071497917175,
+        "path_length_total": 33.70762634277344
     },
     "2021-04-10-10-41-17": {
         "frame_num": 1037,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 52.38397574424744,
+        "path_length_total": 8.658186912536621
     },
     "2021-04-10-10-54-43": {
         "frame_num": 1010,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 51.06647276878357,
+        "path_length_total": 9.888378143310547
     },
     "2021-04-10-10-58-23": {
         "frame_num": 579,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 29.3728289604187,
+        "path_length_total": 3.6853578090667725
     },
     "2021-04-10-11-02-03": {
         "frame_num": 3579,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 180.52370047569275,
+        "path_length_total": 47.076499938964844
     },
     "2021-04-10-11-05-34": {
         "frame_num": 3680,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 185.57799696922302,
+        "path_length_total": 44.84048080444336
     },
     "2021-04-10-11-08-55": {
         "frame_num": 2856,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 144.0891819000244,
+        "path_length_total": 56.67340850830078
     },
     "2021-04-10-11-11-30": {
         "frame_num": 2750,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 138.80278253555298,
+        "path_length_total": 50.83974075317383
     },
     "2021-04-10-11-14-07": {
         "frame_num": 3155,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 159.27637243270874,
+        "path_length_total": 48.11384582519531
     },
     "2021-04-10-11-16-53": {
         "frame_num": 2508,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 126.85478043556213,
+        "path_length_total": 46.691463470458984
     },
     "2021-04-10-11-20-23": {
         "frame_num": 2815,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 142.1774640083313,
+        "path_length_total": 43.31688690185547
     },
     "2021-04-10-12-13-54": {
         "frame_num": 3464,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 174.65324306488037,
+        "path_length_total": 52.73065185546875
     },
     "2021-04-10-12-17-19": {
         "frame_num": 4759,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 240.07413482666016,
+        "path_length_total": 43.28068542480469
     },
     "2021-04-10-12-24-53": {
         "frame_num": 489,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 24.841519117355347,
+        "path_length_total": 3.615715742111206
     },
     "2021-04-10-12-26-08": {
         "frame_num": 3167,
         "date": "2021-04-10",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 160.03536987304688,
+        "path_length_total": 49.79218292236328
     },
     "2021-04-10-10-25-43": {
         "frame_num": 3752,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 189.22522401809692,
+        "path_length_total": 71.74461364746094
     },
     "2021-04-10-10-32-15": {
         "frame_num": 2964,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 150.04760694503784,
+        "path_length_total": 86.53166961669922
     },
     "2021-04-10-10-45-02": {
         "frame_num": 3366,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 169.95213437080383,
+        "path_length_total": 87.74633026123047
     },
     "2021-04-10-10-48-02": {
         "frame_num": 3817,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 192.46496415138245,
+        "path_length_total": 98.33850860595703
     },
     "2021-04-10-12-32-32": {
         "frame_num": 2015,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 101.64724493026733,
+        "path_length_total": 39.959320068359375
     },
     "2021-04-10-12-34-34": {
         "frame_num": 1988,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 100.50773620605469,
+        "path_length_total": 43.294822692871094
     },
     "2021-04-10-12-36-29": {
         "frame_num": 1929,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 97.2698221206665,
+        "path_length_total": 52.733253479003906
     },
     "2021-04-10-12-38-25": {
         "frame_num": 1957,
         "date": "2021-04-10",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 98.87902212142944,
+        "path_length_total": 45.20649337768555
     },
     "2021-04-24-12-04-04": {
         "frame_num": 2373,
         "date": "2021-04-24",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 119.71390628814697,
+        "path_length_total": 29.148521423339844
     },
     "2021-04-24-12-07-57": {
         "frame_num": 2375,
         "date": "2021-04-24",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 119.90033340454102,
+        "path_length_total": 51.20711898803711
     },
     "2021-04-24-12-10-45": {
         "frame_num": 2374,
         "date": "2021-04-24",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 119.69681143760681,
+        "path_length_total": 37.49524688720703
     },
     "2021-04-24-12-54-04": {
         "frame_num": 2778,
         "date": "2021-04-24",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 140.1263782978058,
+        "path_length_total": 58.3450927734375
     },
     "2021-04-24-12-56-59": {
         "frame_num": 2971,
         "date": "2021-04-24",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 149.7810835838318,
+        "path_length_total": 44.42535400390625
     },
     "2021-04-24-13-03-39": {
         "frame_num": 2099,
         "date": "2021-04-24",
-        "type": "mds"
+        "type": "mds",
+        "duration_total": 106.06866931915283,
+        "path_length_total": 21.61028480529785
     },
     "2021-04-24-11-20-18": {
         "frame_num": 2372,
         "date": "2021-04-24",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 119.85657238960266,
+        "path_length_total": 17.012073516845703
     },
     "2021-04-24-11-23-43": {
         "frame_num": 1559,
         "date": "2021-04-24",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 78.7856707572937,
+        "path_length_total": 22.478580474853516
     },
     "2021-04-24-11-35-54": {
         "frame_num": 1678,
         "date": "2021-04-24",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 84.61345195770264,
+        "path_length_total": 22.98046875
     },
     "2021-04-24-11-40-33": {
         "frame_num": 1499,
         "date": "2021-04-24",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 75.58442211151123,
+        "path_length_total": 25.643001556396484
     },
     "2021-04-24-11-43-54": {
         "frame_num": 911,
         "date": "2021-04-24",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 46.03532695770264,
+        "path_length_total": 11.725708961486816
     },
     "2021-04-24-11-48-21": {
         "frame_num": 2375,
         "date": "2021-04-24",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 119.81875514984131,
+        "path_length_total": 34.171119689941406
     },
     "2021-04-24-11-55-30": {
         "frame_num": 2613,
         "date": "2021-04-24",
-        "type": "rds"
+        "type": "rds",
+        "duration_total": 131.759831905365,
+        "path_length_total": 49.276493072509766
     },
     "2021-04-24-13-07-54": {
         "frame_num": 1879,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 94.80109906196594,
+        "path_length_total": 37.8349494934082
     },
     "2021-04-24-13-11-03": {
         "frame_num": 2021,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 101.90613079071045,
+        "path_length_total": 46.49906921386719
     },
     "2021-04-24-13-14-49": {
         "frame_num": 2111,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 106.53150725364685,
+        "path_length_total": 38.68297576904297
     },
     "2021-04-24-13-16-58": {
         "frame_num": 2995,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 151.06905269622803,
+        "path_length_total": 58.99665832519531
     },
     "2021-04-24-13-20-05": {
         "frame_num": 2503,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 126.28546380996704,
+        "path_length_total": 49.75961685180664
     },
     "2021-04-24-13-22-52": {
         "frame_num": 1732,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 87.47095823287964,
+        "path_length_total": 21.555349349975586
     },
     "2021-04-24-13-25-24-001": {
         "frame_num": 1270,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 64.04972100257874,
+        "path_length_total": 22.777359008789062
     },
     "2021-04-24-13-27-09-003": {
         "frame_num": 2714,
         "date": "2021-04-24",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 136.83512997627258,
+        "path_length_total": 86.05628204345703
     },
     "2021-12-03-19-12-00": {
         "frame_num": 2392,
         "date": "2021-12-03",
-        "type": "manual"
+        "type": "manual",
+        "duration_total": 121.0081717967987,
+        "path_length_total": 41.17073440551758
     },
     "2021-12-03-19-27-16": {
         "frame_num": 1600,
         "date": "2021-12-03",
-        "type": "manual"
+        "type": "manual",
+        "duration_total": 80.84747648239136,
+        "path_length_total": 34.60154342651367
     },
     "2021-12-03-19-29-35": {
         "frame_num": 1752,
         "date": "2021-12-03",
-        "type": "manual"
+        "type": "manual",
+        "duration_total": 88.71200299263,
+        "path_length_total": 34.55708694458008
     },
     "2021-12-03-18-21-29": {
         "frame_num": 1667,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 84.12212038040161,
+        "path_length_total": 30.807666778564453
     },
     "2021-12-03-18-26-10": {
         "frame_num": 2097,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 105.9611885547638,
+        "path_length_total": 38.160499572753906
     },
     "2021-12-03-18-30-21": {
         "frame_num": 1833,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 92.40564560890198,
+        "path_length_total": 35.602027893066406
     },
     "2021-12-03-18-33-16": {
         "frame_num": 2580,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 130.86371088027954,
+        "path_length_total": 39.20634078979492
     },
     "2021-12-03-18-39-55": {
         "frame_num": 2716,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 137.09698104858398,
+        "path_length_total": 40.04277038574219
     },
     "2021-12-03-18-43-36": {
         "frame_num": 1887,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 95.27692008018494,
+        "path_length_total": 35.873355865478516
     },
     "2021-12-03-18-46-34": {
         "frame_num": 3521,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 177.96309781074524,
+        "path_length_total": 41.95749282836914
     },
     "2021-12-03-18-52-32": {
         "frame_num": 1474,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 74.4161331653595,
+        "path_length_total": 35.57942199707031
     },
     "2021-12-03-18-54-53": {
         "frame_num": 3300,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 167.06471991539001,
+        "path_length_total": 41.2142219543457
     },
     "2021-12-03-19-01-40": {
         "frame_num": 1960,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 98.93287014961243,
+        "path_length_total": 33.98613357543945
     },
     "2021-12-03-19-08-12": {
         "frame_num": 2089,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 105.3954975605011,
+        "path_length_total": 32.60250473022461
     },
     "2021-12-03-19-15-39": {
         "frame_num": 2941,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 148.3680272102356,
+        "path_length_total": 40.65876770019531
     },
     "2021-12-03-19-19-25": {
         "frame_num": 2854,
         "date": "2021-12-03",
-        "type": "shared_control"
+        "type": "shared_control",
+        "duration_total": 144.03753566741943,
+        "path_length_total": 44.19935607910156
     }
 }

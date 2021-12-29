@@ -14,7 +14,6 @@ The module provides functions to compute metrics about the path efficiency and
 shared control performance of qolo.
 """
 # =============================================================================
-# TODO: check the end_idx calculation
 
 import numpy as np
 
@@ -51,7 +50,6 @@ def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
     min_dist2goal = np.inf
     end_idx = -1
     for idx in range(len(pose_ts)):
-        # np.sqrt((pose_x[idx] - goal_loc[0]) ** 2 + (pose_y[idx] - goal_loc[1]) ** 2)
         dist2goal = np.linalg.norm([pose_x[idx], pose_y[idx]] - goal_loc)
         if dist2goal < min_dist2goal:
             min_dist2goal = dist2goal
@@ -99,6 +97,10 @@ def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
     rel_duration2goal = theory_duration2goal / duration2goal
     rel_path_length2goal = path_length2goal / l_goal
 
+    # 7. total path length and operation time
+    duration_total = pose_ts.max() - pose_ts.min()
+    path_length_total = np.sum(np.sqrt(np.diff(pose_x) ** 2 + np.diff(pose_y) ** 2))
+
     return {
         "start_command_ts": start_ts,
         "end_command_ts": end_ts,
@@ -111,6 +113,8 @@ def compute_time_path(qolo_twist, qolo_pose2d, goal_dist=20.0):
         "path_length2goal": path_length2goal,
         "rel_duration2goal": rel_duration2goal,
         "rel_path_length2goal": rel_path_length2goal,
+        'duration_total': duration_total,
+        'path_length_total': path_length_total,
     }
 
 
