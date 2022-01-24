@@ -39,7 +39,7 @@
 
 _Crowd navigation DATASET:_
 
-Paez-Granados D., Hen Y., Gonon D., Huber L., & Billard A., (2021), “Close-proximity pedestrians’ detection and tracking from 3D point cloud and RGBD data in crowd navigation of a mobile service robot.”, Dec. 15, 2021. IEEE Dataport, doi: https://dx.doi.org/10.21227/ak77-d722.
+Paez-Granados D., Hen Y., Gonon D., Huber L., & Billard A., (2021), “3D point cloud and RGBD of pedestrians in robot crowd navigation: detection and tracking.”, Dec. 2021. IEEE Dataport, doi: https://dx.doi.org/10.21227/ak77-d722.
 
 _Qolo Robot:_
 
