@@ -29,6 +29,13 @@ def ts_to_sec(ts):
     return ts.secs + ts.nsecs / float(1e9)
 
 
+def ts_to_sec_str(ts):
+    """convert ros timestamp into second"""
+    # return "{}.{:9d}".format(ts.secs, ts.nsecs)
+    nsecs = str(ts.nsecs).ljust(9, '0')
+    return "{}.{}".format(ts.secs, nsecs)
+
+
 # https://docs.scipy.org/doc/scipy/reference/spatial.transform.html
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html

@@ -31,6 +31,7 @@ Export each video (with bouding boxes) as mp4 --> then perform a deface --> then
 
 import os
 import sys
+from tabnanny import verbose
 import yaml
 import argparse
 
@@ -46,7 +47,7 @@ from cv_bridge import CvBridge
 curr_dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(curr_dir_path, '../'))
 from crowdbot_data import CrowdBotDatabase, bag_file_filter
-from process_util import ts_to_sec
+from process_util import ts_to_sec, ts_to_sec_str
 
 #%% Utility function for extraction twist_stamped from rosbag and apply interpolation
 def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
@@ -92,8 +93,8 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
         )
 
         # TODO: switch back with overwrite
-        # if not os.path.exists(outbag_path) or args.overwrite:
-        if not os.path.exists(outbag_path):
+        if not os.path.exists(outbag_path) or args.overwrite:
+            # if not os.path.exists(outbag_path):
 
             with rosbag.Bag(outbag_path, 'w') as outbag:
                 bridge = CvBridge()
@@ -109,22 +110,25 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
                         encoding = msg.encoding  # 'rgb8', 'bgr8', '16UC1'
                         # image_with_bounding_boxes/ topic doesn't assign real timestamp!
                         if topic == '/image_with_bounding_boxes':
-                            timestamp = ts_to_sec(t)
+                            timestamp = ts_to_sec_str(t)
                         else:
-                            timestamp = ts_to_sec(msg.header.stamp)
+                            timestamp = ts_to_sec_str(msg.header.stamp)
                         height = msg.height
                         width = msg.width
                         image_savepath = os.path.join(
                             image_dirpath, str(timestamp) + ".png"
                         )
+
                         # TODO: add `or args.overwrite`
-                        if not os.path.exists(image_savepath):
-                            # print("Saving", topic[1:] + '/' + str(timestamp) + ".png")
-                            print(
-                                "Saving {} (encoding: {})".format(
-                                    topic[1:] + '/' + str(timestamp) + ".png", encoding
+                        # if not os.path.exists(image_savepath):
+                        if not os.path.exists(image_savepath) or args.overwrite:
+                            if args.verbose:
+                                print(
+                                    "Saving {} (encoding: {})".format(
+                                        topic[1:] + '/' + str(timestamp) + ".png",
+                                        encoding,
+                                    )
                                 )
-                            )
 
                             # add if condition for depth and rgb image separately
                             if encoding == 'rgb8':
@@ -175,7 +179,14 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing rosbags (default: false)",
     )
-    parser.set_defaults(overwrite=False)
+    parser.set_defaults(overwrite=True)
+    parser.add_argument(
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Whether to print debug logs verbosely (default: false)",
+    )
+    parser.set_defaults(verbose=True)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
