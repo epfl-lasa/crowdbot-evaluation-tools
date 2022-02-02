@@ -87,54 +87,62 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
             )
         )
 
-        outbag_path = os.path.join(outbag_base_path, inbag_name + '.bag')
+        outbag_path = os.path.abspath(
+            os.path.join(outbag_base_path, '..', 'nocam_' + inbag_name + '.bag')
+        )
 
-        with rosbag.Bag(outbag_path, 'w') as outbag:
-            bridge = CvBridge()
-            for topic, msg, t in inbag.read_messages():
-                if topic in image_topics:
-                    # create folder
-                    image_savepath = os.path.join(outbag_base_path, topic[1:])
-                    if not os.path.exists(image_savepath):
-                        os.makedirs(image_savepath)
-                    # http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html
-                    # Example:
-                    #
-                    # TODO: write image topics into separate folders for privacy processing
-                    # TODO: save image timestamp from original rosbag
-                    # TODO: save other metadata
-                    encoding = msg.encoding  # 'rgb8', 'bgr8', '16UC1'
-                    # image_with_bounding_boxes/ topic doesn't assign real timestamp!
-                    if topic == '/image_with_bounding_boxes':
-                        timestamp = ts_to_sec(t)
-                    else:
-                        timestamp = ts_to_sec(msg.header.stamp)  # 1619258643.3818827
-                    height = msg.height
-                    width = msg.width
+        # TODO: switch back with overwrite
+        # if not os.path.exists(outbag_path) or args.overwrite:
+        if not os.path.exists(outbag_path):
 
-                    # print("Saving", topic[1:] + '/' + str(timestamp) + ".png")
-                    print(
-                        "Saving {} (encoding: {})".format(
-                            topic[1:] + '/' + str(timestamp) + ".png", encoding
+            with rosbag.Bag(outbag_path, 'w') as outbag:
+                bridge = CvBridge()
+                for topic, msg, t in inbag.read_messages():
+                    if topic in image_topics:
+                        # create folder
+                        image_dirpath = os.path.join(outbag_base_path, topic[1:])
+                        if not os.path.exists(image_dirpath):
+                            os.makedirs(image_dirpath)
+                        # http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html
+                        # TODO: save image timestamp from original rosbag
+                        # TODO: save other metadata & camera info
+                        encoding = msg.encoding  # 'rgb8', 'bgr8', '16UC1'
+                        # image_with_bounding_boxes/ topic doesn't assign real timestamp!
+                        if topic == '/image_with_bounding_boxes':
+                            timestamp = ts_to_sec(t)
+                        else:
+                            timestamp = ts_to_sec(msg.header.stamp)
+                        height = msg.height
+                        width = msg.width
+                        image_savepath = os.path.join(
+                            image_dirpath, str(timestamp) + ".png"
                         )
-                    )
+                        # TODO: add `or args.overwrite`
+                        if not os.path.exists(image_savepath):
+                            # print("Saving", topic[1:] + '/' + str(timestamp) + ".png")
+                            print(
+                                "Saving {} (encoding: {})".format(
+                                    topic[1:] + '/' + str(timestamp) + ".png", encoding
+                                )
+                            )
 
-                    # TODO: add if condition for depth and rgb image separately
-                    if encoding == 'rgb8':
-                        cv_img = bridge.imgmsg_to_cv2(msg, 'bgr8')
+                            # add if condition for depth and rgb image separately
+                            if encoding == 'rgb8':
+                                cv_img = bridge.imgmsg_to_cv2(msg, 'bgr8')
+                            else:
+                                cv_img = bridge.imgmsg_to_cv2(msg, encoding)
+                            # write image topics into separate folders for privacy processing
+                            cv2.imwrite(image_savepath, cv_img)
+
+                    elif topic in other_topics:
+                        # print("Skip msg from", topic)
+                        pass
                     else:
-                        cv_img = bridge.imgmsg_to_cv2(msg, encoding)
-                    cv2.imwrite(
-                        os.path.join(image_savepath, str(timestamp) + ".png"), cv_img
-                    )
-
-                elif topic in other_topics:
-                    # print("Skip msg from", topic)
-                    pass
-                # else:
-                # TODO: write other topics into new rosbag
-                #     outbag.write(topic, msg, t)
-        print("Images are filtered out!")
+                        # write other topics into new rosbag
+                        outbag.write(topic, msg, t)
+            print("Images are filtered out!")
+        else:
+            print("Nocam rosbag has already saved in", outbag_path)
     else:
         print("No image topics are stored in current rosbag")
 
@@ -167,7 +175,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing rosbags (default: false)",
     )
-    parser.set_defaults(overwrite=True)
+    parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -177,9 +185,9 @@ if __name__ == "__main__":
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
     # destination: twist data in data/xxxx_processed/source_data/twist
-    rosbag_filtered_dir = os.path.join(rosbag_dir + "_filtered")
-    if not os.path.exists(rosbag_filtered_dir):
-        os.makedirs(rosbag_filtered_dir)
+    filtered_data_dirpath = os.path.join(rosbag_dir + "_filtered")
+    if not os.path.exists(filtered_data_dirpath):
+        os.makedirs(filtered_data_dirpath)
 
     print("Starting filtering images from {} rosbags!".format(len(bag_files)))
     print("Type to be filtered out: {}".format(args.filter_type))
@@ -192,7 +200,7 @@ if __name__ == "__main__":
         counter += 1
         print("({}/{}): {}".format(counter, len(bag_files), source_bag_path))
 
-        filtered_bag_dirpath = os.path.join(rosbag_filtered_dir, bag_name)
+        filtered_bag_dirpath = os.path.join(filtered_data_dirpath, bag_name)
 
         if not os.path.exists(filtered_bag_dirpath) or (args.overwrite):
             if not os.path.exists(filtered_bag_dirpath):
