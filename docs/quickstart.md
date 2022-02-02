@@ -19,6 +19,9 @@
     # https://github.com/moble/quaternion
     python -m pip install --upgrade --force-reinstall numba==0.53.1
     python -m pip install --upgrade --force-reinstall numpy-quaternion
+
+    ## install qolo
+    python -m pip install -e .
     ```
 
 ## Simplified commands for evaluation

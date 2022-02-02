@@ -22,7 +22,7 @@ import numpy as np
 from pathlib import Path
 
 curr_dir_path = os.path.dirname(os.path.abspath(__file__))
-CROWDBOT_EVAL_TOOLKIT_DIR = os.path.join(curr_dir_path, "..")
+CROWDBOT_EVAL_TOOLKIT_DIR = os.path.abspath(os.path.join(curr_dir_path, "..", ".."))
 # CROWDBOT_EVAL_TOOLKIT_DIR = Path(__file__).parents[1]
 
 

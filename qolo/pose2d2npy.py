@@ -28,8 +28,8 @@ import numpy as np
 import tf
 import rosbag
 
-from crowdbot_data import CrowdBotDatabase, bag_file_filter
-from process_util import ts_to_sec
+from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter
+from qolo.utils.process_util import ts_to_sec
 
 #%% Utility function for extraction pose2d from rosbag and apply interpolation
 def extract_pose2d_from_rosbag(bag_file_path, args):

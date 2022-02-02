@@ -24,8 +24,8 @@ TODO:
 import os
 import argparse
 import numpy as np
-from crowdbot_data import CrowdBotDatabase
-from o3d_util import plot_robot_frame_o3d, plot_world_frame_o3d
+from qolo.core.crowdbot_data import CrowdBotDatabase
+from qolo.utils.o3d_util import plot_robot_frame_o3d, plot_world_frame_o3d
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

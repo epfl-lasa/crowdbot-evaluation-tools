@@ -28,9 +28,13 @@ import argparse
 
 import numpy as np
 
-from crowdbot_data import CrowdBotDatabase, CrowdbotExpParam, CROWDBOT_EVAL_TOOLKIT_DIR
-from eval_res_plot import save_motion_img, save_twist_cmd_img
-from metric_qolo_perf import (
+from qolo.core.crowdbot_data import (
+    CrowdBotDatabase,
+    CrowdbotExpParam,
+    CROWDBOT_EVAL_TOOLKIT_DIR,
+)
+from qolo.utils.eval_res_plot import save_motion_img, save_twist_cmd_img
+from qolo.metrics.metric_qolo_perf import (
     compute_fluency,
     compute_agree_contri,
     compute_rel_jerk,

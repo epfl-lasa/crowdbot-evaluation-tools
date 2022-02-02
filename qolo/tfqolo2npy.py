@@ -32,10 +32,10 @@ import quaternion.quaternion_time_series as qseries
 import rosbag
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "external"))
-from tf_bag import BagTfTransformer
+from qolo.external.tf_bag import BagTfTransformer
 
-from crowdbot_data import CrowdBotDatabase, bag_file_filter
-from process_util import (
+from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter
+from qolo.utils.process_util import (
     interp_rotation,
     interp_translation,
     compute_motion_derivative,

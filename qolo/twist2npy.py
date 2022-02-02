@@ -23,8 +23,12 @@ import numpy as np
 
 import rosbag
 
-from crowdbot_data import CrowdBotDatabase, bag_file_filter
-from process_util import interp_translation, compute_motion_derivative, ts_to_sec
+from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter
+from qolo.utils.process_util import (
+    interp_translation,
+    compute_motion_derivative,
+    ts_to_sec,
+)
 
 
 def check_zero_diff(src_list):

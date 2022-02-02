@@ -22,7 +22,7 @@ import argparse
 
 import moviepy.editor as mpy
 
-from crowdbot_data import CrowdBotDatabase
+from qolo.core.crowdbot_data import CrowdBotDatabase
 
 # need ffmpeg
 def img_dir2video_ffmpeg(img_dir, video_path):

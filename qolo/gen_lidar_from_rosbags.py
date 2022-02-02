@@ -31,7 +31,7 @@ import rosbag
 import tf2_py as tf2
 import ros_numpy
 
-from crowdbot_data import bag_file_filter, CrowdBotData
+from qolo.core.crowdbot_data import bag_file_filter, CrowdBotData
 
 # sudo apt-get install ros-$ROS_DISTRO-tf2-sensor-msgs
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud

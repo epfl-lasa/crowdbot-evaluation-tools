@@ -18,7 +18,7 @@ import os
 import argparse
 import numpy as np
 
-from crowdbot_data import CrowdBotDatabase
+from qolo.core.crowdbot_data import CrowdBotDatabase
 from lidar_det.detector import DetectorWithClock
 
 

@@ -40,9 +40,13 @@ from pathlib import Path
 
 import numpy as np
 
-from crowdbot_data import CrowdBotDatabase, CrowdbotExpParam, CROWDBOT_EVAL_TOOLKIT_DIR
-from eval_res_plot import save_path_img
-from metric_qolo_perf import compute_time_path
+from qolo.core.crowdbot_data import (
+    CrowdBotDatabase,
+    CrowdbotExpParam,
+    CROWDBOT_EVAL_TOOLKIT_DIR,
+)
+from qolo.utils.eval_res_plot import save_path_img
+from qolo.metrics.metric_qolo_perf import compute_time_path
 
 #%% main function
 if __name__ == "__main__":

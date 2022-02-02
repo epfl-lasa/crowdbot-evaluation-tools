@@ -23,7 +23,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "AB3DMO
 import argparse
 import numpy as np
 
-from crowdbot_data import CrowdBotDatabase
+from qolo.core.crowdbot_data import CrowdBotDatabase
 from AB3DMOT.AB3DMOT_libs.model import AB3DMOT
 
 

@@ -28,7 +28,7 @@ import json
 
 from scipy.spatial.transform import Rotation as R
 
-from crowdbot_data import CrowdBotDatabase
+from qolo.core.crowdbot_data import CrowdBotDatabase
 
 
 def get_pc_tranform(pc, pos, quat):

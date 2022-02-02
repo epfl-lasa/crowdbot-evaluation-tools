@@ -24,8 +24,8 @@ import numpy as np
 import rosbag
 
 from twist2npy import interp_twist
-from crowdbot_data import CrowdBotDatabase, bag_file_filter
-from process_util import interp_translation, ts_to_sec
+from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter
+from qolo.utils.process_util import interp_translation, ts_to_sec
 
 #%% Utility function for extraction `ToGui` from rosbag and apply interpolation
 def extract_cmd_from_rosbag(bag_file_path, args):

@@ -30,9 +30,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from crowdbot_data import CrowdBotDatabase, CrowdbotExpParam, CROWDBOT_EVAL_TOOLKIT_DIR
-from eval_res_plot import save_cd_img, save_md_img
-from metric_crowd import compute_crowd_metrics, compute_norm_prox
+from qolo.core.crowdbot_data import (
+    CrowdBotDatabase,
+    CrowdbotExpParam,
+    CROWDBOT_EVAL_TOOLKIT_DIR,
+)
+from qolo.utils.eval_res_plot import save_cd_img, save_md_img
+from qolo.metrics.metric_crowd import compute_crowd_metrics, compute_norm_prox
 
 # cross-zero checking: https://stackoverflow.com/a/29674950/7961693
 def zero_crossing_check(data):
