@@ -31,7 +31,6 @@ import quaternion.quaternion_time_series as qseries
 
 import rosbag
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "external"))
 from qolo.external.tf_bag import BagTfTransformer
 
 from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter

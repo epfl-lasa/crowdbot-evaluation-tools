@@ -46,8 +46,8 @@ from cv_bridge import CvBridge
 # sys.path.insert(0, '..')
 curr_dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(curr_dir_path, '../'))
-from crowdbot_data import CrowdBotDatabase, bag_file_filter
-from process_util import ts_to_sec, ts_to_sec_str
+from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter
+from qolo.utils.process_util import ts_to_sec, ts_to_sec_str
 
 #%% Utility function for extraction twist_stamped from rosbag and apply interpolation
 def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
