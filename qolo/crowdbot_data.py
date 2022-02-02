@@ -21,7 +21,9 @@ import yaml
 import numpy as np
 from pathlib import Path
 
-CROWDBOT_EVAL_TOOLKIT_DIR = Path(__file__).parents[1]
+curr_dir_path = os.path.dirname(os.path.abspath(__file__))
+CROWDBOT_EVAL_TOOLKIT_DIR = os.path.join(curr_dir_path, "..")
+# CROWDBOT_EVAL_TOOLKIT_DIR = Path(__file__).parents[1]
 
 
 def read_yaml(yaml_file):
@@ -44,7 +46,7 @@ class CrowdbotExpParam:
 class CrowdBotData(object):
     """Class for extracting experiment parameter according to date and type"""
 
-    CROWDBOT_EVAL_TOOLKIT_DIR = Path(__file__).parents[1]
+    # CROWDBOT_EVAL_TOOLKIT_DIR = Path(__file__).parents[1]
     DEFAULT_CONFIG_PATH = os.path.join(CROWDBOT_EVAL_TOOLKIT_DIR, 'data/data_path.yaml')
 
     def __init__(self, config=DEFAULT_CONFIG_PATH):
