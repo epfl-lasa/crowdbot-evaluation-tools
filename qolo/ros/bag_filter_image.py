@@ -14,19 +14,6 @@ The module provides ...
 python bag_filter_image.py -f 1203_manual
 """
 # =============================================================================
-"""
-TODO:
-1. to extract the rgbd data maybe as a video (data files)
-Export each video (with bouding boxes) as mp4 --> then perform a deface --> then save it again as a rosbag
-    - bag to rgb and depth: https://github.com/nihalsoans91/Bag_to_Depth
-    - deface link: https://github.com/ORB-HD/deface
-2. to filter the camera topic from the rosbag so we can export rosbags without camera data
-3. write back defaced rgb image back to rosbag
-    - create rosbag back into rosbag
-        1. https://github.com/ethz-asl/kalibr/blob/master/aslam_offline_calibration/kalibr/python/kalibr_bagcreater
-        2. https://github.com/uzh-rpg/rpg_e2vid/blob/master/scripts/image_folder_to_rosbag.py
-"""
-# =============================================================================
 
 
 import os
@@ -43,7 +30,6 @@ import ros_numpy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-# sys.path.insert(0, '..')
 curr_dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(curr_dir_path, '../'))
 from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter
@@ -54,20 +40,16 @@ from qolo.utils.process_util import (
     get_xyzrgb_points,
 )
 
-#%% Utility function for extraction twist_stamped from rosbag and apply interpolation
+#%% Utility function for filter images and pointcloud from rosbag and apply interpolation
 def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
-    """Filter out twist_stamped from rosbag without rosbag play"""
-
-    # twist_msg_sum = 0
-    # num_msgs_between_logs = 100
-    # x_list, zrot_list, t_list = [], [], []
+    """Filter out images nad pointcloud from rosbag without rosbag play"""
 
     image_type = ['Image']
     other_type = []
     if 'Image' in args.filter_type:
         other_type = args.filter_type
         other_type.remove('Image')
-        other_type.append('CameraInfo')
+        # other_type.append('CameraInfo')
     image_topics = []
     other_topics = []
 
@@ -82,12 +64,12 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
 
     if len(image_topics) + len(other_topics) > 0:
         print(
-            "{} image topics to be filtered out:\n{}".format(
+            "{} image topic(s) to be filtered out:{}".format(
                 len(image_topics), image_topics
             )
         )
         print(
-            "{} other topics to be filtered out:\n{}".format(
+            "{} other topic(s) to be filtered out:{}".format(
                 len(other_topics), other_topics
             )
         )
@@ -96,36 +78,31 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
             os.path.join(outbag_base_path, '..', 'nocam_' + inbag_name + '.bag')
         )
 
-        # TODO: switch back with overwrite
         if not os.path.exists(outbag_path) or args.overwrite:
-            # if not os.path.exists(outbag_path):
 
             with rosbag.Bag(outbag_path, 'w') as outbag:
                 bridge = CvBridge()
                 for topic, msg, t in inbag.read_messages():
                     # dicard msg from image topics
                     if topic in image_topics:
-                        # create folder
+                        # Example: ['/camera_left/aligned_depth_to_color/image_raw', '/camera_left/color/image_raw', '/camera_left/depth/image_rect_raw', '/darknet_ros/detection_image', '/image_with_bounding_boxes']
+
+                        # create folder to save the images
                         image_dirpath = os.path.join(outbag_base_path, topic[1:])
                         if not os.path.exists(image_dirpath):
                             os.makedirs(image_dirpath)
                         # http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html
-                        # TODO: save image timestamp from original rosbag
-                        # TODO: save other metadata & camera info
                         encoding = msg.encoding  # 'rgb8', 'bgr8', '16UC1'
                         # image_with_bounding_boxes/ topic doesn't assign real timestamp!
                         if topic == '/image_with_bounding_boxes':
                             timestamp = ts_to_sec_str(t)
                         else:
                             timestamp = ts_to_sec_str(msg.header.stamp)
-                        height = msg.height
-                        width = msg.width
+                        # save image timestamp from original rosbag as name of exported images
                         image_savepath = os.path.join(
                             image_dirpath, str(timestamp) + ".png"
                         )
 
-                        # TODO: add `or args.overwrite`
-                        # if not os.path.exists(image_savepath):
                         if not os.path.exists(image_savepath) or args.overwrite:
                             if args.verbose:
                                 print(
@@ -145,7 +122,7 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
 
                     # dicard msg from other topics (e.g., CameraInfo)
                     elif topic in other_topics:
-                        # print("Skip msg from", topic)
+                        # Example: ['/camera_left/aligned_depth_to_color/camera_info', '/camera_left/color/camera_info', '/camera_left/depth/camera_info']
                         pass
 
                     # dicard rgb data in points generated by realsense camera
@@ -162,7 +139,44 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
 
                     # maintain remaining msg from exclusive topics
                     else:
-                        # write other topics into new rosbag
+                        # write code to save camera_info
+                        if 'camera_info' in topic:
+                            # /camera_left/color/camera_info
+                            # /camera_left/color/image_raw
+
+                            info_base = topic[1:].rsplit('/', 1)[0]
+                            image_dirpath = os.path.join(outbag_base_path, info_base)
+                            if not os.path.exists(image_dirpath):
+                                os.makedirs(image_dirpath)
+                            camera_info_savepath = os.path.join(
+                                image_dirpath, "camera_info.json"
+                            )
+                            if not os.path.exists(camera_info_savepath):
+                                frame_id = msg.header.frame_id
+                                height = msg.height
+                                width = msg.width
+                                distortion_model = msg.distortion_model
+                                # For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3).
+                                distortion_coeff = msg.D
+                                intrinsic_mat = msg.K
+                                cam_info_dict = {
+                                    'frame_id': frame_id,
+                                    'height': height,
+                                    'width': width,
+                                    'K': intrinsic_mat,
+                                    'distortion_model': distortion_model,
+                                    'D': distortion_coeff,
+                                }
+                                import json
+
+                                with open(camera_info_savepath, 'w') as cam_info_file:
+                                    json.dump(
+                                        cam_info_dict,
+                                        cam_info_file,
+                                        indent=4,
+                                        sort_keys=False,
+                                    )
+
                         outbag.write(topic, msg, t)
             print("Images are filtered out!")
         else:
@@ -206,23 +220,23 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to print debug logs verbosely (default: false)",
     )
-    parser.set_defaults(verbose=True)
+    parser.set_defaults(verbose=False)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
 
-    # source: rosbag data in data/rosbag/xxxx
+    # source: rosbag data
     rosbag_dir = os.path.join(cb_data.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
-    # destination: twist data in data/xxxx_processed/source_data/twist
+    # destination: new rosbag data and exported images nad camera parameters
     filtered_data_dirpath = os.path.join(rosbag_dir + "_filtered")
     if not os.path.exists(filtered_data_dirpath):
         os.makedirs(filtered_data_dirpath)
 
-    print("Starting filtering images from {} rosbags!".format(len(bag_files)))
-    print("Type to be filtered out: {}".format(args.filter_type))
-    print("Topic to be filtered out: {}".format(args.filter_topic))
+    print("# Starting filtering images from {} rosbags!".format(len(bag_files)))
+    print("# Type(s) to be filtered out: {}".format(args.filter_type))
+    print("# Topic(s) to be filtered out: {}".format(args.filter_topic))
 
     counter = 0
     for bf in bag_files:
