@@ -32,8 +32,8 @@ def ts_to_sec(ts):
 def ts_to_sec_str(ts):
     """convert ros timestamp into second"""
     # return "{}.{:9d}".format(ts.secs, ts.nsecs)
-    nsecs = str(ts.nsecs).ljust(9, '0')
-    return "{}.{}".format(ts.secs, nsecs)
+    sec = ts.secs + ts.nsecs / float(1e9)
+    return "{:.9f}".format(sec)
 
 
 # https://docs.scipy.org/doc/scipy/reference/spatial.transform.html
@@ -167,6 +167,7 @@ def strict_increase(ts, value=1e-5):
 
 
 def check_zero_diff(src_list):
+    """commpute zero-difference elements in the list for debugging"""
 
     total_len = src_list.shape[0]
     diff = np.diff(src_list)
@@ -174,3 +175,40 @@ def check_zero_diff(src_list):
     zero_diff_len = zero_diff.shape[0]
 
     print("Zero_diff: {}/{}".format(zero_diff_len, total_len))
+
+
+def get_xyzrgb_points(cloud_array, remove_nans=True, dtype=np.float):
+    """Convert ju
+
+    Args:
+        cloud_array ([type]): [description]
+        remove_nans (bool, optional): [description]. Defaults to True.
+        dtype ([type], optional): [description]. Defaults to np.float.
+
+    Returns:
+        [type]: [description]
+    """
+
+    # remove crap points
+    if remove_nans:
+        mask = (
+            np.isfinite(cloud_array['x'])
+            & np.isfinite(cloud_array['y'])
+            & np.isfinite(cloud_array['z'])
+            & np.isfinite(cloud_array['r'])
+            & np.isfinite(cloud_array['g'])
+            & np.isfinite(cloud_array['b'])
+        )
+        cloud_array = cloud_array[mask]
+
+    # pull out x, y, z, r, g, and b values
+    xyz = np.zeros(cloud_array.shape + (3,), dtype=dtype)
+    rgb = np.zeros(cloud_array.shape + (3,), dtype=dtype)
+    xyz[..., 0] = cloud_array['x']
+    xyz[..., 1] = cloud_array['y']
+    xyz[..., 2] = cloud_array['z']
+    rgb[..., 0] = cloud_array['r']
+    rgb[..., 1] = cloud_array['g']
+    rgb[..., 2] = cloud_array['b']
+
+    return xyz, rgb

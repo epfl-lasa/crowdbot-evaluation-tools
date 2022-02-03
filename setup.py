@@ -6,6 +6,9 @@ sys.path.append(os.path.dirname(__file__))
 setup(
     name='qolo',
     version=0.1,
+    description='Package of data processing, evaluation, and visulization for Crowdbot Dataset',
+    author='Yujie He, Diego F. Paez G.',
+    author_email='yujie.he@epfl.ch',
     packages=[
         'qolo',
         'qolo.ros',
