@@ -177,16 +177,47 @@ def check_zero_diff(src_list):
     print("Zero_diff: {}/{}".format(zero_diff_len, total_len))
 
 
-def get_xyzrgb_points(cloud_array, remove_nans=True, dtype=np.float):
-    """Convert ju
+def delete_rgb_field(cloud_arr):
+    """Takes an array with a named 'rgb' float32 field, and returns an array without 'rgb'.
 
     Args:
-        cloud_array ([type]): [description]
-        remove_nans (bool, optional): [description]. Defaults to True.
-        dtype ([type], optional): [description]. Defaults to np.float.
+        cloud_arr (numpy.ndarray): cloud array with 'rgb' field
 
     Returns:
-        [type]: [description]
+        new_cloud_arr (numpy.ndarray): cloud array without 'rgb' field
+
+    Ref:
+        https://github.com/eric-wieser/ros_numpy/blob/master/src/ros_numpy/point_cloud2.py#L189
+    """
+
+    # create a new array, without rgb, but with r, g, and b fields
+    new_dtype = []
+    for field_name in cloud_arr.dtype.names:
+        field_type, field_offset = cloud_arr.dtype.fields[field_name]
+        if not field_name == 'rgb':
+            new_dtype.append((field_name, field_type))
+    new_cloud_arr = np.zeros(cloud_arr.shape, new_dtype)
+
+    # fill in the new array
+    for field_name in new_cloud_arr.dtype.names:
+        new_cloud_arr[field_name] = cloud_arr[field_name]
+    return new_cloud_arr
+
+
+def get_xyzrgb_points(cloud_array, remove_nans=True, dtype=np.float):
+    """Convert cloud array with 'rgb' field into separate xyz and rgb numpy arrays
+
+    Args:
+        cloud_array (numpy.ndarray): cloud array with 'rgb' field
+        remove_nans (bool, optional): remove NaN in cloud array. Defaults to True.
+        dtype (type, optional): types of exported xyz and rgb data. Defaults to np.float.
+
+    Returns:
+        xyz (numpy.ndarray): xyz array of cloud points
+        rgb (numpy.ndarray): rgb array of cloud points
+
+    Ref:
+        https://github.com/eric-wieser/ros_numpy/blob/master/src/ros_numpy/point_cloud2.py#L224
     """
 
     # remove crap points
