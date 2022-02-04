@@ -10,8 +10,9 @@
 """
 # =============================================================================
 """
-The module provides ...
-python bag_filter_image.py -f 1203_manual
+The module provides pipeline to filter out image and rgb data in pointcloud from
+rosbags to generate nocam-version rosbags and images with different image topics
+Example: python bag_filter_image.py -f 1203_manual
 """
 # =============================================================================
 
@@ -20,6 +21,7 @@ import os
 import sys
 from tabnanny import verbose
 import yaml
+import fnmatch
 import argparse
 
 import cv2
@@ -46,21 +48,30 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
 
     image_type = ['Image']
     other_type = []
+
     if 'Image' in args.filter_type:
         other_type = args.filter_type
         other_type.remove('Image')
         # other_type.append('CameraInfo')
-    image_topics = []
-    other_topics = []
+
+    image_topic_info = dict()
+    other_topics_info = dict()
 
     inbag = rosbag.Bag(inbag_path, "r")
     baginfo_dict = yaml.load(inbag._get_yaml_info(), Loader=yaml.FullLoader)
 
     for topic_msg_dict in baginfo_dict['topics']:
         if any(ft in topic_msg_dict['type'] for ft in image_type):
-            image_topics.append(topic_msg_dict['topic'])
+            image_topic_info.update(
+                {topic_msg_dict['topic']: topic_msg_dict['messages']}
+            )
         if any(ft in topic_msg_dict['type'] for ft in other_type):
-            other_topics.append(topic_msg_dict['topic'])
+            other_topics_info.update(
+                {topic_msg_dict['topic']: topic_msg_dict['messages']}
+            )
+
+    image_topics = list(image_topic_info.keys())
+    other_topics = list(other_topics_info.keys())
 
     if len(image_topics) + len(other_topics) > 0:
         print(
@@ -78,7 +89,25 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
             os.path.join(outbag_base_path, '..', 'nocam_' + inbag_name + '.bag')
         )
 
-        if not os.path.exists(outbag_path) or args.overwrite:
+        # check existing by counting the number of images and msg
+        exists_cnt = 0
+        for topic, msg_num in image_topic_info.items():
+            image_dirpath = os.path.join(outbag_base_path, topic[1:])
+            if not os.path.exists(image_dirpath):
+                os.makedirs(image_dirpath)
+            img_num = len(fnmatch.filter(os.listdir(image_dirpath), "*.png"))
+            if msg_num == img_num:
+                exists_cnt += 1
+
+        print("Checking files existing or not ...")
+        if exists_cnt == len(image_topics) and os.path.exists(outbag_path):
+            all_files_exist = True
+        else:
+            all_files_exist = False
+
+        print("All files exist?", all_files_exist)
+
+        if not all_files_exist or args.overwrite:
 
             with rosbag.Bag(outbag_path, 'w') as outbag:
                 bridge = CvBridge()
@@ -180,7 +209,13 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
                         outbag.write(topic, msg, t)
             print("Images are filtered out!")
         else:
-            print("Nocam rosbag has already saved in", outbag_path)
+            # print("Nocam rosbag has already saved in", outbag_path)
+            print(
+                "Detected generated data already existed in {}!".format(
+                    filtered_bag_dirpath
+                )
+            )
+            print("If you want to overwrite, use flag --overwrite")
     else:
         print("No image topics are stored in current rosbag")
 
@@ -192,7 +227,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="1203_manual",
+        default="1203_shared_control",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -213,7 +248,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing rosbags (default: false)",
     )
-    parser.set_defaults(overwrite=True)
+    parser.set_defaults(overwrite=False)
     parser.add_argument(
         "--verbose",
         dest="verbose",
@@ -247,18 +282,8 @@ if __name__ == "__main__":
 
         filtered_bag_dirpath = os.path.join(filtered_data_dirpath, bag_name)
 
-        if not os.path.exists(filtered_bag_dirpath) or (args.overwrite):
-            if not os.path.exists(filtered_bag_dirpath):
-                os.makedirs(filtered_bag_dirpath)
-            filter_image_from_rosbag(
-                bag_name, source_bag_path, filtered_bag_dirpath, args
-            )
-        else:
-            print(
-                "Detected generated data already existed in {}!".format(
-                    filtered_bag_dirpath
-                )
-            )
-            print("If you want to overwrite, use flag --overwrite")
+        if not os.path.exists(filtered_bag_dirpath):
+            os.makedirs(filtered_bag_dirpath)
+        filter_image_from_rosbag(bag_name, source_bag_path, filtered_bag_dirpath, args)
 
     print("Finish filtering out all images from raw rosbag!")
