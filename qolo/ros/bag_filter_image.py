@@ -19,8 +19,8 @@ Example: python bag_filter_image.py -f 1203_manual
 
 import os
 import sys
-from tabnanny import verbose
 import yaml
+import json
 import fnmatch
 import argparse
 
@@ -32,8 +32,6 @@ import ros_numpy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-curr_dir_path = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(curr_dir_path, '../'))
 from qolo.core.crowdbot_data import CrowdBotDatabase, bag_file_filter
 from qolo.utils.process_util import (
     ts_to_sec_str,
@@ -42,9 +40,53 @@ from qolo.utils.process_util import (
     get_xyzrgb_points,
 )
 
+
+def save_camera_info(outbag_base_path, topic, msg):
+    """save CameraInfo as json file"""
+
+    info_base = topic[1:].rsplit('/', 1)[0]
+    image_dirpath = os.path.join(outbag_base_path, info_base)
+    if not os.path.exists(image_dirpath):
+        os.makedirs(image_dirpath)
+
+    camera_info_savepath = os.path.join(image_dirpath, "camera_info.json")
+    # camera_info_savepath = os.path.join(image_dirpath, "camera_info.yaml")
+
+    frame_id = msg.header.frame_id
+    height = msg.height
+    width = msg.width
+    distortion_model = msg.distortion_model
+    # For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3).
+    distortion_coeff = list(msg.D)
+    intrinsic_mat = list(msg.K)
+    cam_info_dict = {
+        'frame_id': frame_id,
+        'height': height,
+        'width': width,
+        'K': intrinsic_mat,
+        'distortion_model': distortion_model,
+        'D': distortion_coeff,
+    }
+
+    # json
+    with open(camera_info_savepath, 'w') as cam_info_file:
+        json.dump(
+            cam_info_dict,
+            cam_info_file,
+            indent=4,
+            sort_keys=False,
+        )
+
+    # yaml
+    # with open(camera_info_savepath, 'w', encoding='utf-8') as f:
+    #     yaml.dump(cam_info_dict, default_flow_style=None)
+
+    print("Save CameraInfo from {} topic!".format(topic))
+
+
 #%% Utility function for filter images and pointcloud from rosbag and apply interpolation
 def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
-    """Filter out images nad pointcloud from rosbag without rosbag play"""
+    """Filter out images and pointcloud from rosbag without rosbag play"""
 
     image_type = ['Image']
     other_type = []
@@ -90,27 +132,31 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
         )
 
         # check existing by counting the number of images and msg
-        exists_cnt = 0
-        for topic, msg_num in image_topic_info.items():
-            image_dirpath = os.path.join(outbag_base_path, topic[1:])
-            if not os.path.exists(image_dirpath):
-                os.makedirs(image_dirpath)
-            img_num = len(fnmatch.filter(os.listdir(image_dirpath), "*.png"))
-            if msg_num == img_num:
-                exists_cnt += 1
+        if not args.overwrite:
+            print("Checking files existing or not ...")
+            exists_cnt = 0
+            for topic, msg_num in image_topic_info.items():
+                image_dirpath = os.path.join(outbag_base_path, topic[1:])
+                if not os.path.exists(image_dirpath):
+                    os.makedirs(image_dirpath)
+                img_num = len(fnmatch.filter(os.listdir(image_dirpath), "*.png"))
+                if msg_num == img_num:
+                    exists_cnt += 1
 
-        print("Checking files existing or not ...")
-        if exists_cnt == len(image_topics) and os.path.exists(outbag_path):
-            all_files_exist = True
+            if exists_cnt == len(image_topics) and os.path.exists(outbag_path):
+                all_files_exist = True
+            else:
+                all_files_exist = False
+
+            print("All files exist?", all_files_exist)
         else:
             all_files_exist = False
-
-        print("All files exist?", all_files_exist)
 
         if not all_files_exist or args.overwrite:
 
             with rosbag.Bag(outbag_path, 'w') as outbag:
                 bridge = CvBridge()
+                topic_save_counter = dict()
                 for topic, msg, t in inbag.read_messages():
                     # dicard msg from image topics
                     if topic in image_topics:
@@ -168,45 +214,19 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
 
                     # maintain remaining msg from exclusive topics
                     else:
-                        # write code to save camera_info
+                        # save camera_info
+                        # /camera_left/color/camera_info <->
+                        # /camera_left/color/image_raw
                         if 'camera_info' in topic:
-                            # /camera_left/color/camera_info
-                            # /camera_left/color/image_raw
-
-                            info_base = topic[1:].rsplit('/', 1)[0]
-                            image_dirpath = os.path.join(outbag_base_path, info_base)
-                            if not os.path.exists(image_dirpath):
-                                os.makedirs(image_dirpath)
-                            camera_info_savepath = os.path.join(
-                                image_dirpath, "camera_info.json"
-                            )
-                            if not os.path.exists(camera_info_savepath):
-                                frame_id = msg.header.frame_id
-                                height = msg.height
-                                width = msg.width
-                                distortion_model = msg.distortion_model
-                                # For "plumb_bob", the 5 parameters are: (k1, k2, t1, t2, k3).
-                                distortion_coeff = msg.D
-                                intrinsic_mat = msg.K
-                                cam_info_dict = {
-                                    'frame_id': frame_id,
-                                    'height': height,
-                                    'width': width,
-                                    'K': intrinsic_mat,
-                                    'distortion_model': distortion_model,
-                                    'D': distortion_coeff,
-                                }
-                                import json
-
-                                with open(camera_info_savepath, 'w') as cam_info_file:
-                                    json.dump(
-                                        cam_info_dict,
-                                        cam_info_file,
-                                        indent=4,
-                                        sort_keys=False,
-                                    )
+                            if topic in topic_save_counter.keys():
+                                topic_save_counter[topic] += 1
+                            else:
+                                topic_save_counter.update({topic: 1})
+                            if topic_save_counter[topic] == 1:
+                                save_camera_info(outbag_base_path, topic, msg)
 
                         outbag.write(topic, msg, t)
+
             print("Images are filtered out!")
         else:
             # print("Nocam rosbag has already saved in", outbag_path)
@@ -222,12 +242,12 @@ def filter_image_from_rosbag(inbag_name, inbag_path, outbag_base_path, args):
 
 #%% main file
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="convert data from rosbag")
+    parser = argparse.ArgumentParser(description="create rosbag without image data")
 
     parser.add_argument(
         "-f",
         "--folder",
-        default="1203_shared_control",
+        default="1203_manual",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -264,7 +284,7 @@ if __name__ == "__main__":
     rosbag_dir = os.path.join(cb_data.bagbase_dir, args.folder)
     bag_files = list(filter(bag_file_filter, os.listdir(rosbag_dir)))
 
-    # destination: new rosbag data and exported images nad camera parameters
+    # destination: new rosbag data and exported images and camera parameters
     filtered_data_dirpath = os.path.join(rosbag_dir + "_filtered")
     if not os.path.exists(filtered_data_dirpath):
         os.makedirs(filtered_data_dirpath)
@@ -273,12 +293,10 @@ if __name__ == "__main__":
     print("# Type(s) to be filtered out: {}".format(args.filter_type))
     print("# Topic(s) to be filtered out: {}".format(args.filter_topic))
 
-    counter = 0
-    for bf in bag_files:
-        source_bag_path = os.path.join(rosbag_dir, bf)
+    for counter, bf in enumerate(bag_files):
         bag_name = bf.split(".")[0]
-        counter += 1
-        print("({}/{}): {}".format(counter, len(bag_files), source_bag_path))
+        source_bag_path = os.path.join(rosbag_dir, bf)
+        print("({}/{}): {}".format(counter + 1, len(bag_files), source_bag_path))
 
         filtered_bag_dirpath = os.path.join(filtered_data_dirpath, bag_name)
 
