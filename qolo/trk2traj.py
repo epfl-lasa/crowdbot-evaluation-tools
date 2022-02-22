@@ -3,7 +3,7 @@
 # =============================================================================
 """
 @Author        :   Yujie He
-@File          :   det2traj.py
+@File          :   trk2traj.py
 @Date created  :   2021/12/03
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
@@ -43,7 +43,7 @@ def get_pc_tranform(pc, pos, quat):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="generate visualization image rendered with Open3D"
+        description="convert tracking result to pedestrian trajtories data"
     )
 
     parser.add_argument(
@@ -73,6 +73,13 @@ if __name__ == "__main__":
         help="Consider pose transformation when plotting",
     )
     parser.set_defaults(consider_pose=True)
+    parser.add_argument(
+        "--overwrite",
+        dest="overwrite",
+        action="store_true",
+        help="Whether to overwrite existing output (default: false)",
+    )
+    parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -97,7 +104,12 @@ if __name__ == "__main__":
         traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
         traj_json_path = os.path.join(traj_dir, seq + '.json')
 
-        if os.path.exists(traj_pkl_path) and os.path.exists(traj_json_path):
+        traj_files_exist = os.path.exists(traj_pkl_path) and os.path.exists(
+            traj_json_path
+        )
+        if traj_files_exist and not args.overwrite:
+            print("{} trajectories already generated!!!".format(seq))
+            print("Will not overwrite. If you want to overwrite, use flag --overwrite")
             continue
 
         if consider_pose:

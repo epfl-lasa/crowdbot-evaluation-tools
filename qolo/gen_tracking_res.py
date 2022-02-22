@@ -81,8 +81,6 @@ if __name__ == "__main__":
     seq_num = cb_data.nr_seqs()
 
     for seq_idx in range(seq_num):
-        tracker = AB3DMOT(max_age=2, min_hits=3)
-
         seq = cb_data.seqs[seq_idx]
 
         counter += 1
@@ -96,6 +94,9 @@ if __name__ == "__main__":
         if not os.path.exists(tnpy_all_path) or args.overwrite:
             out_trk_all = dict()
 
+            # tracker = AB3DMOT(max_age=2, min_hits=3)
+            tracker = AB3DMOT(max_age=10, min_hits=3)  # lidar is about 10 FPS
+
             for fr_idx in range(cb_data.nr_frames(seq_idx)):
                 _, dets, dets_conf, _ = cb_data[seq_idx, fr_idx]
 
@@ -104,6 +105,12 @@ if __name__ == "__main__":
                 trk_input = {"dets": dets, "info": np.zeros_like(dets)}
                 trks = tracker.update(trk_input)
                 trks = reorder_back(trks)
+
+                if fr_idx == 0:
+                    # find the smallest id and normalize to 1
+                    min_id = min(trks[:, -1])
+                    offset = min_id - 1
+                trks[:, -1] = trks[:, -1] - offset
 
                 if args.save_raw:
                     f_path = os.path.join(
