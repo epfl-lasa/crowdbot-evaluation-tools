@@ -25,3 +25,4 @@ ez_setup
 moviepy>=1.0.1
 ## misc.
 tqdm
+multiprocessing

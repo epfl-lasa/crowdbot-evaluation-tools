@@ -32,6 +32,8 @@ import rospy
 import rosbag
 from cv_bridge import CvBridge, CvBridgeError
 
+from qolo.utils.process_util import sec_str_to_ts
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -45,7 +47,6 @@ if __name__ == "__main__":
                         help="Name of the topic which will contain the reconstructed images")
     parser.add_argument('--overwrite', dest='overwrite', action='store_true',
                         help="Whether to overwrite existing rosbags (default: false)")
-    parser.set_defaults(feature=False)
 
     args = parser.parse_args()
 

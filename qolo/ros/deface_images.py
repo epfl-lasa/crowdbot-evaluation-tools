@@ -27,7 +27,6 @@ import os
 import sys
 import time
 import glob
-import fnmatch
 import argparse
 
 import multiprocessing as mp
@@ -130,10 +129,12 @@ if __name__ == "__main__":
         type=str,
         help="different subfolder in rosbag/ dir",
     )
+    # more false positives > 0.2
+    # more robust blurring < 0.2
     parser.add_argument(
         "-t",
         "--thresh",
-        default=0.2,
+        default=0.1,
         type=float,
         help="detection threshold (tune this to trade off between false positive and false negative rate).",
     )
@@ -156,7 +157,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing rosbags (default: false)",
     )
-    parser.set_defaults(overwrite=True)
+    parser.set_defaults(overwrite=False)
     parser.add_argument(
         "--verbose",
         dest="verbose",

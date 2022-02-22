@@ -15,6 +15,7 @@ data, and compute derivatives.
 """
 # =============================================================================
 
+import sys
 
 import numpy as np
 
@@ -34,6 +35,19 @@ def ts_to_sec_str(ts):
     # return "{}.{:9d}".format(ts.secs, ts.nsecs)
     sec = ts.secs + ts.nsecs / float(1e9)
     return "{:.9f}".format(sec)
+
+
+def sec_str_to_ts(sec_str):
+    """Convert second string to timestamp"""
+    sec_res = sec_str.split('.')
+    if not len(sec_res) == 2:
+        sys.exit("Incorrect input, it should be like secs.nsecs")
+    else:
+        secs = sec_res[0]
+        nsecs = sec_res[1]
+        assert len(nsecs) == 9
+
+        return secs, nsecs
 
 
 # https://docs.scipy.org/doc/scipy/reference/spatial.transform.html
