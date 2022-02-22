@@ -362,8 +362,6 @@ if __name__ == "__main__":
                 new_high_interp_ts = high_interp_ts[start_zidx : end_zidx + 1]
                 new_quat_xyzw = quat_xyzw[start_zidx : end_zidx + 1, :]
 
-                # print(new_high_interp_ts.shape, new_quat_xyzw.shape)
-
                 quat_wxyz = new_quat_xyzw[:, [3, 0, 1, 2]]
                 quat_wxyz_ = Q.as_quat_array(quat_wxyz)
                 # ValueError: `x` must be strictly increasing sequence.
@@ -400,10 +398,12 @@ if __name__ == "__main__":
             }
             if args.smooth:
                 print("Using Savitzky-Golay filter to smooth vel!")
-                # 211116: unfiltered data
+
+                # unfiltered data
                 # state_dict.update({"x_vel_uf": xyz_vel[:, 0]})
                 # state_dict.update({"zrot_vel_uf": ang_vel[:, 2]})
-                # 211116: apply filter to computed vel
+
+                # apply filter to computed vel
                 smoothed_x_vel = smooth1d(
                     xyz_vel[:, 0],
                     filter='savgol',

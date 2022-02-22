@@ -94,7 +94,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing output (default: false)",
     )
-    parser.set_defaults(overwrite=True)
+    parser.set_defaults(overwrite=False)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -175,7 +175,7 @@ if __name__ == "__main__":
                             abs_quat = yaw2quat(
                                 bbox[idx, 6], base_quat=quat_array[fr_idx, :]
                             )
-                            ped_dict.update({'abs_quat_list': [abs_quat.tolist()]})
+                            ped_dict.update({'abs_quat_list': [abs_quat.tolist()[0]]})
                             ped_dict.update(
                                 {'abs_pose_list': [(bbox_trans[idx, :3]).tolist()]}
                             )
@@ -192,7 +192,7 @@ if __name__ == "__main__":
                             abs_quat = yaw2quat(
                                 bbox[idx, 6], base_quat=quat_array[fr_idx, :]
                             )
-                            ped_dict['abs_quat_list'].append(abs_quat.tolist())
+                            ped_dict['abs_quat_list'].append(abs_quat.tolist()[0])
                             ped_dict['abs_pose_list'].append(
                                 (bbox_trans[idx, :3]).tolist()
                             )
