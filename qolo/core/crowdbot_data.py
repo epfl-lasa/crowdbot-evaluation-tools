@@ -133,28 +133,20 @@ class CrowdBotDatabase(CrowdBotData):
         lidar = np.load(l_path) if os.path.isfile(l_path) else None
         lidar = lidar.T
 
-        # dets, dets_conf = None, None
-        # d_path = os.path.join(self.dets_dir, seq, fr.replace("nby", "txt"))
-        # if os.path.isfile(d_path):
-        #     dets = np.loadtxt(d_path, dtype=np.float32, delimiter=",")
-        #     dets_conf = dets[:, -1]  # sorted in descending order
-        #     dets = dets[:, :-1]
-
-        # t_path = os.path.join(self.trks_dir, seq, fr.replace("nby", "txt"))
-        # trks = (
-        #     np.loadtxt(t_path, dtype=np.float32, delimiter=",")
-        #     if os.path.isfile(t_path)
-        #     else None
-        # )
         dnpy_all_path = os.path.join(self.dets_dir, seq + ".npy")
         tnpy_all_path = os.path.join(self.trks_dir, seq + ".npy")
+
         with open(dnpy_all_path, "rb") as dnpy_all:
             det_all = np.load(dnpy_all, allow_pickle=True).item()
-        with open(tnpy_all_path, "rb") as tnpy_all:
-            trk_all = np.load(tnpy_all, allow_pickle=True).item()
         dets_ = det_all[fr_idx]
         dets, dets_conf = dets_[:, :-1], dets_[:, -1]
-        trks = trk_all[fr_idx]
+
+        if os.path.exists(tnpy_all_path):
+            with open(tnpy_all_path, "rb") as tnpy_all:
+                trk_all = np.load(tnpy_all, allow_pickle=True).item()
+            trks = trk_all[fr_idx]
+        else:
+            trks = None
 
         return lidar, dets, dets_conf, trks
 

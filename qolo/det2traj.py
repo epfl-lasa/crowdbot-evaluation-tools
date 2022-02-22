@@ -91,14 +91,19 @@ if __name__ == "__main__":
 
         print("({}/{}): {} with {} frames".format(seq_idx + 1, len(seqs), seq, seq_len))
 
+        traj_dir = os.path.join(cb_data.source_data_dir, "traj")
+        if not os.path.exists(traj_dir):
+            os.makedirs(traj_dir)
+        traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
+        traj_json_path = os.path.join(traj_dir, seq + '.json')
+
+        if os.path.exists(traj_pkl_path) and os.path.exists(traj_json_path):
+            continue
+
         if consider_pose:
             tf_qolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
             pose_stampe_path = os.path.join(tf_qolo_dir, seq + "_tfqolo_sampled.npy")
             lidar_pose_stamped = np.load(pose_stampe_path, allow_pickle=True).item()
-
-        traj_dir = os.path.join(cb_data.source_data_dir, "traj")
-        if not os.path.exists(traj_dir):
-            os.makedirs(traj_dir)
 
         trans_array = lidar_pose_stamped["position"]
         quat_array = lidar_pose_stamped["orientation"]
@@ -162,9 +167,6 @@ if __name__ == "__main__":
 
                     peds_dict.update({id: ped_dict})
                 t.update()
-
-        traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
-        traj_json_path = os.path.join(traj_dir, seq + '.json')
 
         save_dict2pkl(peds_dict, traj_pkl_path)
         save_dict2json(peds_dict, traj_json_path)
