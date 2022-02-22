@@ -3,19 +3,20 @@
 # =============================================================================
 """
 @Author        :   Yujie He
-@File          :   traj2pkl.py
+@File          :   det2traj.py
 @Date created  :   2021/12/03
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
 """
 # =============================================================================
 """
-The module provides ...
+The module provides script to generate pedestrian trajectories from detection
+results and save as pickle (or json) files
 """
 # =============================================================================
 """
 TODO:
-1.
+1. update using multiprocessing to accelerate the extraction
 """
 # =============================================================================
 
@@ -23,12 +24,11 @@ import os
 import argparse
 import numpy as np
 import tqdm
-import pickle
-import json
 
 from scipy.spatial.transform import Rotation as R
 
 from qolo.core.crowdbot_data import CrowdBotDatabase
+from qolo.utils.file_io_util import save_dict2pkl, save_dict2json
 
 
 def get_pc_tranform(pc, pos, quat):
@@ -41,42 +41,6 @@ def get_pc_tranform(pc, pos, quat):
     return rot_pc.T + pos
 
 
-# save & load pickle
-def save_pkl(peds_dict, pkl_path):
-    # filehandler = open("./archive/test_traj.pkl","wb")
-    filehandler = open(pkl_path, "wb")
-    pickle.dump(peds_dict, filehandler)
-    filehandler.close()
-
-
-def load_pkl(pkl_path):
-    # file = open("./archive/test_traj.pkl", 'rb')
-    filehandler = open(pkl_path, 'rb')
-    peds_dict = pickle.load(filehandler)
-    filehandler.close()
-    return peds_dict
-
-
-# save & load json
-def save_json(peds_dict, json_path):
-    with open(json_path, "w") as f:
-        # with open("./archive/test_traj.json", "w") as json_file:
-        json.dump(peds_dict, f, indent=2)
-
-
-def load_json(json_path):
-    # f = open("./archive/test_traj.json")
-    f = open(json_path)
-    # convert string key into int
-    peds_dict = json.load(
-        f,
-        object_hook=lambda d: {
-            int(k) if k.lstrip('-').isdigit() else k: v for k, v in d.items()
-        },
-    )
-    return peds_dict
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="generate visualization image rendered with Open3D"
@@ -85,10 +49,23 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="shared_test",
+        default="0410_rds",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
+    parser.add_argument(
+        "--seq",
+        default="2021-04-10-10-41-17",
+        type=str,
+        help="specific sequence in the subfolder",
+    )
+    parser.add_argument(
+        "--all",
+        dest="process_all",
+        action="store_true",
+        help="Process all sequences and disable single sequences",
+    )
+    parser.set_defaults(process_all=False)
     parser.add_argument(
         "--consider_pose",
         dest="consider_pose",
@@ -99,30 +76,34 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
-    # seq_idx, fr_idx = 0, 2300
 
     consider_pose = args.consider_pose
 
-    for seq_idx in range(cb_data.nr_seqs()):
+    if args.seq is None or args.process_all:
+        seqs = [cb_data.seqs[seq_idx] for seq_idx in range(cb_data.nr_seqs())]
+    else:
+        seqs = [args.seq]
 
-        seq = cb_data.seqs[seq_idx]
+    for seq_idx, seq in enumerate(seqs):
 
-        print(
-            "({}/{}): {} with {} frames".format(
-                seq_idx + 1, cb_data.nr_seqs(), seq, cb_data.nr_frames(seq_idx)
-            )
-        )
+        sq_idx = cb_data.seqs.index(seq)
+        seq_len = cb_data.nr_frames(sq_idx)
+
+        print("({}/{}): {} with {} frames".format(seq_idx + 1, len(seqs), seq, seq_len))
 
         if consider_pose:
             tf_qolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
             pose_stampe_path = os.path.join(tf_qolo_dir, seq + "_tfqolo_sampled.npy")
             lidar_pose_stamped = np.load(pose_stampe_path, allow_pickle=True).item()
 
+        traj_dir = os.path.join(cb_data.source_data_dir, "traj")
+        if not os.path.exists(traj_dir):
+            os.makedirs(traj_dir)
+
         trans_array = lidar_pose_stamped["position"]
         quat_array = lidar_pose_stamped["orientation"]
 
         peds_dict = dict()
-        seq_len = cb_data.nr_frames(seq_idx)
 
         with tqdm.tqdm(total=seq_len) as t:
             for fr_idx in range(seq_len):
@@ -137,7 +118,7 @@ if __name__ == "__main__":
                 bbox = trks
                 ids = bbox[:, -1]
 
-                # origin id in descending order
+                # original ids in descending order
                 sort_idx = np.argsort(ids)
                 ids = ids[sort_idx]
                 bbox = bbox[sort_idx]
@@ -148,8 +129,9 @@ if __name__ == "__main__":
                         pos=trans_array[fr_idx, :],
                         quat=quat_array[fr_idx, :],
                     )
-                # sing a library such as Pickle or do it yourself using Json strings.
+
                 for idx, id in enumerate(ids):
+                    # print("{}/{}: pedestrian {}".format(idx + 1, len(ids), int(id)))
                     if id not in peds_dict.keys():
                         # print("New pedestrian {} detected".format(id))
                         id = int(id)
@@ -180,3 +162,9 @@ if __name__ == "__main__":
 
                     peds_dict.update({id: ped_dict})
                 t.update()
+
+        traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
+        traj_json_path = os.path.join(traj_dir, seq + '.json')
+
+        save_dict2pkl(peds_dict, traj_pkl_path)
+        save_dict2json(peds_dict, traj_json_path)
