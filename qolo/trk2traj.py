@@ -32,13 +32,28 @@ from qolo.utils.file_io_util import save_dict2pkl, save_dict2json
 
 
 def get_pc_tranform(pc, pos, quat):
-    # pshape(pc)
     scipy_rot = R.from_quat(quat)
     rot_mat = scipy_rot.as_matrix()  # 3x3
     # pshape(rot_mat)
     rot_pc = np.matmul(rot_mat, pc.T)  #  (3x3) (3xn)
     # pshape(rot_pc)
     return rot_pc.T + pos
+
+
+def get_quat_from_yaw(yaw):
+    rot_euler = [yaw, 0, 0]
+    scipy_rot = R.from_euler('zyx', rot_euler)
+    return scipy_rot.as_quat()
+
+
+def yaw2quat(yaw, base_quat=None):
+    """convert theta in to quaternion format and transfer to global coordinate"""
+    rot_euler = [yaw, 0, 0]
+    abs_rot = R.from_euler('zyx', rot_euler)
+    if base_quat is not None:
+        base_rot = R.from_quat([base_quat])
+        abs_rot = base_rot.reduce(left=abs_rot)
+    return abs_rot.as_quat()
 
 
 if __name__ == "__main__":
@@ -79,7 +94,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing output (default: false)",
     )
-    parser.set_defaults(overwrite=False)
+    parser.set_defaults(overwrite=True)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -98,7 +113,7 @@ if __name__ == "__main__":
 
         print("({}/{}): {} with {} frames".format(seq_idx + 1, len(seqs), seq, seq_len))
 
-        traj_dir = os.path.join(cb_data.source_data_dir, "traj")
+        traj_dir = os.path.join(cb_data.ped_data_dir, "traj")
         if not os.path.exists(traj_dir):
             os.makedirs(traj_dir)
         traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
@@ -129,7 +144,7 @@ if __name__ == "__main__":
                 # print("# Frame {}".format(fr_idx))
                 _, _, _, trks = cb_data[seq_idx, fr_idx]
 
-                # bbox: [x, y, z, dx, dy, dz, heading]
+                # bbox: [x, y, z, dx, dy, dz, heading, id]
                 # https://stackoverflow.com/a/23596637/7961693
                 # bbox = filter_detection_tracking_res(trks, dist=filter_dist, verbose=verbose)
                 bbox = trks
@@ -157,6 +172,10 @@ if __name__ == "__main__":
                             'rel_pose_list': [(bbox[idx, :3]).tolist()],
                         }
                         if consider_pose:
+                            abs_quat = yaw2quat(
+                                bbox[idx, 6], base_quat=quat_array[fr_idx, :]
+                            )
+                            ped_dict.update({'abs_quat_list': [abs_quat.tolist()]})
                             ped_dict.update(
                                 {'abs_pose_list': [(bbox_trans[idx, :3]).tolist()]}
                             )
@@ -170,6 +189,10 @@ if __name__ == "__main__":
                         # print(ped_dict['rel_pose_list'])
                         ped_dict['rel_pose_list'].append((bbox[idx, :3]).tolist())
                         if consider_pose:
+                            abs_quat = yaw2quat(
+                                bbox[idx, 6], base_quat=quat_array[fr_idx, :]
+                            )
+                            ped_dict['abs_quat_list'].append(abs_quat.tolist())
                             ped_dict['abs_pose_list'].append(
                                 (bbox_trans[idx, :3]).tolist()
                             )

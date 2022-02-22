@@ -342,9 +342,8 @@ if __name__ == "__main__":
                 vel_ = np.zeros(4, dtype=np.float64)
                 vel_[:3] = vel
                 xyz_vel[idx, :] = qv_mult(quat, vel_)
-            print("Using new conversion")
 
-            print("Computing angular velocity velocity!")
+            print("Computing angular velocity!")
 
             # calculate difference
             high_interp_ts_delta = np.diff(high_interp_ts)
