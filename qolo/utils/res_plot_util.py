@@ -3,7 +3,7 @@
 # =============================================================================
 """
 @Author        :   Yujie He
-@File          :   eval_res_plot.py
+@File          :   res_plot_util.py
 @Date created  :   2021/11/16
 @Maintainer    :   Yujie He
 @Email         :   yujie.he@epfl.ch
@@ -21,7 +21,7 @@ import matplotlib.patches as mpatches
 
 
 def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
-    """save crowd_density (3m, 5m, and 10m) plotting"""
+    """crowd_density (3m, 5m, and 10m) plot function"""
 
     # unpack md data from eval_dict
     ts = crowd_eval_dict.get("timestamp")
@@ -78,7 +78,7 @@ def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
 
 
 def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
-    """save crowd_density (5m and 10m)  plotting"""
+    """crowd_density (5m and 10m) plot function"""
 
     # unpack md data from eval_dict
     ts = crowd_eval_dict.get("timestamp")
@@ -133,7 +133,7 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
 
 
 def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
-    """save min_dist plotting"""
+    """min_dist plot function"""
 
     # unpack md data from eval_dict
     ts = crowd_eval_dict.get("timestamp")
@@ -191,11 +191,12 @@ def save_md_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
 def save_twist_cmd_img(
     qolo_twist, cmd_raw_dict, base_dir, seq_name, suffix="_twist_toGui_comp"
 ):
-    """
-    Only for debug:
-    linear vel in twist = corrected_linear in rds_to_gui
-    angular vel in twist = corrected_angular in rds_to_gui
-    """
+    """qolo command (twist msg) plot function"""
+
+    # Only for debug:
+    # linear vel in twist = corrected_linear in rds_to_gui
+    # angular vel in twist = corrected_angular in rds_to_gui
+
     twist_ts = qolo_twist["timestamp"]
     cmd_ts = cmd_raw_dict["timestamp"]
     min_ts = np.min([twist_ts.min(), cmd_ts.min()])
@@ -220,6 +221,7 @@ def save_twist_cmd_img(
 def save_motion_img(
     qolo_command_dict, path_eval_dict, base_dir, seq_name, suffix, command=True
 ):
+    """qolo state (pose, velocity, accleration, & jerk) plot function"""
     ts = qolo_command_dict["timestamp"]
     start_ts = path_eval_dict.get("start_command_ts")
     duration2goal = path_eval_dict.get("duration2goal")
@@ -309,6 +311,7 @@ def save_motion_img(
 
 
 def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
+    """qolo trajectory plot function"""
     pose_x = qolo_pose2d.get("x")
     pose_y = qolo_pose2d.get("y")
     pose_theta = qolo_pose2d.get("theta")

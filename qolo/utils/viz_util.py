@@ -10,8 +10,7 @@
 """
 # =============================================================================
 """
-The module provides function for detection or tracking results preprocessing
-for plotting, bbox projection and colorization.
+The module provides utility functions for detection or tracking results preprocessing for plotting, bbox projection and colorization.
 """
 # =============================================================================
 

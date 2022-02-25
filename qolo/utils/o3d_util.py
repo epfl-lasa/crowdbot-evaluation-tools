@@ -10,8 +10,7 @@
 """
 # =============================================================================
 """
-The module provides functions to process detection or tracking results and plot
-function with open3d.
+The module provides utility functions to process detection or tracking results and visualize with open3d.
 """
 # =============================================================================
 """

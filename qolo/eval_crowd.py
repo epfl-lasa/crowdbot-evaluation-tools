@@ -35,7 +35,7 @@ from qolo.core.crowdbot_data import (
     CrowdbotExpParam,
     CROWDBOT_EVAL_TOOLKIT_DIR,
 )
-from qolo.utils.eval_res_plot import save_cd_img, save_md_img
+from qolo.utils.res_plot_util import save_cd_img, save_md_img
 from qolo.metrics.metric_crowd import compute_crowd_metrics, compute_norm_prox
 
 # cross-zero checking: https://stackoverflow.com/a/29674950/7961693

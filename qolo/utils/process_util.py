@@ -10,8 +10,7 @@
 """
 # =============================================================================
 """
-The module provides functions to convert timestamp into second, interpolate
-data, and compute derivatives.
+The module provides utility functions to convert timestamp into second, interpolate data, and compute derivatives.
 """
 # =============================================================================
 

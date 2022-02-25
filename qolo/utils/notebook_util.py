@@ -10,8 +10,7 @@
 """
 # =============================================================================
 """
-The module provides categorical plot and customized folder traverse functions
-for better notebook use.
+The module provides utility functions used in notebook for categorical plot and customized folder traverse functions.
 """
 # =============================================================================
 

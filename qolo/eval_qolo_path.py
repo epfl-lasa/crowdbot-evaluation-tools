@@ -45,7 +45,7 @@ from qolo.core.crowdbot_data import (
     CrowdbotExpParam,
     CROWDBOT_EVAL_TOOLKIT_DIR,
 )
-from qolo.utils.eval_res_plot import save_path_img
+from qolo.utils.res_plot_util import save_path_img
 from qolo.metrics.metric_qolo_perf import compute_time_path
 
 #%% main function

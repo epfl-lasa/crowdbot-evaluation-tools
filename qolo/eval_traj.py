@@ -69,7 +69,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing output (default: false)",
     )
-    parser.set_defaults(overwrite=False)
+    parser.set_defaults(overwrite=True)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -144,19 +144,23 @@ if __name__ == "__main__":
             # the first 2 column in 'lin_vel' are more important
             lin_vel = np.gradient(xyz, frame_ts[start_idx : end_idx + 1], axis=0)
 
-            # angular (has large errors!)
-            quat_xyzw = np.array(traj_dict[id]['abs_quat_list'])
-            quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
-            quat_wxyz_ = Q.as_quat_array(quat_wxyz)
-            ang_vel = qseries.angular_velocity(
-                quat_wxyz_, frame_ts[start_idx : end_idx + 1]
-            )
+            # method1: calculate from quat (has large errors!)
+            # quat_xyzw = np.array(traj_dict[id]['abs_quat_list'])
+            # quat_wxyz = quat_xyzw[:, [3, 0, 1, 2]]
+            # quat_wxyz_ = Q.as_quat_array(quat_wxyz)
+            # ang_vel = qseries.angular_velocity(
+            #     quat_wxyz_, frame_ts[start_idx : end_idx + 1]
+            # )
+
+            # method2: calculate from dy/dx
+            # vel_theta = np.tan(lin_vel[:,1]/lin_vel[:,0])
+
             ped_vel_dict = {
                 "start_idx": start_idx,
                 "end_idx": start_idx,
                 "length": traj_dict[id]['length'],
                 "lin_vel": lin_vel.tolist(),
-                "ang_vel": ang_vel.tolist(),
+                # "ang_vel": ang_vel.tolist(),
             }
             peds_vel_dict.update({int(id): ped_vel_dict})  # int64 -> int
 
