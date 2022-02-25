@@ -21,39 +21,13 @@ TODO:
 # =============================================================================
 
 import os
+import tqdm
 import argparse
 import numpy as np
-import tqdm
-
-from scipy.spatial.transform import Rotation as R
 
 from qolo.core.crowdbot_data import CrowdBotDatabase
+from qolo.utils.geo_util import get_pc_tranform, yaw2quat
 from qolo.utils.file_io_util import save_dict2pkl, save_dict2json
-
-
-def get_pc_tranform(pc, pos, quat):
-    scipy_rot = R.from_quat(quat)
-    rot_mat = scipy_rot.as_matrix()  # 3x3
-    # pshape(rot_mat)
-    rot_pc = np.matmul(rot_mat, pc.T)  #  (3x3) (3xn)
-    # pshape(rot_pc)
-    return rot_pc.T + pos
-
-
-def get_quat_from_yaw(yaw):
-    rot_euler = [yaw, 0, 0]
-    scipy_rot = R.from_euler('zyx', rot_euler)
-    return scipy_rot.as_quat()
-
-
-def yaw2quat(yaw, base_quat=None):
-    """convert theta in to quaternion format and transfer to global coordinate"""
-    rot_euler = [yaw, 0, 0]
-    abs_rot = R.from_euler('zyx', rot_euler)
-    if base_quat is not None:
-        base_rot = R.from_quat([base_quat])
-        abs_rot = base_rot.reduce(left=abs_rot)
-    return abs_rot.as_quat()
 
 
 if __name__ == "__main__":
@@ -129,11 +103,11 @@ if __name__ == "__main__":
 
         if consider_pose:
             tf_qolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
-            pose_stampe_path = os.path.join(tf_qolo_dir, seq + "_tfqolo_sampled.npy")
-            lidar_pose_stamped = np.load(pose_stampe_path, allow_pickle=True).item()
+            pose_stamp_path = os.path.join(tf_qolo_dir, seq + "_tfqolo_sampled.npy")
+            pose_stamped = np.load(pose_stamp_path, allow_pickle=True).item()
 
-        trans_array = lidar_pose_stamped["position"]
-        quat_array = lidar_pose_stamped["orientation"]
+        trans_array = pose_stamped["position"]
+        quat_array = pose_stamped["orientation"]
 
         peds_dict = dict()
 

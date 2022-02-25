@@ -40,7 +40,7 @@ from qolo.utils.file_io_util import (
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="generate visualization image rendered with Open3D"
+        description="evaluate trajectories of pedestrians around Qolo"
     )
 
     parser.add_argument(

@@ -16,6 +16,7 @@ The module provides plotting functions to visualize evaluation results
 
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
@@ -375,3 +376,125 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     plt.savefig(path_img_path, dpi=300)  # png, pdf
 
     plt.close()
+
+
+def draw_arrow(axes, startx, starty, orient, arrow_len=5.0, color='black', lw=2.0):
+    """Draw arrow on the axes handle"""
+    xy = (startx, starty)
+    dxy = (np.cos(orient) * arrow_len, np.sin(orient) * arrow_len)
+    xytext = tuple(map(sum, zip(xy, dxy)))
+    axes.annotate(
+        "",
+        xy=xy,
+        xytext=xytext,
+        arrowprops=dict(arrowstyle="<-", lw=lw),
+        color=color,
+    )
+
+
+def draw_coordinate(axes, startx, starty, arrow_len=5.0, lw=2.0):
+    """Draw x-y coordinate on the axes handle"""
+    xy = (startx, starty)
+    dx = (arrow_len, 0)
+    xtext = tuple(map(sum, zip(xy, dx)))
+    axes.annotate(
+        "",
+        xy=xy,
+        xytext=xtext,
+        arrowprops=dict(arrowstyle="<-", lw=lw),
+        color='red',
+    )
+
+    dy = (0, arrow_len)
+    ytext = tuple(map(sum, zip(xy, dy)))
+    axes.annotate(
+        "",
+        xy=xy,
+        xytext=ytext,
+        arrowprops=dict(arrowstyle="<-", lw=lw),
+        color='green',
+    )
+
+
+def plot_ped_traj(axes, xy_list, ped_id, color='red', lw=1):
+    axes.plot(
+        xy_list[:, 0],
+        xy_list[:, 1],
+        color=color,
+        lw=lw,
+        label="Ped {}".format(ped_id),
+    )
+
+
+def get_nlongest_peds(ped_traj_dict, ped_num=3):
+    traj_data = pd.DataFrame.from_dict(
+        ped_traj_dict, orient='index', columns=['start_idx', 'end_idx', 'length']
+    )
+    top_ids = traj_data.nlargest(ped_num, 'length').index.values
+
+    return top_ids
+
+
+def viz_qolo_ped_traj_full(
+    path_img_path, qolo_pose, ped_traj_dict, ped_num=3, color_list=None
+):
+    fig, ax = plt.subplots(figsize=(5, 3))
+    ax.plot(
+        qolo_pose["x"],
+        qolo_pose["y"],
+        "red",
+        linewidth=2,
+        label="Qolo trajectory",
+    )
+
+    top_ids = get_nlongest_peds(ped_traj_dict, ped_num=ped_num)
+
+    for ii, id in enumerate(top_ids):
+        xyz = np.array(ped_traj_dict[id]['abs_pose_list'])
+        if color_list is not None:
+            plot_ped_traj(ax, xyz[:, :2], id, color_list[ii])
+        else:
+            plot_ped_traj(ax, xyz[:, :2], id)
+
+    ax.legend(fontsize="x-small")
+
+    ax.set_title("Qolo & Pedestrian Trajectories")
+    fig.tight_layout()
+    plt.savefig(path_img_path, dpi=300)  # png, pdf
+
+    plt.close()
+
+
+def viz_qolo_ped_traj_frame(
+    path_img_path, frame_id, qolo_pose, ped_traj_dict, ped_num=3, color_list=None
+):
+    fig, ax = plt.subplots(figsize=(5, 3))
+    ax.plot(
+        qolo_pose["x"][: frame_id + 1],
+        qolo_pose["y"][: frame_id + 1],
+        "red",
+        linewidth=2,
+        label="Qolo trajectory",
+    )
+
+    top_ids = get_nlongest_peds(ped_traj_dict, ped_num=ped_num)
+
+    for ii, id in enumerate(top_ids):
+        xyz = np.array(ped_traj_dict[id]['abs_pose_list'])
+        if color_list is not None:
+            plot_ped_traj(ax, xyz[:, :2], id, color_list[ii])
+        else:
+            plot_ped_traj(ax, xyz[:, :2], id)
+
+    ax.legend(fontsize="x-small")
+
+    ax.set_title("Qolo & Pedestrian Trajectories")
+    fig.tight_layout()
+    plt.savefig(path_img_path, dpi=300)  # png, pdf
+
+    plt.close()
+
+
+def ped_motion_plot(ped_traj_dict, ids):
+    """pedestrian motion (velocity) plot function"""
+    pass
