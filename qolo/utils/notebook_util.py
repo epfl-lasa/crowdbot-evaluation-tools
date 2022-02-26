@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 plt.ioff()
 import seaborn as sns
 
-from crowdbot_data import CrowdBotDatabase
+from qolo.core.crowdbot_data import CrowdBotDatabase
 
 
 def set_box_color(bp, color):
