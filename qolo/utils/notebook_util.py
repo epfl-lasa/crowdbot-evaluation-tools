@@ -29,7 +29,20 @@ import seaborn as sns
 from qolo.core.crowdbot_data import CrowdBotDatabase
 
 
-def value2color_list(value_list, cmap_name='Spectral', range=(0.1, 0.9)):
+def values2color_list(value_list, cmap_name='hot', range=(0.1, 0.9)):
+    value_unique = np.unique(value_list)
+    value_len = len(value_unique)
+    cmap = matplotlib.cm.get_cmap(cmap_name)
+    value_normalized = np.linspace(range[0], range[1], num=value_len)
+    color_unique = []
+    for value in value_unique:
+        index = np.where(value_unique == value)[0][0]
+        color_unique.append(cmap(value_normalized[index]))
+
+    return value_unique, color_unique
+
+
+def values2colors(value_list, cmap_name='hot', range=(0.1, 0.9)):
     # ref: https://stackoverflow.com/questions/25408393/getting-individual-colors-from-a-color-map-in-matplotlib
 
     value_unique = np.unique(value_list)
@@ -144,6 +157,8 @@ def categorical_plot(
     kind='violin',
     titlefontsz=12,
     yint=False,
+    scatter_palette="colorblind",
+    box_palette="hot",  # Blues
 ):
 
     sns.set_theme(style="whitegrid")
@@ -151,18 +166,18 @@ def categorical_plot(
     # fmt: off
     # use stripplot (less points) instead of swarmplot to handle many datapoints
     sns.swarmplot(x=category, y=metric, hue=group, data=df, ax=axes,
-                  size=6, alpha=0.8, palette="colorblind",
+                  size=6, alpha=0.8, palette=scatter_palette,
                   edgecolor='black', dodge=True,
                  )
     if kind == 'violin':
         sns.violinplot(x=category, y=metric, hue=group, data=df, ax=axes,
                        linewidth=1.1, notch=False, orient="v",
-                       dodge=True, palette="pastel", inner=None,
+                       dodge=True, palette=box_palette, inner=None,
                       )
     elif kind == 'box':
         sns.boxplot(x=category, y=metric, hue=group, data=df, ax=axes,
                     linewidth=2, notch=False, orient="v",
-                    dodge=True, palette="pastel",
+                    dodge=True, palette=box_palette,
                    )
 
     # sns.despine(trim=True)
