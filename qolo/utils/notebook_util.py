@@ -22,6 +22,7 @@ import pandas as pd
 import matplotlib
 from matplotlib.patches import PathPatch
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as font_manager
 
 plt.ioff()
 import seaborn as sns
@@ -156,9 +157,11 @@ def categorical_plot(
     title=None,
     group=None,
     lgd_labels=None,
+    lgd_fontsz=12,
+    lgd_font=None,
     loc='lower right',
     kind='violin',
-    titlefontsz=12,
+    titlefontsz=16,
     yint=False,
     scatter_palette="colorblind",
     box_palette="hot",  # Blues
@@ -188,6 +191,11 @@ def categorical_plot(
     # fmt: on
     axes.yaxis.grid(True)
 
+    # legend font
+    lgd_font = font_manager.FontProperties(
+        family=lgd_font, style='normal', size=lgd_fontsz
+    )
+
     if group:
         # deduplicate labels
         # method1: https://stackoverflow.com/a/33440601/7961693
@@ -202,9 +210,9 @@ def categorical_plot(
                 lablout.append(l)
                 handout.append(h)
         if lgd_labels:
-            axes.legend(handles=handout, labels=lgd_labels, loc=loc)
+            axes.legend(handles=handout, labels=lgd_labels, loc=loc, prop=lgd_font)
         else:
-            axes.legend(handles=handout, labels=lablout, loc=loc)
+            axes.legend(handles=handout, labels=lablout, loc=loc, prop=lgd_font)
 
     if title is not None:
         axes.set_title(title, fontweight='bold', fontsize=titlefontsz)
