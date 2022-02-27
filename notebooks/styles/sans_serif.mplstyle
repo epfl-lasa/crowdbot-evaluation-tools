@@ -1,0 +1,7 @@
+axes.titlesize : 24
+axes.labelsize : 20
+xtick.labelsize : 16
+ytick.labelsize : 16
+font.family : sans-serif
+font.sans-serif : Tahoma, DejaVu Sans, Lucida Grande, Verdana
+mathtext.fontset : stixsans

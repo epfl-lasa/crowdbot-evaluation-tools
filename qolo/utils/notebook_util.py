@@ -29,6 +29,21 @@ import seaborn as sns
 from qolo.core.crowdbot_data import CrowdBotDatabase
 
 
+def value2color_list(value_list, cmap_name='Spectral', range=(0.1, 0.9)):
+    # ref: https://stackoverflow.com/questions/25408393/getting-individual-colors-from-a-color-map-in-matplotlib
+
+    value_unique = np.unique(value_list)
+    value_len = len(value_unique)
+    cmap = matplotlib.cm.get_cmap(cmap_name)
+    cvalues = np.linspace(range[0], range[1], num=value_len)
+
+    color_list = []
+    for value in value_list:
+        index = np.where(value_unique == value)[0][0]
+        color_list.append(cmap(cvalues[index]))
+    return color_list
+
+
 def set_box_color(bp, color):
     """
     Input:
@@ -101,9 +116,9 @@ def walk(top, topdown=True, onerror=None, followlinks=False, maxdepth=None):
         yield top, dirs, nondirs
 
 
-def violinplot(axes, df, metric, catogory, title, ylabel, ylim):
+def violinplot(axes, df, metric, category, title, ylabel, ylim):
 
-    sns.violinplot(x=catogory, y=metric, data=df, ax=axes)
+    sns.violinplot(x=category, y=metric, data=df, ax=axes)
 
     axes.yaxis.grid(True)
 
@@ -118,11 +133,11 @@ def categorical_plot(
     axes,
     df,
     metric,
-    catogory,
-    title,
+    category,
     xlabel,
     ylabel,
     ylim,
+    title=None,
     group=None,
     lgd_labels=None,
     loc='lower right',
@@ -135,17 +150,17 @@ def categorical_plot(
 
     # fmt: off
     # use stripplot (less points) instead of swarmplot to handle many datapoints
-    sns.swarmplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+    sns.swarmplot(x=category, y=metric, hue=group, data=df, ax=axes,
                   size=6, alpha=0.8, palette="colorblind",
                   edgecolor='black', dodge=True,
                  )
     if kind == 'violin':
-        sns.violinplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+        sns.violinplot(x=category, y=metric, hue=group, data=df, ax=axes,
                        linewidth=1.1, notch=False, orient="v",
                        dodge=True, palette="pastel", inner=None,
                       )
     elif kind == 'box':
-        sns.boxplot(x=catogory, y=metric, hue=group, data=df, ax=axes,
+        sns.boxplot(x=category, y=metric, hue=group, data=df, ax=axes,
                     linewidth=2, notch=False, orient="v",
                     dodge=True, palette="pastel",
                    )
@@ -173,7 +188,8 @@ def categorical_plot(
         else:
             axes.legend(handles=handout, labels=lablout, loc=loc)
 
-    axes.set_title(title, fontweight='bold', fontsize=titlefontsz)
+    if title is not None:
+        axes.set_title(title, fontweight='bold', fontsize=titlefontsz)
     axes.set_xlabel(xlabel)
     axes.set_ylabel(ylabel)
     axes.set_ylim(bottom=ylim[0], top=ylim[1])
