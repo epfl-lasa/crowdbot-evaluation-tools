@@ -29,11 +29,13 @@ import seaborn as sns
 from qolo.core.crowdbot_data import CrowdBotDatabase
 
 
-def values2color_list(value_list, cmap_name='hot', range=(0.1, 0.9)):
+def values2color_list(value_list, cmap_name='hot', range=(0.1, 0.9), reverse=True):
     value_unique = np.unique(value_list)
     value_len = len(value_unique)
     cmap = matplotlib.cm.get_cmap(cmap_name)
     value_normalized = np.linspace(range[0], range[1], num=value_len)
+    if reverse:
+        value_normalized = np.flip(value_normalized)
     color_unique = []
     for value in value_unique:
         index = np.where(value_unique == value)[0][0]
@@ -42,18 +44,19 @@ def values2color_list(value_list, cmap_name='hot', range=(0.1, 0.9)):
     return value_unique, color_unique
 
 
-def values2colors(value_list, cmap_name='hot', range=(0.1, 0.9)):
+def values2colors(value_list, cmap_name='hot', range=(0.1, 0.9), reverse=True):
     # ref: https://stackoverflow.com/questions/25408393/getting-individual-colors-from-a-color-map-in-matplotlib
 
     value_unique = np.unique(value_list)
     value_len = len(value_unique)
     cmap = matplotlib.cm.get_cmap(cmap_name)
-    cvalues = np.linspace(range[0], range[1], num=value_len)
-
+    value_normalized = np.linspace(range[0], range[1], num=value_len)
+    if reverse:
+        value_normalized = np.flip(value_normalized)
     color_list = []
     for value in value_list:
         index = np.where(value_unique == value)[0][0]
-        color_list.append(cmap(cvalues[index]))
+        color_list.append(cmap(value_normalized[index]))
     return color_list
 
 
