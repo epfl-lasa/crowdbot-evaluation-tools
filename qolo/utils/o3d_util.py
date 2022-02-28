@@ -28,7 +28,7 @@ from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
 import open3d as o3d
 
-from viz_util import (
+from qolo.utils.viz_util import (
     id2color,
     bbox_lines,
     boxes3d_to_corners3d,

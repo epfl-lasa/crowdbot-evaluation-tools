@@ -17,16 +17,32 @@ The module provides plotting functions to visualize evaluation results
 import os
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 
-def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
-    """crowd_density (3m, 5m, and 10m) plot function"""
+def save_cd_img(
+    crowd_eval_dict,
+    path_eval_dict,
+    base_dir,
+    seq_name,
+    fmt='pdf',
+    add_title=False,
+    use_serif=False,
+    color_list=["tomato", "limegreen", "violet"],
+    color_vertical='red',
+):
+    """crowd_density (2.5m, 5m, and 10m) plot function"""
+
+    if use_serif:
+        mpl.rcParams['font.family'] = ['serif']
+        mpl.rcParams['font.serif'] = ['Times New Roman']
+        mpl.rcParams['mathtext.fontset'] = 'stix'
 
     # unpack md data from eval_dict
     ts = crowd_eval_dict.get("timestamp")
-    cd3 = crowd_eval_dict.get("crowd_density3")
+    cd2_5 = crowd_eval_dict.get("crowd_density2_5")
     cd5 = crowd_eval_dict.get("crowd_density5")
     cd10 = crowd_eval_dict.get("crowd_density10")
     start_ts = path_eval_dict.get("start_command_ts")
@@ -34,45 +50,53 @@ def save_cd_img(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
 
     duration = np.max(ts) - np.min(ts)
 
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(8, 4.5))
 
     # crowd_density chart
-    (l1,) = ax.plot(ts - np.min(ts), cd3, linewidth=1, color="tomato", label="3 m")
-    (l2,) = ax.plot(ts - np.min(ts), cd5, linewidth=1, color="limegreen", label="5 m")
-    (l3,) = ax.plot(ts - np.min(ts), cd10, linewidth=1, color="violet", label="10 m")
+    norm_ts = ts - np.min(ts)
+    (l1,) = ax.plot(norm_ts, cd2_5, lw=1, color=color_list[0], label="2.5 m")
+    (l2,) = ax.plot(norm_ts, cd5, lw=1, color=color_list[1], label="5 m")
+    (l3,) = ax.plot(norm_ts, cd10, lw=1, color=color_list[2], label="10 m")
 
     # start_ts vertical line
     new_start_ts = np.max([start_ts - np.min(ts), 0.0])
-    ax.axvline(x=new_start_ts, linestyle="--", linewidth=2, color="red")
+    y_max = max(round(max(cd2_5) * 10) / 10, 0.5)
+    ax.axvline(x=new_start_ts, linestyle="--", linewidth=2, color=color_vertical)
     plt.text(
         x=new_start_ts + 1,
-        y=0.60,
-        s="$t_s$={0:.1f}s".format(new_start_ts),
+        y=y_max - 0.1,
+        s="$t_s$ = {0:.1f} s".format(new_start_ts),
         horizontalalignment="left",
-        fontsize=6,
+        fontsize=10,
     )
     new_end_ts = new_start_ts + duration2goal
-    ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
+    ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color=color_vertical)
     plt.text(
         x=new_end_ts - 1,
-        y=0.60,
-        s="$t_e$={0:.1f}s".format(new_end_ts),
+        y=y_max - 0.1,
+        s="$t_e$ = {0:.1f} s".format(new_end_ts),
         horizontalalignment="right",
-        fontsize=6,
+        fontsize=10,
     )
 
     ax.legend(handles=[l1, l2, l3], ncol=1, loc="upper right", fontsize="x-small")
-    ax.set_title(
-        "Crowd Density within x [m] of qolo ({0:.1f}s)".format(duration), fontsize=15
-    )
-    _ = ax.set_xlabel("t [s]")
-    _ = ax.set_ylabel("Density [1/$m^2$]")
+    if add_title:
+        ax.set_title(
+            "Crowd Density within x [m] of qolo ({0:.1f}s)".format(duration),
+            fontsize=15,
+        )
+    _ = ax.set_xlabel("Time [$s$]", fontsize=14)
+    _ = ax.set_ylabel("Density [$1/m^2$]", fontsize=14)
 
-    ax.set_xlim(left=0.0)
-    ax.set_ylim(bottom=0.0, top=0.8)
+    ax.set_xlim(left=0.0, right=duration)
+    ax.set_ylim(bottom=0.0, top=y_max)
+    ax.tick_params(axis='x', labelsize=10)
+    ax.tick_params(axis='y', labelsize=10)
 
     fig.tight_layout()
-    cd_img_path = os.path.join(base_dir, seq_name, seq_name + "_crowd_density.png")
+    cd_img_path = os.path.join(
+        base_dir, seq_name, "{}_crowd_density.{}".format(seq_name, fmt)
+    )
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
 
     plt.close()
@@ -102,7 +126,7 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     plt.text(
         x=new_start_ts + 1,
         y=0.40,
-        s="$t_s$={0:.1f}s".format(new_start_ts),
+        s="$t_s$ = {0:.1f} s".format(new_start_ts),
         horizontalalignment="left",
         fontsize=6,
     )
@@ -111,7 +135,7 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
     plt.text(
         x=new_end_ts + 1,
         y=0.40,
-        s="$t_e$={0:.1f}s".format(new_end_ts),
+        s="$t_e$ = {0:.1f} s".format(new_end_ts),
         horizontalalignment="left",
         fontsize=6,
     )
@@ -128,6 +152,85 @@ def save_cd_img_two(crowd_eval_dict, path_eval_dict, base_dir, seq_name):
 
     fig.tight_layout()
     cd_img_path = os.path.join(base_dir, seq_name, seq_name + "_crowd_density.png")
+    plt.savefig(cd_img_path, dpi=300)  # png, pdf
+
+    plt.close()
+
+
+def save_cd_img_single(
+    crowd_eval_dict,
+    path_eval_dict,
+    base_dir,
+    seq_name,
+    dist=2.5,
+    fmt='pdf',
+    linecolor="navy",
+    add_title=False,
+    use_serif=False,
+):
+    """crowd_density plot function"""
+
+    key_dict = {2.5: "crowd_density2_5", 5: "crowd_density5", 10: "crowd_density10"}
+
+    # unpack md data from eval_dict
+    ts = crowd_eval_dict.get("timestamp")
+    cd = crowd_eval_dict.get(key_dict[dist])
+    start_ts = path_eval_dict.get("start_command_ts")
+    duration2goal = path_eval_dict.get("duration2goal")
+
+    duration = np.max(ts) - np.min(ts)
+
+    if use_serif:
+        mpl.rcParams['font.family'] = ['serif']
+        mpl.rcParams['font.serif'] = ['Times New Roman']
+        mpl.rcParams['mathtext.fontset'] = 'stix'
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    # crowd_density chart
+    (l1,) = ax.plot(
+        ts - np.min(ts), cd, linewidth=1, color=linecolor, label="x = {}".format(dist)
+    )
+
+    # start_ts vertical line
+    new_start_ts = np.max([start_ts - np.min(ts), 0.0])
+    ax.axvline(x=new_start_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_start_ts + 1,
+        y=0.40,
+        s="$t_s$={0:.1f}s".format(new_start_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+    new_end_ts = new_start_ts + duration2goal
+    ax.axvline(x=new_end_ts, linestyle="--", linewidth=2, color="red")
+    plt.text(
+        x=new_end_ts + 1,
+        y=0.40,
+        s="$t_e$={0:.1f}s".format(new_end_ts),
+        horizontalalignment="left",
+        fontsize=10,
+    )
+
+    # ax.legend(handles=[l1], loc="upper right", fontsize="x-small")
+    if add_title:
+        ax.set_title(
+            "Crowd Density within {} [m] of qolo ({0:.1f}s)".format(dist, duration),
+            fontsize=16,
+        )
+    _ = ax.set_xlabel("Time [$s$]", fontsize=14)
+    _ = ax.set_ylabel("Density [$1/m^2$]", fontsize=14)
+
+    ax.set_xlim(left=0.0)
+    y_max = max(round(max(cd) * 10) / 10, 0.5)
+    ax.set_ylim(bottom=0.0, top=y_max)
+    ax.tick_params(axis='x', labelsize=10)
+    ax.tick_params(axis='y', labelsize=10)
+
+    fig.tight_layout()
+    cd_img_path = os.path.join(
+        base_dir, seq_name, "{}_{}.{}".format(seq_name, key_dict[dist], fmt)
+    )
     plt.savefig(cd_img_path, dpi=300)  # png, pdf
 
     plt.close()
@@ -361,7 +464,7 @@ def save_path_img(qolo_pose2d, path_eval_dict, base_dir, seq_name):
     )
 
     goal_circle = mpatches.Circle(
-        tuple(goal_loc), 3, color='skyblue', fill=True, label="Goal area"
+        tuple(goal_loc), 3, color='navy', fill=True, label="Goal area"
     )
     ax.add_patch(goal_circle)
 

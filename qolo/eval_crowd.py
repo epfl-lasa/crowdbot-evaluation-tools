@@ -35,7 +35,8 @@ from qolo.core.crowdbot_data import (
     CrowdbotExpParam,
     CROWDBOT_EVAL_TOOLKIT_DIR,
 )
-from qolo.utils.res_plot_util import save_cd_img, save_md_img
+from qolo.utils.notebook_util import values2color_list
+from qolo.utils.res_plot_util import save_cd_img, save_md_img, save_cd_img_single
 from qolo.metrics.metric_crowd import compute_crowd_metrics, compute_norm_prox
 
 # cross-zero checking: https://stackoverflow.com/a/29674950/7961693
@@ -57,7 +58,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="nocam_rosbags",
+        default="0424_shared_control",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -135,7 +136,7 @@ if __name__ == "__main__":
         qolo_pose2d = np.load(qolo_pose2d_path, allow_pickle=True).item()
 
         # load _path_eval.npy
-        path_eval_filepath = os.path.join(eval_res_dir, seq + "_path_eval.npy")
+        path_eval_filepath = os.path.join(eval_res_dir, seq, seq + "_path_eval.npy")
         if not os.path.exists(path_eval_filepath):
             print("ERROR: Please extract twist_stamped by using eval_qolo_path.py")
         path_eval_dict = np.load(path_eval_filepath, allow_pickle=True).item()
@@ -165,7 +166,35 @@ if __name__ == "__main__":
             np.save(crowd_eval_npy, crowd_eval_dict)
 
             # figure1: crowd density
-            save_cd_img(crowd_eval_dict, path_eval_dict, eval_res_dir, seq)
+            _, color_unique = values2color_list(
+                [0, 1, 2],
+                cmap_name='hot',
+                given_values=[0.2, 0.55, 0.66],
+                reverse=False,
+            )
+
+            save_cd_img(
+                crowd_eval_dict,
+                path_eval_dict,
+                eval_res_dir,
+                seq,
+                fmt='pdf',
+                add_title=False,
+                use_serif=True,
+                color_list=color_unique,
+                color_vertical='navy',
+            )
+            # with single plots
+            # save_cd_img_single(
+            #     crowd_eval_dict,
+            #     path_eval_dict,
+            #     eval_res_dir,
+            #     seq,
+            #     dist=2.5,
+            #     fmt='pdf',
+            #     linecolor="navy",
+            #     use_serif=True,
+            # )
 
             # figure2: min. dist.
             save_md_img(crowd_eval_dict, path_eval_dict, eval_res_dir, seq)

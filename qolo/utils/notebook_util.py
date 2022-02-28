@@ -30,11 +30,16 @@ import seaborn as sns
 from qolo.core.crowdbot_data import CrowdBotDatabase
 
 
-def values2color_list(value_list, cmap_name='hot', range=(0.1, 0.9), reverse=True):
+def values2color_list(
+    value_list, cmap_name='hot', range=(0.1, 0.9), reverse=True, given_values=None
+):
     value_unique = np.unique(value_list)
     value_len = len(value_unique)
     cmap = matplotlib.cm.get_cmap(cmap_name)
-    value_normalized = np.linspace(range[0], range[1], num=value_len)
+    if given_values is not None:
+        value_normalized = given_values
+    else:
+        value_normalized = np.linspace(range[0], range[1], num=value_len)
     if reverse:
         value_normalized = np.flip(value_normalized)
     color_unique = []
