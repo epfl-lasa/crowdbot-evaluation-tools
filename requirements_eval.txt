@@ -1,18 +1,19 @@
 # Requirement
+tqdm
+multiprocessing
+## data analysis
 numpy
 pandas
 matplotlib
+seaborn
 scipy==1.7.2
 numba==0.53.1
 jupyter
-seaborn
-scipy
 ## quaternion calculation
-#numpy-quaternion
+numpy-quaternion
 ## image generation
-#opencv-python==3.4.8.29
-#opencv-python
-#open3d==0.13.0
+opencv-python==3.4.8.29
+open3d==0.13.0
 ## rosbag dependency
 rospkg
 pycryptodomex
@@ -20,6 +21,3 @@ python-gnupg
 ## video & gif generation
 ez_setup
 moviepy>=1.0.1
-## misc.
-tqdm
-multiprocessing

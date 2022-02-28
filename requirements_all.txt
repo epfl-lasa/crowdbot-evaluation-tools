@@ -1,7 +1,11 @@
 # Requirement
+tqdm
+multiprocessing
+## data analysis
 numpy
 pandas
 matplotlib
+seaborn
 scipy==1.7.2
 numba==0.53.1
 jupyter
@@ -23,6 +27,4 @@ python-gnupg
 ## video & gif generation
 ez_setup
 moviepy>=1.0.1
-## misc.
-tqdm
-multiprocessing
+
