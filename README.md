@@ -10,8 +10,10 @@
 - [`docs/`](./docs/): documentation
 - [`qolo/`](./qolo/): codespace for crowdbot evaluation
 - [`notebook/`](./notebook/): example notebooks for demo
-  - **[intro to dataset](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/intro_to_dataset.ipynb)**
-  - **[comprehensive evaluation](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/comprehensive_eval_ver3.ipynb)**
+  - **[intro_to_dataset.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/intro_to_dataset.ipynb)**
+  - **[controller_comparison_analysis.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/controller_comparison_analysis.ipynb)**
+  - **[shared_control_crowd_density_cluster_analysis.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/shared_control_crowd_density_cluster_analysis.ipynb)**
+  - **[comprehensive_eval.ipynb](https://github.com/epfl-lasa/crowdbot-evaluation-tools/blob/main/notebooks/comprehensive_eval.ipynb)**
 - [`sh_scripts/`](./sh_scripts/): shell scripts to execute pipelines for extracting source data, applying algorithms, and evaluating with different metrics
 - [`crowdbot_tools_archive/`](./crowdbot_tools_archive/): archive of https://github.com/danjia21/crowdbot_tools
 
@@ -39,7 +41,7 @@
 
 _Crowd navigation DATASET:_
 
-Paez-Granados D., Hen Y., Gonon D., Huber L., & Billard A., (2021), “3D point cloud and RGBD of pedestrians in robot crowd navigation: detection and tracking.”, Dec. 2021. IEEE Dataport, doi: https://dx.doi.org/10.21227/ak77-d722.
+Paez-Granados D., He Y., Gonon D., Huber L., & Billard A., (2021), “3D point cloud and RGBD of pedestrians in robot crowd navigation: detection and tracking.”, Dec. 2021. IEEE Dataport, doi: https://dx.doi.org/10.21227/ak77-d722.
 
 _Qolo Robot:_
 
