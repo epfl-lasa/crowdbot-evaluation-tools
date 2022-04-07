@@ -35,6 +35,9 @@ from qolo.utils.file_io_util import (
     load_json2dict,
     load_pkl2dict,
 )
+from qolo.utils.geo_util import yaw2quat
+
+
 # TODO: Exception has occurred: ModuleNotFoundError No module named
 curr_dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(curr_dir_path, 'external/trajectory_smoothing/'))
@@ -221,8 +224,8 @@ if __name__ == "__main__":
             # traj_viz_debug(sx, sy, sz, prefix='smoothed')
 
             # the first 2 column in 'lin_vel' are more important
-            lin_vel = np.gradient(xyz, frame_ts[start_idx : end_idx + 1], axis=0)
-            # lin_vel = np.gradient(filtered_xyz, frame_ts[start_idx : end_idx + 1], axis=0)
+            # lin_vel = np.gradient(xyz, frame_ts[start_idx : end_idx + 1], axis=0)
+            lin_vel = np.gradient(filtered_xyz, frame_ts[start_idx : end_idx + 1], axis=0)
 
             # method1: calculate from quat (has large errors!)
             # quat_xyzw = np.array(traj_dict[id]['abs_quat_list'])
@@ -234,13 +237,21 @@ if __name__ == "__main__":
 
             # method2: calculate from dy/dx
             # vel_theta = np.tan(lin_vel[:,1]/lin_vel[:,0])
+            #  * 180 / np.pi -> degree
+            vel_theta = np.arctan2(lin_vel[:,1], lin_vel[:,0])
+            vel_quat_xyzw = np.array([yaw2quat(theta) for theta in vel_theta])
+            vel_quat_wxyz = vel_quat_xyzw[:, [3, 0, 1, 2]]
+            vel_quat_wxyz_ = Q.as_quat_array(vel_quat_wxyz)
+            ang_vel = qseries.angular_velocity(
+                vel_quat_wxyz_, frame_ts[start_idx : end_idx + 1]
+            )
 
             ped_vel_dict = {
                 "start_idx": start_idx,
-                "end_idx": start_idx,
+                "end_idx": end_idx,
                 "length": traj_dict[id]['length'],
                 "lin_vel": lin_vel.tolist(),
-                # "ang_vel": ang_vel.tolist(),
+                "ang_vel": ang_vel.tolist(),
             }
             peds_vel_dict.update({int(id): ped_vel_dict})  # int64 -> int
 

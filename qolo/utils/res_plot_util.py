@@ -598,7 +598,6 @@ def viz_qolo_ped_traj_frame(
 
 def viz_ped_speed(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
     """pedestrian motion (velocity) plot function"""
-    # print("To be implemented")
     fig, ax = plt.subplots(2, 1, figsize=(8, 10))
 
     for ii, ped_id in enumerate(viz_ids):
@@ -629,6 +628,48 @@ def viz_ped_speed(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
     ax[1].set_title("Pedestrian Velocities (y)")
     ax[1].set_xlabel("Frame")
     ax[1].set_ylabel("Speed")
+
+    fig.tight_layout()
+    plt.savefig(ped_vel_img_path, dpi=300)  # png, pdf
+
+    plt.close()
+
+def viz_ped_speed_vw(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
+    """pedestrian motion (velocity) plot function"""
+    fig, ax = plt.subplots(2, 1, figsize=(8, 10))
+
+    for ii, ped_id in enumerate(viz_ids):
+        lin_vel = np.array(ped_vel_dict[ped_id]['lin_vel'])
+        ang_vel = np.array(ped_vel_dict[ped_id]['ang_vel'])
+        # vv = np.linalg.norm(lin_vel[:,:2])
+        vv = np.sqrt(lin_vel[:,0]**2 + lin_vel[:,1]**2)
+        ww = ang_vel[:,2]
+        start_idx = ped_vel_dict[ped_id]['start_idx']
+        end_idx = ped_vel_dict[ped_id]['end_idx']
+        color = color_list[ii]
+
+        ax[0].plot(
+            vv,
+            color,
+            linewidth=1,
+            label="Ped {} ({}-{})".format(ped_id, start_idx, end_idx),
+        )
+        ax[1].plot(
+            ww,
+            color,
+            linewidth=1,
+            label="Ped {} ({}-{})".format(ped_id, start_idx, end_idx),
+        )
+
+    ax[0].legend(fontsize="x-small", loc='upper right')
+    ax[0].set_title("Pedestrian Velocities (x)")
+    ax[0].set_xlabel("Frame")
+    ax[0].set_ylabel("Translational Speed")
+
+    ax[1].legend(fontsize="x-small", loc='upper right')
+    ax[1].set_title("Pedestrian Velocities (y)")
+    ax[1].set_xlabel("Frame")
+    ax[1].set_ylabel("Angular Speed")
 
     fig.tight_layout()
     plt.savefig(ped_vel_img_path, dpi=300)  # png, pdf

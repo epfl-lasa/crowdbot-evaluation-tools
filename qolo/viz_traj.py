@@ -40,6 +40,7 @@ from qolo.utils.res_plot_util import (
     viz_qolo_ped_traj_frame,
     get_nlongest_peds,
     viz_ped_speed,
+    viz_ped_speed_vw,
 )
 
 color_list = ['navy', 'blue', 'slateblue', 'violet', 'skyblue']
@@ -102,7 +103,7 @@ def main():
 
         path_img_path = os.path.join(eval_res_dir, seq, seq + "_traj.png")
         proc_path_img_path = os.path.join(eval_res_dir, seq, seq + "_traj_proc.png")
-        ped_vel_img_path = os.path.join(eval_res_dir, seq, seq + "_ped_vel.png")
+
         # path_img_path = os.path.join(eval_res_dir, seq, seq + "_{}_traj.png".format(frame_id))
         plot_exist = os.path.exists(path_img_path)
         if plot_exist and not args.overwrite:
@@ -158,8 +159,18 @@ def main():
             color_list=color_list,
         )
 
+        ped_vel_img_path1 = os.path.join(eval_res_dir, seq, seq + "_ped_vel.png")
+        ped_vel_img_path2 = os.path.join(eval_res_dir, seq, seq + "_ped_vw.png")
+
         viz_ped_speed(
-            ped_vel_img_path,
+            ped_vel_img_path1,
+            ped_vel_dict,
+            viz_ids=top_ids,
+            color_list=color_list,
+        )
+
+        viz_ped_speed_vw(
+            ped_vel_img_path2,
             ped_vel_dict,
             viz_ids=top_ids,
             color_list=color_list,
