@@ -5,6 +5,7 @@ archive
 library
 model
 tmp
+.vscode
 
 # generated files
 *.pyc

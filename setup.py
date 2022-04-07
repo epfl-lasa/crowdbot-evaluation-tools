@@ -15,6 +15,7 @@ setup(
         'qolo.utils',
         'qolo.metrics',
         'qolo.external',
+        'qolo.external.trajectory_smoothing',
         'qolo.test',
     ],
 )

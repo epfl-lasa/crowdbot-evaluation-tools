@@ -25,7 +25,9 @@ import argparse
 import numpy as np
 import pandas as pd
 import tqdm
+from timeit import default_timer as timer
 
+from scipy.signal import butter, filtfilt
 from scipy.spatial.transform import Rotation as R
 import quaternion as Q
 import quaternion.quaternion_time_series as qseries
@@ -37,6 +39,62 @@ from qolo.utils.file_io_util import (
     load_json2dict,
     load_pkl2dict,
 )
+# TODO: Exception has occurred: ModuleNotFoundError No module named
+curr_dir_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(curr_dir_path, 'external/trajectory_smoothing/'))
+from smooth_traj import smooth_traj
+
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = filtfilt(b, a, data)
+    return y
+
+def traj_filtering(x_raw, y_raw,z_raw, cutoff=1.5):
+
+    start = timer()
+    order = 6
+    fs = 20.0       # sample rate, Hz (pedestrian is about 20 Hz)
+	# desired cutoff frequency of the filter, Hz
+    # points = []
+    x_filtered = butter_lowpass_filter(x_raw, cutoff, fs, order)
+    y_filtered = butter_lowpass_filter(y_raw, cutoff, fs, order)
+    z_filtered = butter_lowpass_filter(z_raw, cutoff, fs, order)
+
+    end = timer()
+    time_elapsed = end - start
+    print("Time Elapsed for Filtering: %.4f seconds." %time_elapsed)
+
+    return x_filtered, y_filtered, z_filtered
+
+def traj_viz_debug(xline, yline, zline, prefix='original'):
+    import matplotlib.pyplot as plt
+    ax = plt.axes(projection='3d')
+
+    # Data for a three-dimensional line
+    # zline = np.linspace(0, 15, 1000)
+    # xline = np.sin(zline)
+    # yline = np.cos(zline)
+    ax.plot3D(xline, yline, zline, 'gray')
+
+    # Data for three-dimensional scattered points
+    # zdata = 15 * np.random.random(100)
+    # xdata = np.sin(zdata) + 0.1 * np.random.randn(100)
+    # ydata = np.cos(zdata) + 0.1 * np.random.randn(100)
+    path_color = [np.sqrt(
+        (xline[i]-xline[0])**2 + (yline[i]-yline[0])**2
+        ) for i in range(len(xline))]
+    ax.scatter3D(xline, yline, zline, c=path_color, cmap='Greens');
+    # plt.show()
+    ax.view_init(80, 35)
+    plt.savefig(prefix+"_traj.png")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -139,10 +197,29 @@ if __name__ == "__main__":
             start_idx = traj_dict[id]['start_idx']
             end_idx = traj_dict[id]['end_idx']
 
-            # linear
+            # position (lvie_frames, 3)
             xyz = np.array(traj_dict[id]['abs_pose_list'])
+            xx = xyz[:,0]
+            yy = xyz[:,1]
+            zz = xyz[:,2]
+            tt = frame_ts[start_idx : end_idx + 1]
+            # traj_viz_debug(xx, yy, zz)
+
+            # 0.0027 seconds for ~450 frames
+            fx, fy, fz = traj_filtering(xx,yy,zz,cutoff=3)
+            # traj_viz_debug(fx, fy, fz, prefix='filtered')
+            filtered_xyz = np.vstack((fx, fy, fz)).T
+
+            # case 0-Bezier curves: tool two long time!
+            # case 1-Spline-curves: 31.1879 seconds for ~450 frames
+            # case 2-cannot config correctly
+            # case 3/4/5-cannot smooth correctly!
+            # TODO: need to accelerate Spline smoothing speed!!!
+            # sx, sy, sz = smooth_traj(xx,yy,zz,tt,case=3)
+            # traj_viz_debug(sx, sy, sz, prefix='smoothed')
+
             # the first 2 column in 'lin_vel' are more important
-            lin_vel = np.gradient(xyz, frame_ts[start_idx : end_idx + 1], axis=0)
+            lin_vel = np.gradient(filtered_xyz, frame_ts[start_idx : end_idx + 1], axis=0)
 
             # method1: calculate from quat (has large errors!)
             # quat_xyzw = np.array(traj_dict[id]['abs_quat_list'])
