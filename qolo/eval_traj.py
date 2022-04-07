@@ -11,20 +11,16 @@
 # =============================================================================
 """
 The module provides pipeline to evaluate pededtrian performance
-"""
-# =============================================================================
-"""
-TODO:
-1. consider angular when tracking: https://github.com/eddyhkchiu/mahalanobis_3d_multi_object_tracking/blob/master/main.py
+python qolo/eval_traj.py -f 0410_mds --all --overwrite
 """
 # =============================================================================
 
 import os
 import sys
+import copy
 import argparse
 import numpy as np
 import pandas as pd
-import tqdm
 from timeit import default_timer as timer
 
 from scipy.signal import butter, filtfilt
@@ -42,6 +38,7 @@ from qolo.utils.file_io_util import (
 # TODO: Exception has occurred: ModuleNotFoundError No module named
 curr_dir_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(curr_dir_path, 'external/trajectory_smoothing/'))
+# advanced smoothing algorithm
 from smooth_traj import smooth_traj
 
 
@@ -57,9 +54,10 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     y = filtfilt(b, a, data)
     return y
 
-def traj_filtering(x_raw, y_raw,z_raw, cutoff=1.5):
+def traj_filtering(x_raw, y_raw,z_raw, cutoff=2, print_time=False):
 
-    start = timer()
+    if print_time:
+        start = timer()
     order = 6
     fs = 20.0       # sample rate, Hz (pedestrian is about 20 Hz)
 	# desired cutoff frequency of the filter, Hz
@@ -68,9 +66,10 @@ def traj_filtering(x_raw, y_raw,z_raw, cutoff=1.5):
     y_filtered = butter_lowpass_filter(y_raw, cutoff, fs, order)
     z_filtered = butter_lowpass_filter(z_raw, cutoff, fs, order)
 
-    end = timer()
-    time_elapsed = end - start
-    print("Time Elapsed for Filtering: %.4f seconds." %time_elapsed)
+    if print_time:
+        end = timer()
+        time_elapsed = end - start
+        print("Time Elapsed for Filtering: %.4f seconds." %time_elapsed)
 
     return x_filtered, y_filtered, z_filtered
 
@@ -150,8 +149,10 @@ if __name__ == "__main__":
             sys.exit("Please use det2traj.py to extract pedestrian trajectories first!")
         traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
         traj_json_path = os.path.join(traj_dir, seq + '.json')
+        proc_traj_pkl_path = os.path.join(traj_dir, seq + '_proc.pkl')
 
         traj_dict = load_pkl2dict(traj_pkl_path)
+        proc_traj_dict = copy.deepcopy(traj_dict)
         # key: id
         # dict -> key: start_idx, rel_pose_list, abs_pose_list, length, end_idx
         traj_data = pd.DataFrame.from_dict(
@@ -206,9 +207,10 @@ if __name__ == "__main__":
             # traj_viz_debug(xx, yy, zz)
 
             # 0.0027 seconds for ~450 frames
-            fx, fy, fz = traj_filtering(xx,yy,zz,cutoff=3)
+            fx, fy, fz = traj_filtering(xx,yy,zz,cutoff=2)
             # traj_viz_debug(fx, fy, fz, prefix='filtered')
             filtered_xyz = np.vstack((fx, fy, fz)).T
+            proc_traj_dict[id]['abs_pose_list'] = filtered_xyz.tolist()
 
             # case 0-Bezier curves: tool two long time!
             # case 1-Spline-curves: 31.1879 seconds for ~450 frames
@@ -219,7 +221,8 @@ if __name__ == "__main__":
             # traj_viz_debug(sx, sy, sz, prefix='smoothed')
 
             # the first 2 column in 'lin_vel' are more important
-            lin_vel = np.gradient(filtered_xyz, frame_ts[start_idx : end_idx + 1], axis=0)
+            lin_vel = np.gradient(xyz, frame_ts[start_idx : end_idx + 1], axis=0)
+            # lin_vel = np.gradient(filtered_xyz, frame_ts[start_idx : end_idx + 1], axis=0)
 
             # method1: calculate from quat (has large errors!)
             # quat_xyzw = np.array(traj_dict[id]['abs_quat_list'])
@@ -243,3 +246,5 @@ if __name__ == "__main__":
 
         save_dict2pkl(peds_vel_dict, vel_pkl_path)
         save_dict2json(peds_vel_dict, vel_json_path)
+
+        save_dict2pkl(proc_traj_dict, proc_traj_pkl_path)

@@ -12,6 +12,7 @@
 """
 The module provides script to visualize the robot trajectory and the longest k
 (default:3) trajectories of the pedestrians around Qolo robot.
+Example: python qolo/viz_traj.py -f 0410_mds --all --overwrite
 """
 # =============================================================================
 """
@@ -34,7 +35,12 @@ from qolo.utils.file_io_util import (
     load_json2dict,
     load_pkl2dict,
 )
-from qolo.utils.res_plot_util import viz_qolo_ped_traj_full, viz_qolo_ped_traj_frame
+from qolo.utils.res_plot_util import (
+    viz_qolo_ped_traj_full,
+    viz_qolo_ped_traj_frame,
+    get_nlongest_peds,
+    viz_ped_speed,
+)
 
 color_list = ['navy', 'blue', 'slateblue', 'violet', 'skyblue']
 
@@ -47,13 +53,13 @@ def main():
     parser.add_argument(
         "-f",
         "--folder",
-        default="0410_rds",
+        default="0410_mds",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
     parser.add_argument(
         "--seq",
-        default="2021-04-10-11-11-30",  # 2021-04-10-10-38-36  2021-04-10-10-41-17
+        default="2021-04-10-11-28-10",  # 2021-04-10-10-38-36  2021-04-10-10-41-17
         type=str,
         help="specific sequence in the subfolder",
     )
@@ -70,7 +76,7 @@ def main():
         action="store_true",
         help="Whether to overwrite existing output (default: false)",
     )
-    parser.set_defaults(overwrite=False)
+    parser.set_defaults(overwrite=True)
     args = parser.parse_args()
 
     cb_data = CrowdBotDatabase(args.folder)
@@ -95,6 +101,8 @@ def main():
             os.makedirs(eval_res_dir, exist_ok=True)
 
         path_img_path = os.path.join(eval_res_dir, seq, seq + "_traj.png")
+        proc_path_img_path = os.path.join(eval_res_dir, seq, seq + "_traj_proc.png")
+        ped_vel_img_path = os.path.join(eval_res_dir, seq, seq + "_ped_vel.png")
         # path_img_path = os.path.join(eval_res_dir, seq, seq + "_{}_traj.png".format(frame_id))
         plot_exist = os.path.exists(path_img_path)
         if plot_exist and not args.overwrite:
@@ -106,13 +114,18 @@ def main():
         traj_dir = os.path.join(cb_data.ped_data_dir, "traj")
         if not os.path.exists(traj_dir):
             sys.exit("Please use det2traj.py to extract pedestrian trajectories first!")
-        # traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
-        traj_json_path = os.path.join(traj_dir, seq + '.json')
+        traj_pkl_path = os.path.join(traj_dir, seq + '.pkl')
+        # traj_json_path = os.path.join(traj_dir, seq + '.json')
+        proc_traj_pkl_path = os.path.join(traj_dir, seq + '_proc.pkl')
 
         # src 2: qolo data
         tf_qolo_dir = os.path.join(cb_data.source_data_dir, "tf_qolo")
         pose_stamp_path = os.path.join(tf_qolo_dir, seq + "_tfqolo_sampled.npy")
         pose_stamped = np.load(pose_stamp_path, allow_pickle=True).item()
+
+        # src 3: velocity path
+        vel_dir = os.path.join(cb_data.ped_data_dir, "vel")
+        vel_pkl_path = os.path.join(vel_dir, seq + '.pkl')
 
         trans_array = pose_stamped["position"]
         qolo_pose = {
@@ -121,13 +134,34 @@ def main():
             'init_ori': pose_stamped["orientation"],
         }
 
-        # ped_traj_dict = load_pkl2dict(traj_pkl_path)
-        ped_traj_dict = load_json2dict(traj_json_path)
+        ped_traj_dict = load_pkl2dict(traj_pkl_path)
+        # ped_traj_dict = load_json2dict(traj_json_path)
+        ped_vel_dict = load_pkl2dict(vel_pkl_path)
+
+        top_ids = get_nlongest_peds(ped_traj_dict, ped_num=5)
+
         viz_qolo_ped_traj_full(
             path_img_path,
             qolo_pose,
             ped_traj_dict,
-            ped_num=5,
+            viz_ids=top_ids,
+            color_list=color_list,
+        )
+
+        # visualize processed trajectory
+        proc_ped_traj_dict = load_pkl2dict(proc_traj_pkl_path)
+        viz_qolo_ped_traj_full(
+            proc_path_img_path,
+            qolo_pose,
+            proc_ped_traj_dict,
+            viz_ids=top_ids,
+            color_list=color_list,
+        )
+
+        viz_ped_speed(
+            ped_vel_img_path,
+            ped_vel_dict,
+            viz_ids=top_ids,
             color_list=color_list,
         )
 
