@@ -13,7 +13,7 @@
 The module provides pipeline to deface images extracted from multiple topics
 within rosbags to ensure anonymization. `multiprocessing` package has been used
 to accelerate the speed.
-Example: python deface_images.py -f 1203_manual
+Example: python deface_images.py -f 0424_shared_control
 """
 # =============================================================================
 """

@@ -12,7 +12,7 @@
 """
 The module provides pipeline to filter out image and rgb data in pointcloud from
 rosbags to generate nocam-version rosbags and images with different image topics
-Example: python bag_filter_image.py -f 1203_manual
+Example: python bag_filter_image.py -f 0424_shared_control
 """
 # =============================================================================
 
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="1203_manual",
+        default="0424_shared_control",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -268,7 +268,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing rosbags (default: false)",
     )
-    parser.set_defaults(overwrite=False)
+    parser.set_defaults(overwrite=True)
     parser.add_argument(
         "--verbose",
         dest="verbose",
