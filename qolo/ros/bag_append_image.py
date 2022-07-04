@@ -109,7 +109,7 @@ def create_deface_rosbag(
                     if os.path.exists(deface_img_path):
                         defaced_img = cv2.imread(deface_img_path)
                     else:
-                        sys.exit(f'Please check whether {deface_img_path} exists !!!')
+                        sys.exit('Please check whether {} exists !!!'.format(deface_img_path))
 
                     try:
                         img_msg = bridge.cv2_to_imgmsg(defaced_img, encoding=encoding)
@@ -120,6 +120,15 @@ def create_deface_rosbag(
 
                     except CvBridgeError as e:
                         print(e)
+
+            outbag.close()
+        print('Start reindexing ...')
+        os.system('rosbag reindex {}'.format(outbag_path))
+        orig_outbag_path = os.path.abspath(
+            os.path.join(outbag_dir, 'defaced_{}.orig.bag'.format(bag_name))
+        )
+        print('Delete original bag ...')
+        os.system('rm -rf {}'.format(orig_outbag_path))
         print("Defaced rosbag are created!")
     else:
         # print("Defaced rosbag has already saved in", outbag_path)

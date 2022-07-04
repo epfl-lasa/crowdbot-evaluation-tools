@@ -268,7 +268,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing rosbags (default: false)",
     )
-    parser.set_defaults(overwrite=True)
+    parser.set_defaults(overwrite=False)
     parser.add_argument(
         "--verbose",
         dest="verbose",
