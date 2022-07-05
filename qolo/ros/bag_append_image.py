@@ -114,21 +114,28 @@ def create_deface_rosbag(
                     try:
                         img_msg = bridge.cv2_to_imgmsg(defaced_img, encoding=encoding)
                         # print(defaced_img.shape, stamp_ros)
-                        img_msg.header.stamp = stamp_ros
-                        img_msg.header.seq = msg.header.seq
-                        outbag.write(topic, img_msg, img_msg.header.stamp)
+                        # method1: create a new img_msg
+                        # img_msg.header.stamp = stamp_ros
+                        # img_msg.header.seq = msg.header.seq
+                        # outbag.write(topic, img_msg, img_msg.header.stamp)
+                        # method2: overwrite original one
+                        msg.header.stamp = stamp_ros
+                        msg.data = img_msg.data
+                        outbag.write(topic, msg, msg.header.stamp)
 
                     except CvBridgeError as e:
                         print(e)
 
             outbag.close()
-        print('Start reindexing ...')
-        os.system('rosbag reindex {}'.format(outbag_path))
-        orig_outbag_path = os.path.abspath(
-            os.path.join(outbag_dir, 'defaced_{}.orig.bag'.format(bag_name))
-        )
-        print('Delete original bag ...')
-        os.system('rm -rf {}'.format(orig_outbag_path))
+        # method1 needs reindexing
+        # print('Start reindexing ...')
+        # os.system('rosbag reindex {}'.format(outbag_path))
+        # orig_outbag_path = os.path.abspath(
+        #     os.path.join(outbag_dir, 'defaced_{}.orig.bag'.format(bag_name))
+        # )
+        # print('Delete original bag ...')
+        # os.system('rm -rf {}'.format(orig_outbag_path))
+
         print("Defaced rosbag are created!")
     else:
         # print("Defaced rosbag has already saved in", outbag_path)
@@ -142,7 +149,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f",
         "--folder",
-        default="0424_shared_control",
+        default="0325_shared_control",
         type=str,
         help="different subfolder in rosbag/ dir",
     )
@@ -158,7 +165,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to overwrite existing rosbags (default: false)",
     )
-    parser.set_defaults(overwrite=False)
+    parser.set_defaults(overwrite=True)
     parser.add_argument(
         "--verbose",
         dest="verbose",
