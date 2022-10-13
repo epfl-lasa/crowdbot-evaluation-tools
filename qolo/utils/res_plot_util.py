@@ -563,9 +563,11 @@ def viz_qolo_ped_traj_full(
 
     ax.set_title("Qolo & Pedestrian Trajectories")
     fig.tight_layout()
+    plt.gca().set_aspect('equal', adjustable='box')
     plt.savefig(path_img_path, dpi=300)  # png, pdf
 
     plt.close()
+
 
 def viz_qolo_ped_traj_frame(
     path_img_path, frame_id, qolo_pose, ped_traj_dict, viz_ids, color_list=None
@@ -596,6 +598,7 @@ def viz_qolo_ped_traj_frame(
 
     plt.close()
 
+
 def viz_ped_speed(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
     """pedestrian motion (velocity) plot function"""
     fig, ax = plt.subplots(2, 1, figsize=(8, 10))
@@ -607,13 +610,13 @@ def viz_ped_speed(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
         color = color_list[ii]
 
         ax[0].plot(
-            lin_vel[:,0],
+            lin_vel[:, 0],
             color,
             linewidth=1,
             label="Ped {} ({}-{})".format(ped_id, start_idx, end_idx),
         )
         ax[1].plot(
-            lin_vel[:,1],
+            lin_vel[:, 1],
             color,
             linewidth=1,
             label="Ped {} ({}-{})".format(ped_id, start_idx, end_idx),
@@ -634,6 +637,7 @@ def viz_ped_speed(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
 
     plt.close()
 
+
 def viz_ped_speed_vw(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
     """pedestrian motion (velocity) plot function"""
     fig, ax = plt.subplots(2, 1, figsize=(8, 10))
@@ -642,8 +646,8 @@ def viz_ped_speed_vw(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
         lin_vel = np.array(ped_vel_dict[ped_id]['lin_vel'])
         ang_vel = np.array(ped_vel_dict[ped_id]['ang_vel'])
         # vv = np.linalg.norm(lin_vel[:,:2])
-        vv = np.sqrt(lin_vel[:,0]**2 + lin_vel[:,1]**2)
-        ww = ang_vel[:,2]
+        vv = np.sqrt(lin_vel[:, 0] ** 2 + lin_vel[:, 1] ** 2)
+        ww = ang_vel[:, 2]
         start_idx = ped_vel_dict[ped_id]['start_idx']
         end_idx = ped_vel_dict[ped_id]['end_idx']
         color = color_list[ii]
@@ -675,4 +679,3 @@ def viz_ped_speed_vw(ped_vel_img_path, ped_vel_dict, viz_ids, color_list=None):
     plt.savefig(ped_vel_img_path, dpi=300)  # png, pdf
 
     plt.close()
-

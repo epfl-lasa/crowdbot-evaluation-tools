@@ -57,27 +57,30 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     y = filtfilt(b, a, data)
     return y
 
-def traj_filtering(x_raw, y_raw,z_raw, cutoff=2, print_time=False):
+
+def traj_filtering(x_raw, y_raw, z_raw, cutoff=2, sample_rate=20.0, print_time=False):
 
     if print_time:
         start = timer()
     order = 6
-    fs = 20.0       # sample rate, Hz (pedestrian is about 20 Hz)
-	# desired cutoff frequency of the filter, Hz
+    sample_rate = 20.0  # sample rate, Hz (pedestrian is about 20 Hz)
+    # desired cutoff frequency of the filter, Hz
     # points = []
-    x_filtered = butter_lowpass_filter(x_raw, cutoff, fs, order)
-    y_filtered = butter_lowpass_filter(y_raw, cutoff, fs, order)
-    z_filtered = butter_lowpass_filter(z_raw, cutoff, fs, order)
+    x_filtered = butter_lowpass_filter(x_raw, cutoff, sample_rate, order)
+    y_filtered = butter_lowpass_filter(y_raw, cutoff, sample_rate, order)
+    z_filtered = butter_lowpass_filter(z_raw, cutoff, sample_rate, order)
 
     if print_time:
         end = timer()
         time_elapsed = end - start
-        print("Time Elapsed for Filtering: %.4f seconds." %time_elapsed)
+        print("Time Elapsed for Filtering: %.4f seconds." % time_elapsed)
 
     return x_filtered, y_filtered, z_filtered
 
+
 def traj_viz_debug(xline, yline, zline, prefix='original'):
     import matplotlib.pyplot as plt
+
     ax = plt.axes(projection='3d')
 
     # Data for a three-dimensional line
@@ -90,13 +93,15 @@ def traj_viz_debug(xline, yline, zline, prefix='original'):
     # zdata = 15 * np.random.random(100)
     # xdata = np.sin(zdata) + 0.1 * np.random.randn(100)
     # ydata = np.cos(zdata) + 0.1 * np.random.randn(100)
-    path_color = [np.sqrt(
-        (xline[i]-xline[0])**2 + (yline[i]-yline[0])**2
-        ) for i in range(len(xline))]
-    ax.scatter3D(xline, yline, zline, c=path_color, cmap='Greens');
+    path_color = [
+        np.sqrt((xline[i] - xline[0]) ** 2 + (yline[i] - yline[0]) ** 2)
+        for i in range(len(xline))
+    ]
+    ax.scatter3D(xline, yline, zline, c=path_color, cmap='Greens')
     # plt.show()
     ax.view_init(80, 35)
-    plt.savefig(prefix+"_traj.png")
+    plt.savefig(prefix + "_traj.png")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -203,14 +208,14 @@ if __name__ == "__main__":
 
             # position (lvie_frames, 3)
             xyz = np.array(traj_dict[id]['abs_pose_list'])
-            xx = xyz[:,0]
-            yy = xyz[:,1]
-            zz = xyz[:,2]
+            xx = xyz[:, 0]
+            yy = xyz[:, 1]
+            zz = xyz[:, 2]
             tt = frame_ts[start_idx : end_idx + 1]
             # traj_viz_debug(xx, yy, zz)
 
             # 0.0027 seconds for ~450 frames
-            fx, fy, fz = traj_filtering(xx,yy,zz,cutoff=2)
+            fx, fy, fz = traj_filtering(xx, yy, zz, cutoff=1)
             # traj_viz_debug(fx, fy, fz, prefix='filtered')
             filtered_xyz = np.vstack((fx, fy, fz)).T
             proc_traj_dict[id]['abs_pose_list'] = filtered_xyz.tolist()
@@ -225,7 +230,9 @@ if __name__ == "__main__":
 
             # the first 2 column in 'lin_vel' are more important
             # lin_vel = np.gradient(xyz, frame_ts[start_idx : end_idx + 1], axis=0)
-            lin_vel = np.gradient(filtered_xyz, frame_ts[start_idx : end_idx + 1], axis=0)
+            lin_vel = np.gradient(
+                filtered_xyz, frame_ts[start_idx : end_idx + 1], axis=0
+            )
 
             # method1: calculate from quat (has large errors!)
             # quat_xyzw = np.array(traj_dict[id]['abs_quat_list'])
@@ -238,7 +245,7 @@ if __name__ == "__main__":
             # method2: calculate from dy/dx
             # vel_theta = np.tan(lin_vel[:,1]/lin_vel[:,0])
             #  * 180 / np.pi -> degree
-            vel_theta = np.arctan2(lin_vel[:,1], lin_vel[:,0])
+            vel_theta = np.arctan2(lin_vel[:, 1], lin_vel[:, 0])
             vel_quat_xyzw = np.array([yaw2quat(theta) for theta in vel_theta])
             vel_quat_wxyz = vel_quat_xyzw[:, [3, 0, 1, 2]]
             vel_quat_wxyz_ = Q.as_quat_array(vel_quat_wxyz)
@@ -257,5 +264,4 @@ if __name__ == "__main__":
 
         save_dict2pkl(peds_vel_dict, vel_pkl_path)
         save_dict2json(peds_vel_dict, vel_json_path)
-
         save_dict2pkl(proc_traj_dict, proc_traj_pkl_path)
